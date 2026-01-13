@@ -15,7 +15,9 @@ describe('Action', () => {
     beforeEach(() => {
         chrome.reset();
         // Clear any registered handlers between tests
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Action as any).handlers.clear();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Action as any).contexts.clear();
     });
 
@@ -101,11 +103,8 @@ describe('Action', () => {
         it('should pass context to handler', async () => {
             const context = {count: 0};
             const handler = vi.fn(
-                async (
-                    payload: {value: number},
-                    _sender: any,
-                    ctx: {count: number},
-                ) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                async (payload: {value: number}, _sender: any, ctx: {count: number}) => {
                     ctx.count += payload.value;
                     return {result: ctx.count};
                 },
@@ -132,6 +131,7 @@ describe('Action', () => {
 
     describe('send', () => {
         it('should send message via chrome.runtime.sendMessage', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
             chrome.runtime.sendMessage.yields({success: true, data: {result: 10}});
 
@@ -153,10 +153,12 @@ describe('Action', () => {
 
             await expect(TestAction.send({value: 5})).rejects.toThrow('Connection error');
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
         });
 
         it('should reject on action error response', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
             chrome.runtime.sendMessage.yields({success: false, error: 'Action failed'});
 
@@ -166,6 +168,7 @@ describe('Action', () => {
 
     describe('sendToActiveTab', () => {
         it('should query active tab and send message', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
             chrome.tabs.query.resolves([{id: 123}]);
             chrome.tabs.sendMessage.yields({success: true, data: true});
@@ -191,6 +194,7 @@ describe('Action', () => {
 
     describe('sendToTab', () => {
         it('should send message to specific tab', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
             chrome.tabs.sendMessage.yields({success: true, data: true});
 
@@ -214,6 +218,7 @@ describe('Action', () => {
                 'Tab not found',
             );
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
         });
     });

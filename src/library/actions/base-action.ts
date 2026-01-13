@@ -1,7 +1,9 @@
 export abstract class Action<_TPayload, _TResult> {
     abstract readonly type: string;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static handlers = new Map<string, ActionHandler<any, any, any>>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static contexts = new Map<string, any>();
 
     /**
@@ -45,6 +47,7 @@ export abstract class Action<_TPayload, _TResult> {
      * Set context for this action's handler
      */
     static setContext<TContext>(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this: new () => Action<any, any>,
         context: TContext,
     ): void {

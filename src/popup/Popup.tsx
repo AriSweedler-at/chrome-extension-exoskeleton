@@ -28,8 +28,8 @@ export function Popup() {
             })) as {count: number};
             setCount(result.count);
             setError(null);
-        } catch (err: any) {
-            setError(err.message || 'Failed to increment');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to increment');
         }
     };
 
