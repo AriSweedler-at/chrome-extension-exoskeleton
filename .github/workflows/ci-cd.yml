@@ -1,0 +1,101 @@
+name: CI/CD
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run linter
+              run: npm run lint
+
+            - name: Run tests
+              run: npm run test:coverage
+
+            - name: Upload coverage
+              uses: codecov/codecov-action@v3
+              with:
+                  files: ./coverage/coverage-final.json
+
+    build:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build extension
+              run: npm run build
+
+            - name: Create ZIP
+              run: cd dist && zip -r ../extension.zip . && cd ..
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: extension-build
+                  path: extension.zip
+
+    release:
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.ref == 'refs/heads/main'
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - name: Check version bump
+              id: version_check
+              run: |
+                  CURRENT_VERSION=$(jq -r .version manifest.json)
+                  git checkout HEAD~1
+                  PREVIOUS_VERSION=$(jq -r .version manifest.json)
+                  git checkout -
+
+                  if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+                    echo "version_changed=true" >> $GITHUB_OUTPUT
+                    echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+                  else
+                    echo "version_changed=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Download build artifact
+              if: steps.version_check.outputs.version_changed == 'true'
+              uses: actions/download-artifact@v4
+              with:
+                  name: extension-build
+
+            - name: Create Release
+              if: steps.version_check.outputs.version_changed == 'true'
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: v${{ steps.version_check.outputs.version }}
+                  name: Release v${{ steps.version_check.outputs.version }}
+                  files: extension.zip
+                  generate_release_notes: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
