@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Chrome Extension Starter",
+    "version": "0.1.0",
+    "description": "TypeScript Chrome extension starter with reusable library",
+    "action": {
+        "default_popup": "src/popup/index.html"
+    },
+    "background": {
+        "service_worker": "src/background/index.ts",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["src/content/index.ts"]
+        }
+    ],
+    "commands": {
+        "increment-counter": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+I",
+                "mac": "Command+Shift+I"
+            },
+            "description": "Increment page action counter"
+        }
+    },
+    "permissions": ["activeTab", "storage", "tabs"],
+    "host_permissions": ["<all_urls>"]
+}
