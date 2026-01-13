@@ -6,6 +6,7 @@ describe('Notifications', () => {
 
     beforeEach(() => {
         // Reset Notifications container
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Notifications as any).container = null;
 
         // Create a container for notifications
@@ -19,6 +20,7 @@ describe('Notifications', () => {
         if (container.parentNode) {
             container.parentNode.removeChild(container);
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Notifications as any).container = null;
         vi.clearAllTimers();
     });

@@ -13,6 +13,7 @@ export class Storage {
     /**
      * Set a value in chrome.storage.local
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     static async set(key: string, value: any): Promise<void> {
         return new Promise((resolve) => {
             chrome.storage.local.set({[key]: value}, () => {

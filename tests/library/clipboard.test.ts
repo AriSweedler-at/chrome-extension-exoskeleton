@@ -6,6 +6,7 @@ describe('Clipboard', () => {
         // Mock ClipboardItem
         global.ClipboardItem = class ClipboardItem {
             constructor(public data: Record<string, Blob>) {}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
 
         // Mock navigator.clipboard
@@ -19,6 +20,7 @@ describe('Clipboard', () => {
 
     describe('write', () => {
         it('should write text to clipboard', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigator.clipboard.writeText as any).mockResolvedValue(undefined);
 
             await Clipboard.write('Hello World');
@@ -28,6 +30,7 @@ describe('Clipboard', () => {
 
         it('should write both text and HTML to clipboard', async () => {
             const clipboardItems: ClipboardItem[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigator.clipboard.write as any).mockImplementation((items: ClipboardItem[]) => {
                 clipboardItems.push(...items);
                 return Promise.resolve();
@@ -40,6 +43,7 @@ describe('Clipboard', () => {
         });
 
         it('should reject if clipboard API fails', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigator.clipboard.writeText as any).mockRejectedValue(
                 new Error('Clipboard access denied'),
             );
