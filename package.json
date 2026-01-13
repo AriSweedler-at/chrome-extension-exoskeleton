@@ -1,7 +1,7 @@
 {
-    "name": "chrome-extension-starter",
-    "version": "0.1.0",
-    "description": "TypeScript Chrome extension starter with reusable library, testing, and CI/CD",
+    "name": "aris-chrome-exoskeleton",
+    "version": "0.2.0",
+    "description": "Ari's Chrome exoskeleton with reusable library, testing, and CI/CD",
     "type": "module",
     "scripts": {
         "dev": "vite",
