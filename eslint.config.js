@@ -8,6 +8,9 @@ import prettier from 'eslint-config-prettier';
 export default [
     js.configs.recommended,
     {
+        ignores: ['dist/**', 'node_modules/**', '*.config.js', '*.config.ts'],
+    },
+    {
         files: ['**/*.{ts,tsx}'],
         languageOptions: {
             parser: tsParser,
@@ -15,6 +18,23 @@ export default [
                 ecmaVersion: 2020,
                 sourceType: 'module',
                 ecmaFeatures: {jsx: true},
+            },
+            globals: {
+                chrome: 'readonly',
+                browser: 'readonly',
+                document: 'readonly',
+                window: 'readonly',
+                console: 'readonly',
+                setTimeout: 'readonly',
+                clearTimeout: 'readonly',
+                setInterval: 'readonly',
+                clearInterval: 'readonly',
+                navigator: 'readonly',
+                fetch: 'readonly',
+                Blob: 'readonly',
+                ClipboardItem: 'readonly',
+                HTMLElement: 'readonly',
+                global: 'readonly',
             },
         },
         plugins: {
@@ -27,7 +47,10 @@ export default [
             ...react.configs.recommended.rules,
             ...reactHooks.configs.recommended.rules,
             '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-unused-vars': ['error', {argsIgnorePattern: '^_'}],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {argsIgnorePattern: '^_', varsIgnorePattern: '^_'},
+            ],
             'react/react-in-jsx-scope': 'off',
         },
         settings: {

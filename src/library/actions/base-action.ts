@@ -1,4 +1,4 @@
-export abstract class Action<TPayload, TResult> {
+export abstract class Action<_TPayload, _TResult> {
     abstract readonly type: string;
 
     private static handlers = new Map<string, ActionHandler<any, any, any>>();
