@@ -1,5 +1,8 @@
 # Chrome Extension Starter
 
+[![CI/CD](https://github.com/AriSweedler-at/chrome-extension-exoskeleton/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AriSweedler-at/chrome-extension-exoskeleton/actions/workflows/ci-cd.yml)
+[![codecov](https://codecov.io/gh/AriSweedler-at/chrome-extension-exoskeleton/branch/main/graph/badge.svg)](https://codecov.io/gh/AriSweedler-at/chrome-extension-exoskeleton)
+
 TypeScript Chrome extension starter with reusable library, testing, and CI/CD.
 
 ## Features

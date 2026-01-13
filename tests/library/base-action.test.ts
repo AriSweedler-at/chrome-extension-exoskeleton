@@ -92,6 +92,24 @@ describe('Action', () => {
                 error: 'Handler error',
             });
         });
+
+        it('should return false for unhandled message types', () => {
+            const handler = vi.fn();
+            TestAction.handle(handler);
+
+            const listener = chrome.runtime.onMessage.addListener.getCall(0).args[0];
+            const sendResponse = vi.fn();
+
+            // Send message with unknown type
+            const result = listener(
+                {type: 'UNKNOWN_ACTION', payload: {}},
+                {},
+                sendResponse,
+            );
+
+            expect(result).toBe(false);
+            expect(sendResponse).not.toHaveBeenCalled();
+        });
     });
 
     describe('setContext', () => {
@@ -220,6 +238,16 @@ describe('Action', () => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
+        });
+
+        it('should reject on action error response', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            delete (chrome.runtime as any).lastError;
+            chrome.tabs.sendMessage.yields({success: false, error: 'Action failed'});
+
+            await expect(AnotherAction.sendToTab(456, 'test')).rejects.toThrow(
+                'Action failed',
+            );
         });
     });
 });

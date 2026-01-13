@@ -63,5 +63,61 @@ describe('Notifications', () => {
 
             vi.useRealTimers();
         });
+
+        it('should create container automatically if not present', () => {
+            // Don't create a container - let Notifications create it
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (Notifications as any).container = null;
+
+            // Remove the pre-created container
+            const existingContainer = document.getElementById('notification-container');
+            if (existingContainer) {
+                existingContainer.remove();
+            }
+
+            Notifications.show('Test message');
+
+            // Verify container was created
+            const createdContainer = document.getElementById('notification-container');
+            expect(createdContainer).toBeTruthy();
+            expect(createdContainer?.children.length).toBe(1);
+
+            // Clean up
+            createdContainer?.remove();
+        });
+
+        it('should reuse cached container', () => {
+            // First call - container is found in DOM
+            Notifications.show('First message');
+
+            // Verify container is now cached
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cachedContainer = (Notifications as any).container;
+            expect(cachedContainer).toBe(container);
+
+            // Second call - should use cached container
+            Notifications.show('Second message');
+
+            expect(container.children.length).toBe(2);
+        });
+
+        it('should handle notification removed before timeout', () => {
+            vi.useFakeTimers();
+
+            Notifications.show('Test message', 2000);
+
+            const notification = container.querySelector('.chrome-ext-notification');
+            expect(notification).toBeTruthy();
+
+            // Manually remove notification before timeout
+            notification?.remove();
+
+            // Advance time - should not throw error
+            expect(() => {
+                vi.advanceTimersByTime(2000);
+            }).not.toThrow();
+
+            vi.useRealTimers();
+        });
     });
 });
