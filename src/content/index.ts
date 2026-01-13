@@ -15,6 +15,15 @@ IncrementAction.handle(
         ctx: {count: number},
     ) => {
         ctx.count += payload.amount;
+
+        // Broadcast count change to popup (if open)
+        chrome.runtime.sendMessage({
+            type: 'COUNT_UPDATED',
+            count: ctx.count,
+        }).catch(() => {
+            // Popup might not be open, ignore error
+        });
+
         return {count: ctx.count};
     },
 );
