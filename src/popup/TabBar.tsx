@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import {TabRegistry} from '../library/tabs/tab-registry';
 import {Component} from '../library/components/base-component';
 import {Storage} from '../library/storage';
+import {TabErrorBoundary} from './TabErrorBoundary';
 import './TabBar.css';
 
 export function TabBar() {
@@ -52,7 +53,11 @@ export function TabBar() {
                 ))}
             </div>
             <div className="tab-content">
-                {selectedTab && Component.renderInstance(selectedTab.component)}
+                {selectedTab && (
+                    <TabErrorBoundary>
+                        {Component.renderInstance(selectedTab.component)}
+                    </TabErrorBoundary>
+                )}
             </div>
         </>
     );
