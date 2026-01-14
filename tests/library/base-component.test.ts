@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import React from 'react';
-import {Component, renderInstance} from '../../src/library/components/base-component';
+import {Component} from '../../src/library/components/base-component';
 
 describe('Component', () => {
     describe('render', () => {
@@ -26,7 +26,7 @@ describe('Component', () => {
                 }
             }
 
-            const result = renderInstance(TestComponent);
+            const result = Component.renderInstance(TestComponent);
             expect(result.type).toBe('div');
             expect(result.props.children).toBe('Hello');
         });
@@ -44,7 +44,7 @@ describe('Component', () => {
                 }
             }
 
-            renderInstance(TestComponent);
+            Component.renderInstance(TestComponent);
             expect(mountCalled).toBe(true);
         });
 
@@ -55,7 +55,7 @@ describe('Component', () => {
                 }
             }
 
-            expect(() => renderInstance(TestComponent)).not.toThrow();
+            expect(() => Component.renderInstance(TestComponent)).not.toThrow();
         });
     });
 });
