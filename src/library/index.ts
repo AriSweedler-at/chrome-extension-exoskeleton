@@ -1,4 +1,5 @@
 export {Action} from './actions/base-action';
+export {Component} from './components/base-component';
 export {Clipboard} from './clipboard';
 export {Storage} from './storage';
 export {Notifications} from './notifications';
