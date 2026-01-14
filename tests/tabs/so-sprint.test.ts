@@ -1,34 +1,13 @@
-import {describe, it, expect, beforeEach} from 'vitest';
-import React from 'react';
+import {describe, it, expect} from 'vitest';
 import {TabRegistry} from '../../src/library/tabs/tab-registry';
 import {Component} from '../../src/library/components/base-component';
 
-// Define the SO SPRINT component locally for testing
-class SoSprintComponent extends Component {
-    render() {
-        return React.createElement('div', null, 'HELLO, WORLD - you are in SO SPRINT');
-    }
-}
+// Import the tab - it will auto-register
+import '../../src/tabs/so-sprint.tab';
 
 describe('SO SPRINT Tab', () => {
     const AIRTABLE_URL = 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6';
     const OTHER_URL = 'https://google.com';
-
-    beforeEach(() => {
-        TabRegistry.clearForTesting();
-        // Re-register the tab for each test
-        TabRegistry.register({
-            id: 'so-sprint',
-            label: 'SO SPRINT',
-            component: SoSprintComponent,
-            getPriority: (url: string) => {
-                if (url === AIRTABLE_URL) {
-                    return 0;
-                }
-                return Number.MAX_SAFE_INTEGER;
-            },
-        });
-    });
 
     it('should register with correct ID and label', () => {
         const tabs = TabRegistry.getVisibleTabs(AIRTABLE_URL);
