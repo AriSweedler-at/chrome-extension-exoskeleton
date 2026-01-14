@@ -5,16 +5,16 @@ export abstract class Component {
 
     onMount?(): void;
     onUnmount?(): void;
+}
 
-    static renderInstance<T extends Component>(
-        ComponentClass: new () => T,
-    ): ReactElement {
-        const instance = new ComponentClass();
+export function renderInstance<T extends Component>(
+    ComponentClass: new () => T,
+): ReactElement {
+    const instance = new ComponentClass();
 
-        if (instance.onMount) {
-            instance.onMount();
-        }
-
-        return instance.render();
+    if (instance.onMount) {
+        instance.onMount();
     }
+
+    return instance.render();
 }
