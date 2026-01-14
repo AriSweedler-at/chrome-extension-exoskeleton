@@ -23,4 +23,12 @@ export class TabRegistry {
             .filter((tab) => tab.priority !== Number.MAX_SAFE_INTEGER)
             .sort((a, b) => a.priority - b.priority);
     }
+
+    /**
+     * Clear all registered tabs (for testing only)
+     * @internal
+     */
+    static clearForTesting(): void {
+        this.tabs = [];
+    }
 }

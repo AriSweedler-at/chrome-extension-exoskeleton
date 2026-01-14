@@ -5,8 +5,7 @@ import {Component} from '../../src/library/components/base-component';
 
 describe('TabRegistry', () => {
     beforeEach(() => {
-        // Clear registry before each test
-        TabRegistry['tabs'] = [];
+        TabRegistry.clearForTesting();
     });
 
     describe('register', () => {
