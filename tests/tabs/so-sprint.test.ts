@@ -39,7 +39,8 @@ describe('SO SPRINT Tab', () => {
 
         const result = Component.renderInstance(soSprintTab!.component);
 
-        expect(result.props.children).toContain('HELLO, WORLD');
-        expect(result.props.children).toContain('SO SPRINT');
+        const children = (result.props as {children: string}).children;
+        expect(children).toContain('HELLO, WORLD');
+        expect(children).toContain('SO SPRINT');
     });
 });
