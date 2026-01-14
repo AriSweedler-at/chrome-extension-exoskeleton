@@ -48,7 +48,7 @@ describe('TabBar', () => {
         expect(buttons[1].textContent).toContain('Page Actions'); // Priority 100
     });
 
-    it('should call Storage.set when tab is clicked', async () => {
+    it('should update active tab when clicked', async () => {
         await import('../../src/tabs/page-actions.tab');
         await import('../../src/tabs/so-sprint.tab');
 
@@ -59,40 +59,81 @@ describe('TabBar', () => {
             },
         ]);
 
-        // Mock Storage
+        // Mock Storage.get to resolve immediately (no stored selection)
+        vi.spyOn(Storage, 'get').mockResolvedValue(null);
+
+        render(<TabBar />);
+
+        // Wait for both tabs to render and for SO SPRINT to be active
+        await waitFor(() => {
+            const buttons = screen.getAllByRole('button');
+            expect(buttons[0].className).toContain('active');
+        });
+
+        const buttons = screen.getAllByRole('button');
+
+        // SO SPRINT starts active (priority 0)
+        expect(buttons[0].className).toContain('active');
+        expect(buttons[1].className).toBe('');
+
+        // Click Page Actions
+        fireEvent.click(buttons[1]);
+
+        await waitFor(() => {
+            const newButtons = screen.getAllByRole('button');
+            expect(newButtons[0].className).toBe('');
+            expect(newButtons[1].className).toContain('active');
+        });
+    });
+
+    it('should save tab selection to storage', async () => {
+        await import('../../src/tabs/page-actions.tab');
+
+        chrome.tabs.query.yields([
+            {
+                id: 456,
+                url: 'http://example.com',
+            },
+        ]);
+
         const storageSpy = vi.spyOn(Storage, 'set');
 
         render(<TabBar />);
 
-        await screen.findByText('SO SPRINT');
+        await screen.findByText('Page Actions');
 
-        const buttons = screen.getAllByRole('button');
-        fireEvent.click(buttons[1]); // Click Page Actions tab
+        // Initially should not have called set (just restored)
+        expect(storageSpy).not.toHaveBeenCalled();
+
+        const button = screen.getByRole('button', {name: 'Page Actions'});
+        fireEvent.click(button);
 
         await waitFor(() => {
-            expect(storageSpy).toHaveBeenCalledWith('selectedTab:123', 'page-actions');
+            expect(storageSpy).toHaveBeenCalledWith('selectedTab:456', 'page-actions');
         });
     });
 
-    it('should restore stored tab selection', async () => {
+    it('should restore stored selection on mount', async () => {
         await import('../../src/tabs/page-actions.tab');
         await import('../../src/tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
             {
-                id: 123,
+                id: 789,
                 url: 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6',
             },
         ]);
 
-        // Mock Storage to return 'page-actions'
+        // Mock storage to return page-actions (not the default first tab)
         vi.spyOn(Storage, 'get').mockResolvedValue('page-actions');
 
         render(<TabBar />);
 
+        // Wait for async storage load
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
-            expect(buttons[1].className).toContain('active'); // Page Actions should be active
+            // Page Actions should be active (even though SO SPRINT is priority 0)
+            expect(buttons[1].className).toContain('active');
         });
     });
 
