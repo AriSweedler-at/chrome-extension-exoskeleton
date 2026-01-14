@@ -21,9 +21,9 @@ describe('TabBar', () => {
         render(<TabBar />);
 
         // Wait for async query
-        await screen.findByText('Page Actions');
+        const element = await screen.findByText('Page Actions');
 
-        expect(screen.getByText('Page Actions')).toBeInTheDocument();
+        expect(element).toBeTruthy();
     });
 
     it('should render tabs in priority order', async () => {
@@ -43,7 +43,7 @@ describe('TabBar', () => {
         await screen.findByText('SO SPRINT');
 
         const buttons = screen.getAllByRole('button');
-        expect(buttons[0]).toHaveTextContent('SO SPRINT'); // Priority 0
-        expect(buttons[1]).toHaveTextContent('Page Actions'); // Priority 100
+        expect(buttons[0].textContent).toContain('SO SPRINT'); // Priority 0
+        expect(buttons[1].textContent).toContain('Page Actions'); // Priority 100
     });
 });
