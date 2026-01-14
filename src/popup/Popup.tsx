@@ -99,7 +99,7 @@ export function Popup() {
         return (
             <div className="popup">
                 <div className="restriction-notice">
-                    <h2>Ari's Chrome Exoskeleton is not allowed to run on this page.</h2>
+                    <h2>Ari&apos;s Chrome Exoskeleton is not allowed to run on this page.</h2>
                     <p>
                         Your browser does not run web extensions like this on certain pages,
                         usually for security reasons.
