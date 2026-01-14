@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {TabRegistry} from '../../src/library/tabs/tab-registry';
 import React from 'react';
+import {TabRegistry} from '../../src/library/tabs/tab-registry';
 import {Component} from '../../src/library/components/base-component';
 
 // Define the SO SPRINT component locally for testing
@@ -58,8 +58,7 @@ describe('SO SPRINT Tab', () => {
 
         expect(soSprintTab).toBeDefined();
 
-        const instance = new soSprintTab!.component();
-        const result = instance.render();
+        const result = Component.renderInstance(soSprintTab!.component);
 
         expect(result.props.children).toContain('HELLO, WORLD');
         expect(result.props.children).toContain('SO SPRINT');
