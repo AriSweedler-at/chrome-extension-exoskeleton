@@ -1,5 +1,23 @@
 import {Commands} from '@library/commands';
+import {Notifications} from '@library/notifications';
 import {IncrementAction} from '../actions/increment.action';
+
+// Handle split tab from keyboard or popup
+async function handleOpenSplitTab() {
+    // Feature detection
+    if (typeof chrome.tabs.split !== 'function') {
+        Notifications.show('Split screen not enabled. Turn on chrome://flags/#split-screen');
+        return;
+    }
+
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (tab.id) {
+        await chrome.tabs.split({
+            tabId: tab.id,
+            newTabUrl: 'about:blank',
+        });
+    }
+}
 
 // Listen for keyboard commands
 Commands.onCommand(async (command) => {
@@ -18,6 +36,15 @@ Commands.onCommand(async (command) => {
                 console.error('Failed to increment counter:', error);
             }
         }
+    } else if (command === 'open-split-tab') {
+        await handleOpenSplitTab();
+    }
+});
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'OPEN_SPLIT_TAB') {
+        handleOpenSplitTab();
     }
 });
 
