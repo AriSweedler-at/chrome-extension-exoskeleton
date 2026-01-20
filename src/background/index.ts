@@ -44,7 +44,11 @@ Commands.onCommand(async (command) => {
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message) => {
     if (message.type === 'OPEN_SPLIT_TAB') {
-        handleOpenSplitTab();
+        handleOpenSplitTab()
+            .catch((error) => {
+                console.error('Failed to open split tab:', error);
+            });
+        return true; // Indicates async response
     }
 });
 
