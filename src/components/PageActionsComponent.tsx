@@ -84,6 +84,17 @@ export function PageActionsContent() {
         chrome.tabs.create({url: 'chrome://extensions/shortcuts'});
     };
 
+    const handleOpenSplitTab = async () => {
+        try {
+            await chrome.runtime.sendMessage({
+                type: 'OPEN_SPLIT_TAB',
+            });
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Failed to open split tab';
+            setError(errorMsg);
+        }
+    };
+
     if (loading) {
         return <div className="loading">Loading...</div>;
     }
@@ -99,11 +110,14 @@ export function PageActionsContent() {
             <button className="increment-button" onClick={handleIncrement}>
                 Increment
             </button>
+            <button className="split-tab-button" onClick={handleOpenSplitTab}>
+                Open Split Tab
+            </button>
             <button className="shortcuts-button" onClick={handleOpenShortcuts}>
                 Configure Keyboard Shortcut
             </button>
             <div className="footer">
-                Press <kbd>Ctrl+Shift+I</kbd> or click button to increment
+                <kbd>Ctrl+Shift+I</kbd> to increment | <kbd>Ctrl+Shift+=</kbd> for split tab
             </div>
         </>
     );
