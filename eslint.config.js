@@ -35,6 +35,7 @@ export default [
                 ClipboardItem: 'readonly',
                 HTMLElement: 'readonly',
                 global: 'readonly',
+                URL: 'readonly',
             },
         },
         plugins: {
