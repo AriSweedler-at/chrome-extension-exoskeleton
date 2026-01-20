@@ -113,11 +113,12 @@ function scrollElementCenter(element: HTMLElement): void {
 /**
  * Add flash animation to file element
  */
-function flashFile(fileElement: HTMLElement): void {
+function flashFile(fileElement: HTMLElement, timers: number[]): void {
     fileElement.classList.add('gh-autoscroll-flash');
-    setTimeout(() => {
+    const timerId = window.setTimeout(() => {
         fileElement.classList.remove('gh-autoscroll-flash');
     }, 1000);
+    timers.push(timerId);
 }
 
 /**
@@ -135,7 +136,7 @@ function getFileName(fileElement: HTMLElement): string {
 /**
  * Handle "Viewed" button click
  */
-function onButtonClick(event: Event): void {
+function onButtonClick(event: Event, timers: number[], debug: boolean): void {
     const button = event.currentTarget as HTMLButtonElement;
     const fileElement = button.closest('[class*="Diff-module__diffHeaderWrapper"]') as HTMLElement;
 
@@ -143,43 +144,62 @@ function onButtonClick(event: Event): void {
         return;
     }
 
-    // Check if file is now marked as viewed after the click
-    // We need to wait a tick for GitHub's handler to update aria-pressed
-    setTimeout(() => {
+    // Check if file is now marked as viewed after the click.
+    // We need to wait for GitHub's handler to update the aria-pressed attribute.
+    // The 100ms delay is necessary because:
+    // 1. Our handler fires before GitHub's handler (event bubbling)
+    // 2. GitHub's handler updates aria-pressed asynchronously
+    // 3. We need to check the updated state to decide whether to scroll
+    // Note: Could increase to 200ms if experiencing race conditions on slower systems
+    const timerId = window.setTimeout(() => {
         if (isViewed(fileElement)) {
             // Find and scroll to next unviewed file
             const nextFile = findNextUnviewedAfter(fileElement);
             if (nextFile) {
                 scrollElementCenter(nextFile);
-                flashFile(nextFile);
-                console.log('[GitHub AutoScroll] Scrolled to:', getFileName(nextFile));
+                flashFile(nextFile, timers);
+                if (debug) {
+                    console.log('[GitHub AutoScroll] Scrolled to:', getFileName(nextFile));
+                }
             } else {
-                console.log('[GitHub AutoScroll] No more unviewed files');
+                if (debug) {
+                    console.log('[GitHub AutoScroll] No more unviewed files');
+                }
             }
         }
     }, 100);
+    timers.push(timerId);
 }
 
 /**
  * Initialize autoscroll functionality
  * Returns a function to stop/cleanup
+ * @param debug - Enable debug console logging (default: false)
  */
-export function initializeAutoScroll(): () => void {
-    console.log('[GitHub AutoScroll] Initializing...');
+export function initializeAutoScroll(debug = false): () => void {
+    if (debug) {
+        console.log('[GitHub AutoScroll] Initializing...');
+    }
 
-    // Inject CSS for flash animation
-    const style = document.createElement('style');
-    style.id = 'gh-autoscroll-styles';
-    style.textContent = `
-        @keyframes gh-autoscroll-flash {
-            0%, 100% { background-color: transparent; }
-            50% { background-color: rgba(255, 223, 0, 0.3); }
-        }
-        .gh-autoscroll-flash {
-            animation: gh-autoscroll-flash 1s ease-in-out;
-        }
-    `;
-    document.head.appendChild(style);
+    // Track all setTimeout IDs for cleanup
+    const timers: number[] = [];
+
+    // Inject CSS for flash animation (check for existing style first)
+    let style = document.getElementById('gh-autoscroll-styles');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'gh-autoscroll-styles';
+        style.textContent = `
+            @keyframes gh-autoscroll-flash {
+                0%, 100% { background-color: transparent; }
+                50% { background-color: rgba(255, 223, 0, 0.3); }
+            }
+            .gh-autoscroll-flash {
+                animation: gh-autoscroll-flash 1s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     // Add click listeners to all "Viewed" buttons
     const files = getFiles();
@@ -188,17 +208,27 @@ export function initializeAutoScroll(): () => void {
     files.forEach(file => {
         const button = file.querySelector('button[aria-pressed]');
         if (button) {
-            const handler = (e: Event) => onButtonClick(e);
+            const handler = (e: Event) => onButtonClick(e, timers, debug);
             button.addEventListener('click', handler);
             listeners.push({element: button, handler});
         }
     });
 
-    console.log(`[GitHub AutoScroll] Monitoring ${listeners.length} files`);
+    if (debug) {
+        console.log(`[GitHub AutoScroll] Monitoring ${listeners.length} files`);
+    }
 
     // Return cleanup function
     const stop = () => {
-        console.log('[GitHub AutoScroll] Stopping...');
+        if (debug) {
+            console.log('[GitHub AutoScroll] Stopping...');
+        }
+
+        // Clear all pending timers
+        timers.forEach(timerId => {
+            clearTimeout(timerId);
+        });
+        timers.length = 0;
 
         // Remove all listeners
         listeners.forEach(({element, handler}) => {
@@ -206,7 +236,7 @@ export function initializeAutoScroll(): () => void {
         });
 
         // Remove CSS - use direct reference to the style element we created
-        if (style.parentNode) {
+        if (style && style.parentNode) {
             style.parentNode.removeChild(style);
         }
 
