@@ -107,6 +107,16 @@ button {
     background: var(--accent-blue-hover);
 }
 
+.split-tab-button {
+    background: var(--accent-blue);
+    color: white;
+    margin-bottom: 8px;
+}
+
+.split-tab-button:hover {
+    background: var(--accent-blue-hover);
+}
+
 .shortcuts-button {
     background: var(--bg-secondary);
     color: var(--text-primary);
