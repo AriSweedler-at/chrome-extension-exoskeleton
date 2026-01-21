@@ -36,8 +36,8 @@
         },
         "open-split-tab": {
             "suggested_key": {
-                "default": "Ctrl+Shift+=",
-                "mac": "Command+Shift+="
+                "default": "Ctrl+Shift+S",
+                "mac": "Command+Shift+S"
             },
             "description": "Open split tab with homepage"
         }
