@@ -1,27 +1,13 @@
-import {describe, it, expect, beforeEach, vi, afterEach} from 'vitest';
+import {describe, it, expect, beforeEach, vi} from 'vitest';
 import chrome from 'sinon-chrome';
 
 describe('Split Tab Handler', () => {
-    let container: HTMLElement;
-
     beforeEach(async () => {
         chrome.reset();
         chrome.tabs.query.resolves([{id: 123, url: 'http://example.com'}]);
 
-        // Create a container for notifications
-        container = document.createElement('div');
-        container.id = 'notification-container';
-        document.body.appendChild(container);
-
         // Clear module cache to allow fresh imports
         vi.resetModules();
-    });
-
-    afterEach(() => {
-        // Clean up
-        if (container.parentNode) {
-            container.parentNode.removeChild(container);
-        }
     });
 
     it('should call chrome.tabs.split when feature is available', async () => {
@@ -49,16 +35,28 @@ describe('Split Tab Handler', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (chrome.tabs as any).split;
 
+        // Mock chrome.runtime.getURL
+        chrome.runtime.getURL.returns('chrome-extension://test/icons/icon48.png');
+
+        // Mock chrome.notifications
+        const notificationSpy = vi.fn();
+        chrome.notifications = {
+            create: notificationSpy,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
         await import('../../src/background/index');
 
         const commandListener = chrome.commands.onCommand.addListener.getCall(0).args[0];
         await commandListener('open-split-tab');
 
-        // Verify notification was shown
-        const notification = container.querySelector('.chrome-ext-notification');
-        expect(notification).toBeTruthy();
-        expect(notification?.textContent).toContain('Split screen not enabled');
-        expect(chrome.tabs.split).toBeUndefined();
+        // Verify chrome.notifications.create was called
+        expect(notificationSpy).toHaveBeenCalledWith({
+            type: 'basic',
+            iconUrl: 'chrome-extension://test/icons/icon48.png',
+            title: 'Split Screen Not Available',
+            message: 'Enable split screen in chrome://flags/#split-screen',
+        });
     });
 
     it('should handle message from popup', async () => {

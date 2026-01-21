@@ -1,12 +1,17 @@
 import {Commands} from '@library/commands';
-import {Notifications} from '@library/notifications';
 import {IncrementAction} from '../actions/increment.action';
 
 // Handle split tab from keyboard or popup
 async function handleOpenSplitTab() {
     // Feature detection
     if (typeof chrome.tabs.split !== 'function') {
-        Notifications.show('Split screen not enabled. Turn on chrome://flags/#split-screen');
+        // Use chrome.notifications API in service worker (document is not available)
+        chrome.notifications.create({
+            type: 'basic',
+            iconUrl: chrome.runtime.getURL('icons/icon48.png'),
+            title: 'Split Screen Not Available',
+            message: 'Enable split screen in chrome://flags/#split-screen',
+        });
         return;
     }
 
