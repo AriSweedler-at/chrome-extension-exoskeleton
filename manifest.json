@@ -42,6 +42,6 @@
             "description": "Open split tab with homepage"
         }
     },
-    "permissions": ["activeTab", "storage", "tabs"],
+    "permissions": ["activeTab", "storage", "tabs", "notifications"],
     "host_permissions": ["<all_urls>"]
 }
