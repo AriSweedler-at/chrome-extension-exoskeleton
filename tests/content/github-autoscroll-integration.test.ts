@@ -142,4 +142,136 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         expect(result).toBe(false);
         expect(sendResponse).not.toHaveBeenCalled();
     });
+
+    describe('Auto-run on load', () => {
+        it('auto-runs on GitHub PR changes page with default setting', async () => {
+            // Mock GitHub PR page URL
+            vi.stubGlobal('location', {
+                href: 'https://github.com/owner/repo/pull/123/changes',
+            });
+
+            // Mock GitHub PR page structure with files
+            document.body.innerHTML = `
+                <div data-hpc="true">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <button aria-pressed="false">Viewed</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Mock storage to return undefined (default behavior)
+            chrome.storage.local.get = vi.fn((key, callback) => {
+                callback({});
+            });
+
+            await import('../../src/content/index');
+
+            // Trigger the load event
+            const loadEvent = new Event('load');
+            window.dispatchEvent(loadEvent);
+
+            // Wait for async operations
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect((window as any).__ghAutoScrollStop).toBeTypeOf('function');
+        });
+
+        it('respects exorun-github-autoscroll storage setting (false)', async () => {
+            // Mock GitHub PR page URL
+            vi.stubGlobal('location', {
+                href: 'https://github.com/owner/repo/pull/123/changes',
+            });
+
+            // Mock GitHub PR page structure with files
+            document.body.innerHTML = `
+                <div data-hpc="true">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <button aria-pressed="false">Viewed</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Mock storage to return false
+            chrome.storage.local.get = vi.fn((key, callback) => {
+                callback({'exorun-github-autoscroll': false});
+            });
+
+            await import('../../src/content/index');
+
+            // Trigger the load event
+            const loadEvent = new Event('load');
+            window.dispatchEvent(loadEvent);
+
+            // Wait for async operations
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect((window as any).__ghAutoScrollStop).toBeUndefined();
+        });
+
+        it('does not auto-run on non-GitHub pages', async () => {
+            // Mock non-GitHub URL
+            vi.stubGlobal('location', {
+                href: 'https://example.com',
+            });
+
+            // Mock storage to return true (auto-run enabled)
+            chrome.storage.local.get = vi.fn((key, callback) => {
+                callback({'exorun-github-autoscroll': true});
+            });
+
+            await import('../../src/content/index');
+
+            // Trigger the load event
+            const loadEvent = new Event('load');
+            window.dispatchEvent(loadEvent);
+
+            // Wait for async operations
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            expect((window as any).__ghAutoScrollStop).toBeUndefined();
+        });
+
+        it('does not auto-run if autoscroll is already active (race condition)', async () => {
+            // Mock GitHub PR page URL
+            vi.stubGlobal('location', {
+                href: 'https://github.com/owner/repo/pull/123/changes',
+            });
+
+            // Mock GitHub PR page structure with files
+            document.body.innerHTML = `
+                <div data-hpc="true">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <button aria-pressed="false">Viewed</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Simulate autoscroll already being active
+            const existingStopFn = vi.fn();
+            (window as any).__ghAutoScrollStop = existingStopFn;
+
+            // Mock storage to return undefined (default behavior)
+            chrome.storage.local.get = vi.fn((key, callback) => {
+                callback({});
+            });
+
+            await import('../../src/content/index');
+
+            // Trigger the load event
+            const loadEvent = new Event('load');
+            window.dispatchEvent(loadEvent);
+
+            // Wait for async operations
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            // Should still be the original function, not replaced
+            expect((window as any).__ghAutoScrollStop).toBe(existingStopFn);
+        });
+    });
 });
