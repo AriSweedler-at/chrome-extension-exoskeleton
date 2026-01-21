@@ -66,4 +66,53 @@ describe('GitHubAutoscrollContent', () => {
             expect(screen.getByText('Disable')).toBeInTheDocument();
         });
     });
+
+    it('handles empty tabs array gracefully', async () => {
+        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+            callback([]);
+        });
+
+        render(<GitHubAutoscrollContent />);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Inactive/)).toBeInTheDocument();
+        });
+        expect(screen.getByText('Enable')).toBeInTheDocument();
+    });
+
+    it('handles tab without ID', async () => {
+        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+            callback([{} as chrome.tabs.Tab]);
+        });
+
+        render(<GitHubAutoscrollContent />);
+
+        await waitFor(() => {
+            expect(screen.getByText(/Inactive/)).toBeInTheDocument();
+        });
+        expect(screen.getByText('Enable')).toBeInTheDocument();
+    });
+
+    it('shows error message when toggle fails', async () => {
+        const user = userEvent.setup();
+        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+            callback([{id: 123}]);
+        });
+        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage)
+            .mockResolvedValueOnce({active: false})
+            .mockRejectedValueOnce(new Error('Connection error'));
+
+        render(<GitHubAutoscrollContent />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Enable')).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByText('Enable'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('error-message')).toBeInTheDocument();
+        });
+        expect(screen.getByText('Failed to toggle autoscroll. Please try again.')).toBeInTheDocument();
+    });
 });
