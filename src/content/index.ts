@@ -70,14 +70,14 @@ chrome.runtime.onMessage.addListener(
             if (currentlyActive) {
                 // Stop autoscroll
                 (window as any).__ghAutoScrollStop();
-                Notifications.show('GitHub PR auto-scroll disabled');
+                Notifications.show('GitHub PR Autoscroll disabled');
                 sendResponse({active: false});
             } else {
                 // Start autoscroll
                 const stopFn = initializeAutoScroll();
                 if (stopFn) {
                     (window as any).__ghAutoScrollStop = stopFn;
-                    Notifications.show('gh autoscroll enabled');
+                    Notifications.show('GitHub PR Autoscroll enabled');
                     sendResponse({active: true});
                 } else {
                     Notifications.show('No files found. Make sure you\'re on a GitHub PR page.');
@@ -97,6 +97,11 @@ window.addEventListener('load', async () => {
         return;
     }
 
+    // Check if autoscroll is already running to prevent race condition
+    if (typeof (window as any).__ghAutoScrollStop === 'function') {
+        return;
+    }
+
     const exorun = await Storage.get<boolean>('exorun-github-autoscroll');
     const shouldAutoRun = exorun === undefined ? true : exorun;
 
@@ -104,7 +109,7 @@ window.addEventListener('load', async () => {
         const stopFn = initializeAutoScroll();
         if (stopFn) {
             (window as any).__ghAutoScrollStop = stopFn;
-            Notifications.show('gh autoscroll enabled');
+            Notifications.show('GitHub PR Autoscroll enabled');
         }
     }
 });
