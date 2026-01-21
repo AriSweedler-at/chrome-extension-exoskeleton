@@ -117,7 +117,7 @@ export function PageActionsContent() {
                 Configure Keyboard Shortcut
             </button>
             <div className="footer">
-                <kbd>Ctrl+Shift+I</kbd> to increment | <kbd>Ctrl+Shift+=</kbd> for split tab
+                <kbd>Ctrl+Shift+I</kbd> to increment | <kbd>Ctrl+Shift+S</kbd> for split tab
             </div>
         </>
     );

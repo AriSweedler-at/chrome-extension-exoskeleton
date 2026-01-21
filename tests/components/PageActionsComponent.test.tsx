@@ -30,10 +30,10 @@ describe('PageActionsComponent', () => {
         });
     });
 
-    it('should show Ctrl+Shift+= in footer', async () => {
+    it('should show Ctrl+Shift+S in footer', async () => {
         render(<PageActionsContent />);
 
-        const footer = await screen.findByText(/Ctrl\+Shift\+=/);
+        const footer = await screen.findByText(/Ctrl\+Shift\+S/);
         expect(footer).toBeTruthy();
     });
 });
