@@ -85,11 +85,21 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
 
-        // Mock GitHub PR page structure
+        // Mock GitHub PR page structure with files
         const container = document.createElement('div');
         container.setAttribute('data-hpc', 'true');
         const filesContainer = document.createElement('div');
         filesContainer.className = 'd-flex flex-column gap-3';
+
+        // Add a file element so initializeAutoScroll doesn't return null
+        const fileElement = document.createElement('div');
+        fileElement.className = 'Diff-module__diffHeaderWrapper--abc123';
+        const button = document.createElement('button');
+        button.setAttribute('aria-pressed', 'false');
+        button.textContent = 'Viewed';
+        fileElement.appendChild(button);
+        filesContainer.appendChild(fileElement);
+
         container.appendChild(filesContainer);
         document.body.appendChild(container);
 
@@ -168,12 +178,8 @@ describe('GitHub Autoscroll Content Script Integration', () => {
 
             await import('../../src/content/index');
 
-            // Trigger the load event
-            const loadEvent = new Event('load');
-            window.dispatchEvent(loadEvent);
-
-            // Wait for async operations
-            await new Promise(resolve => setTimeout(resolve, 0));
+            // Wait for auto-run (500ms delay + buffer)
+            await new Promise(resolve => setTimeout(resolve, 600));
 
             expect((window as any).__ghAutoScrollStop).toBeTypeOf('function');
         });
