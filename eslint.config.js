@@ -35,6 +35,7 @@ export default [
                 ClipboardItem: 'readonly',
                 HTMLElement: 'readonly',
                 HTMLButtonElement: 'readonly',
+                HTMLInputElement: 'readonly',
                 Element: 'readonly',
                 Event: 'readonly',
                 EventListener: 'readonly',
