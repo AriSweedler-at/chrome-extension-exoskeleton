@@ -43,6 +43,21 @@ Commands.onCommand(async (command) => {
         }
     } else if (command === 'open-split-tab') {
         await handleOpenSplitTab();
+    } else if (command === 'toggle-github-autoscroll') {
+        // Get active tab
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+
+        if (tab.id) {
+            // Send toggle message to content script
+            try {
+                const response = await chrome.tabs.sendMessage(tab.id, {
+                    type: 'GITHUB_AUTOSCROLL_TOGGLE',
+                });
+                console.log('GitHub autoscroll toggled via keyboard shortcut, active:', response.active);
+            } catch (error) {
+                console.error('Failed to toggle GitHub autoscroll:', error);
+            }
+        }
     }
 });
 
