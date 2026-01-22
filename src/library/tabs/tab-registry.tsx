@@ -1,9 +1,9 @@
-import {Component} from '../components/base-component';
+import {ComponentType} from 'react';
 
 export interface TabRegistration {
     id: string;
     label: string;
-    component: typeof Component;
+    component: ComponentType;
     getPriority: (url: string) => number;
 }
 

@@ -6,17 +6,17 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
-        setupFiles: ['./tests/setup.ts'],
+        setupFiles: ['./tests/setup.tsx'],
         exclude: ['.worktrees/**', 'node_modules/**', 'dist/**'],
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
-            include: ['src/library/**/*.ts', 'src/actions/**/*.ts'],
+            include: ['src/library/**/*.tsx', 'src/actions/**/*.tsx'],
             exclude: [
-                '**/*.test.ts',
-                '**/test-utils.ts',
+                '**/*.test.tsx',
+                '**/test-utils.tsx',
                 '**/*.d.ts',
-                '**/library/index.ts',
+                '**/library/index.tsx',
             ],
             thresholds: {
                 lines: 80,

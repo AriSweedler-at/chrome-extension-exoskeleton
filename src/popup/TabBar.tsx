@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react';
 import {TabRegistry} from '../library/tabs/tab-registry';
-import {Component} from '../library/components/base-component';
 import {Storage} from '../library/storage';
 import {TabErrorBoundary} from './TabErrorBoundary';
 import './TabBar.css';
@@ -55,7 +54,7 @@ export function TabBar() {
             <div className="tab-content">
                 {selectedTab && (
                     <TabErrorBoundary>
-                        {Component.renderInstance(selectedTab.component)}
+                        <selectedTab.component />
                     </TabErrorBoundary>
                 )}
             </div>

@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
+import {render, screen} from '@testing-library/react';
 import {TabRegistry} from '../../src/library/tabs/tab-registry';
-import {Component} from '../../src/library/components/base-component';
 
 // Import the tab - it will auto-register
 import '../../src/tabs/so-sprint.tab';
@@ -37,10 +37,10 @@ describe('SO SPRINT Tab', () => {
 
         expect(soSprintTab).toBeDefined();
 
-        const result = Component.renderInstance(soSprintTab!.component);
+        const SoSprintComponent = soSprintTab!.component;
+        render(<SoSprintComponent />);
 
-        const children = (result.props as {children: string}).children;
-        expect(children).toContain('HELLO, WORLD');
-        expect(children).toContain('SO SPRINT');
+        expect(screen.getByText(/HELLO, WORLD/)).toBeDefined();
+        expect(screen.getByText(/SO SPRINT/)).toBeDefined();
     });
 });
