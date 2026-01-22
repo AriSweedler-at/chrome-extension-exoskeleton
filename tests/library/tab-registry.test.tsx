@@ -1,7 +1,7 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import React from 'react';
 import {TabRegistry} from '../../src/library/tabs/tab-registry';
-import {Component} from '../../src/library/components/base-component';
+
+const TestComponent = () => <div>Test</div>;
 
 describe('TabRegistry', () => {
     beforeEach(() => {
@@ -10,12 +10,6 @@ describe('TabRegistry', () => {
 
     describe('register', () => {
         it('should register a tab', () => {
-            class TestComponent extends Component {
-                render() {
-                    return React.createElement('div', null, 'Test');
-                }
-            }
-
             expect(() => {
                 TabRegistry.register({
                     id: 'test',
@@ -27,12 +21,6 @@ describe('TabRegistry', () => {
         });
 
         it('should throw error for duplicate tab IDs', () => {
-            class TestComponent extends Component {
-                render() {
-                    return React.createElement('div', null, 'Test');
-                }
-            }
-
             TabRegistry.register({
                 id: 'test',
                 label: 'Test',
@@ -52,11 +40,6 @@ describe('TabRegistry', () => {
     });
 
     describe('getVisibleTabs', () => {
-        class TestComponent extends Component {
-            render() {
-                return React.createElement('div', null, 'Test');
-            }
-        }
 
         it('should return tabs sorted by priority', () => {
             TabRegistry.register({

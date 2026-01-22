@@ -1,12 +1,8 @@
-import React from 'react';
-import {Component} from '../library/components/base-component';
 import {TabRegistry} from '../library/tabs/tab-registry';
 
-class SoSprintComponent extends Component {
-    render() {
-        return React.createElement('div', null, 'HELLO, WORLD - you are in SO SPRINT');
-    }
-}
+const SoSprintComponent = () => {
+    return <div>HELLO, WORLD - you are in SO SPRINT</div>;
+};
 
 TabRegistry.register({
     id: 'so-sprint',
