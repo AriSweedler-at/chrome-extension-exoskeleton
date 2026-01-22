@@ -44,6 +44,7 @@ export default [
                 ScrollBehavior: 'readonly',
                 global: 'readonly',
                 URL: 'readonly',
+                URLSearchParams: 'readonly',
             },
         },
         plugins: {
