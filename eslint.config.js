@@ -34,7 +34,12 @@ export default [
                 Blob: 'readonly',
                 ClipboardItem: 'readonly',
                 HTMLElement: 'readonly',
+                HTMLButtonElement: 'readonly',
+                Element: 'readonly',
+                Event: 'readonly',
+                EventListener: 'readonly',
                 global: 'readonly',
+                URL: 'readonly',
             },
         },
         plugins: {
