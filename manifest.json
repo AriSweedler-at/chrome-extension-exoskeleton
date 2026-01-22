@@ -40,8 +40,18 @@
                 "mac": "Command+Shift+S"
             },
             "description": "Open split tab with homepage"
+        },
+        "toggle-github-autoscroll": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+T",
+                "mac": "Ctrl+Shift+T"
+            },
+            "description": "Toggle GitHub PR autoscroll"
         }
     },
     "permissions": ["activeTab", "storage", "tabs", "notifications"],
-    "host_permissions": ["<all_urls>"]
+    "host_permissions": ["<all_urls>"],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    }
 }
