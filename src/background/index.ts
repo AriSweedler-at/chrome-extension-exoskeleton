@@ -3,14 +3,14 @@ import {IncrementAction} from '../actions/increment.action';
 
 // Handle split tab from keyboard or popup
 async function handleOpenSplitTab() {
-    // Feature detection
+    // Feature detection - chrome.tabs.split API not yet available as of early 2026
     if (typeof chrome.tabs.split !== 'function') {
         // Use chrome.notifications API in service worker (document is not available)
         chrome.notifications.create({
             type: 'basic',
             iconUrl: chrome.runtime.getURL('icons/icon48.png'),
             title: 'Split Screen Not Available',
-            message: 'Enable split screen in chrome://flags/#split-screen',
+            message: 'Chrome split screen API not yet available for extensions',
         });
         return;
     }
