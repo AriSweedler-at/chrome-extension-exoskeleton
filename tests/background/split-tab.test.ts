@@ -55,7 +55,7 @@ describe('Split Tab Handler', () => {
             type: 'basic',
             iconUrl: 'chrome-extension://test/icons/icon48.png',
             title: 'Split Screen Not Available',
-            message: 'Enable split screen in chrome://flags/#split-screen',
+            message: 'Chrome split screen API not yet available for extensions',
         });
     });
 
