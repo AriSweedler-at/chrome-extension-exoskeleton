@@ -74,7 +74,7 @@ chrome.runtime.onMessage.addListener(
                 sendResponse({active: false});
             } else {
                 // Start autoscroll
-                const stopFn = initializeAutoScroll();
+                const stopFn = initializeAutoScroll(true); // Enable debug mode
                 if (stopFn) {
                     (window as any).__ghAutoScrollStop = stopFn;
                     Notifications.show('GitHub PR Autoscroll enabled');
@@ -106,7 +106,7 @@ window.addEventListener('load', async () => {
     const shouldAutoRun = exorun === undefined ? true : exorun;
 
     if (shouldAutoRun) {
-        const stopFn = initializeAutoScroll();
+        const stopFn = initializeAutoScroll(true); // Enable debug mode
         if (stopFn) {
             (window as any).__ghAutoScrollStop = stopFn;
             Notifications.show('GitHub PR Autoscroll enabled');

@@ -38,35 +38,84 @@ export function isGitHubPRChangesPage(url: string): boolean {
  * Get all file elements in the PR changes view
  */
 function getFiles(): HTMLElement[] {
-    // Find the container with data-hpc="true"
-    const container = document.querySelector('[data-hpc="true"]');
-    if (!container) {
-        return [];
+    // Look for GitHub's CSS module classes with dynamic suffixes
+    // Target: class starting with 'Diff-module__diffHeaderWrapper--'
+    const container = document.querySelector('[data-hpc="true"] .d-flex.flex-column.gap-3');
+
+    if (container) {
+        const diffHeaders = Array.from(
+            container.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
+        );
+        if (diffHeaders.length > 0) {
+            return diffHeaders as HTMLElement[];
+        }
     }
 
-    // Find the direct child with the specific class pattern
-    const filesContainer = container.querySelector('.d-flex.flex-column.gap-3');
-    if (!filesContainer) {
-        return [];
-    }
-
-    // Get all diff header wrappers (files)
-    const files = Array.from(
-        filesContainer.querySelectorAll('[class*="Diff-module__diffHeaderWrapper"]')
+    // Fallback: search globally for the diff header wrapper pattern
+    const globalDiffHeaders = Array.from(
+        document.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
     );
+    if (globalDiffHeaders.length > 0) {
+        return globalDiffHeaders as HTMLElement[];
+    }
 
-    return files as HTMLElement[];
+    // Final fallback selectors
+    const fallbackSelectors = [
+        '[data-testid*="file"]',
+        '[data-tagsearch-path]',
+        '[data-path]',
+        '.file-header',
+        '.file',
+        '.js-file',
+    ];
+
+    for (const selector of fallbackSelectors) {
+        const files = Array.from(document.querySelectorAll(selector));
+        if (files.length > 0) {
+            return files as HTMLElement[];
+        }
+    }
+
+    return [];
 }
 
 /**
  * Check if a file is marked as viewed
  */
 function isViewed(fileElement: HTMLElement): boolean {
-    const button = fileElement.querySelector('button[aria-pressed]');
-    if (!button) {
-        return false;
+    // Look for GitHub's new button-based "viewed" system
+    const viewedButton =
+        fileElement.querySelector('button[aria-pressed="true"]') ||
+        fileElement.closest('div')?.querySelector('button[aria-pressed="true"]') ||
+        fileElement.parentElement?.querySelector('button[aria-pressed="true"]');
+
+    if (viewedButton && viewedButton.textContent?.includes('Viewed')) {
+        return true;
     }
-    return button.getAttribute('aria-pressed') === 'true';
+
+    // Check for the CSS class pattern that indicates viewed state
+    const viewedByClass =
+        fileElement.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
+        fileElement.closest('div')?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
+        fileElement.parentElement?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]');
+
+    if (viewedByClass) return true;
+
+    // Fallback to old checkbox system (if still exists)
+    const checkboxSelectors = [
+        'input[type="checkbox"][name="viewed"]',
+        'input.js-reviewed-checkbox',
+        'input[type="checkbox"]',
+    ];
+
+    for (const selector of checkboxSelectors) {
+        const cb =
+            fileElement.querySelector(selector) ||
+            fileElement.closest('div')?.querySelector(selector) ||
+            fileElement.parentElement?.querySelector(selector);
+        if (cb && (cb as HTMLInputElement).checked) return true;
+    }
+    return false;
 }
 
 /**
@@ -125,12 +174,46 @@ function flashFile(fileElement: HTMLElement, timers: number[]): void {
  * Extract filename from file element
  */
 function getFileName(fileElement: HTMLElement): string {
-    // Try to find the filename in the header
-    const fileNameElement = fileElement.querySelector('[class*="Diff-module__fileName"]');
-    if (fileNameElement) {
-        return fileNameElement.textContent?.trim() || 'Unknown file';
+    // Method 1: data attributes
+    const dataPath =
+        fileElement.getAttribute('data-path') || fileElement.getAttribute('data-tagsearch-path');
+    if (dataPath) return dataPath;
+
+    // Method 2: Look for file path in links or spans with title attributes
+    const titleEl = fileElement.querySelector('[title]');
+    if (titleEl && titleEl.getAttribute('title')) {
+        const title = titleEl.getAttribute('title')!;
+        // Skip generic titles like "Viewed" or "Toggle diff"
+        if (!title.includes('Viewed') && !title.includes('Toggle') && !title.includes('diff')) {
+            return title;
+        }
     }
-    return 'Unknown file';
+
+    // Method 3: Look for filename in text content of specific selectors
+    const filenameSelectors = [
+        'a[href*="/blob/"]',
+        '.file-info a',
+        '[data-testid="file-header"] a',
+        '.js-file-line-container a',
+    ];
+
+    for (const selector of filenameSelectors) {
+        const el = fileElement.querySelector(selector);
+        if (el && el.textContent && el.textContent.trim()) {
+            return el.textContent.trim();
+        }
+    }
+
+    // Method 4: Look for any link that looks like a file path
+    const links = fileElement.querySelectorAll('a');
+    for (const link of links) {
+        const text = link.textContent?.trim();
+        if (text && (text.includes('/') || text.includes('.'))) {
+            return text;
+        }
+    }
+
+    return 'unknown file';
 }
 
 /**
