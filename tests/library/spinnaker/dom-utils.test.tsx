@@ -51,5 +51,21 @@ describe('Spinnaker DOM Utils - URL Parsing', () => {
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT';
             expect(getActiveStageFromUrl(url)).toBeNull();
         });
+
+        it('returns null for malformed URLs', () => {
+            expect(getActiveStageFromUrl('not-a-url')).toBeNull();
+        });
+
+        it('returns null when stage is non-numeric', () => {
+            const url =
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/01HPN64GE091GK831P0XG2JQQT?stage=abc&step=0&details=config';
+            expect(getActiveStageFromUrl(url)).toBeNull();
+        });
+
+        it('returns null when step is non-numeric', () => {
+            const url =
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=xyz&details=config';
+            expect(getActiveStageFromUrl(url)).toBeNull();
+        });
     });
 });
