@@ -16,4 +16,5 @@ TabRegistry.register({
         }
         return Number.MAX_SAFE_INTEGER;
     },
+    enablementToggle: true,
 });

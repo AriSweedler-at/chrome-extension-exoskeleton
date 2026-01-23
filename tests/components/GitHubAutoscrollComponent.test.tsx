@@ -14,6 +14,17 @@ describe('GitHubAutoscrollContent', () => {
             runtime: {
                 sendMessage: vi.fn(),
             },
+            storage: {
+                local: {
+                    get: vi.fn((key, callback) => {
+                        // Default: return undefined (which means "use default value")
+                        callback({});
+                    }),
+                    set: vi.fn((_, callback) => {
+                        if (callback) callback();
+                    }),
+                },
+            },
         });
     });
 
@@ -28,7 +39,6 @@ describe('GitHubAutoscrollContent', () => {
         await waitFor(() => {
             expect(screen.getByText(/Inactive/)).toBeInTheDocument();
         });
-        expect(screen.getByText('Enable')).toBeInTheDocument();
     });
 
     it('shows active status when autoscroll is running', async () => {
@@ -40,9 +50,8 @@ describe('GitHubAutoscrollContent', () => {
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText(/Active/)).toBeInTheDocument();
+            expect(screen.getByText(/✓ Active/)).toBeInTheDocument();
         });
-        expect(screen.getByText('Disable')).toBeInTheDocument();
     });
 
     it('toggles autoscroll when button clicked', async () => {
@@ -57,13 +66,13 @@ describe('GitHubAutoscrollContent', () => {
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText('Enable')).toBeInTheDocument();
+            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
         });
 
-        await user.click(screen.getByText('Enable'));
+        await user.click(screen.getByText(/○ Inactive/));
 
         await waitFor(() => {
-            expect(screen.getByText('Disable')).toBeInTheDocument();
+            expect(screen.getByText(/✓ Active/)).toBeInTheDocument();
         });
     });
 
@@ -75,9 +84,8 @@ describe('GitHubAutoscrollContent', () => {
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText(/Inactive/)).toBeInTheDocument();
+            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
         });
-        expect(screen.getByText('Enable')).toBeInTheDocument();
     });
 
     it('handles tab without ID', async () => {
@@ -88,9 +96,8 @@ describe('GitHubAutoscrollContent', () => {
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText(/Inactive/)).toBeInTheDocument();
+            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
         });
-        expect(screen.getByText('Enable')).toBeInTheDocument();
     });
 
     it('shows error message when toggle fails', async () => {
@@ -105,10 +112,10 @@ describe('GitHubAutoscrollContent', () => {
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText('Enable')).toBeInTheDocument();
+            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
         });
 
-        await user.click(screen.getByText('Enable'));
+        await user.click(screen.getByText(/○ Inactive/));
 
         await waitFor(() => {
             expect(screen.getByTestId('error-message')).toBeInTheDocument();

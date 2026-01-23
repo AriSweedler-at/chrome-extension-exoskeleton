@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react';
 import {TabRegistry} from '../library/tabs/tab-registry';
 import {Storage} from '../library/storage';
 import {TabErrorBoundary} from './TabErrorBoundary';
+import {TabEnablementSection} from '../library/tabs/TabEnablementSection';
 import './TabBar.css';
 
 export function TabBar() {
@@ -55,6 +56,10 @@ export function TabBar() {
                 {selectedTab && (
                     <TabErrorBoundary>
                         <selectedTab.component />
+
+                        {selectedTab.enablementToggle && (
+                            <TabEnablementSection tabId={selectedTab.id} />
+                        )}
                     </TabErrorBoundary>
                 )}
             </div>
