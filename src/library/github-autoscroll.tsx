@@ -1,4 +1,5 @@
 import {scrollElementCenter, scrollElementTop} from './scroll-utils';
+import { keybindings } from './keybindings';
 
 /**
  * Check if URL is a GitHub PR changes page
@@ -423,28 +424,6 @@ function goToPreviousUnviewed(timers: number[], debug: boolean): void {
     }
 }
 
-/**
- * Handle keyboard events
- */
-function onKeyDown(event: KeyboardEvent, timers: number[], debug: boolean): void {
-    // Don't trigger when typing in an input/textarea
-    if (['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) {
-        return;
-    }
-
-    const key = event.key.toLowerCase();
-
-    if (key === 'v') {
-        event.preventDefault();
-        markCurrentFileAsViewed(debug);
-    } else if (key === 'n') {
-        event.preventDefault();
-        goToNextUnviewed(timers, debug);
-    } else if (key === 'p') {
-        event.preventDefault();
-        goToPreviousUnviewed(timers, debug);
-    }
-}
 
 /**
  * Initialize autoscroll functionality
@@ -489,9 +468,28 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
     const clickHandler = (e: Event) => onButtonClick(e, timers, debug);
     document.addEventListener('click', clickHandler, true);
 
-    // Add keyboard listener for 'v', 'n', 'p' keys
-    const keyHandler = (e: KeyboardEvent) => onKeyDown(e, timers, debug);
-    document.addEventListener('keydown', keyHandler);
+    // Register keybindings
+    keybindings.registerAll([
+        {
+            key: 'v',
+            description: 'Mark current file as viewed',
+            handler: () => markCurrentFileAsViewed(debug),
+            context: 'GitHub PR'
+        },
+        {
+            key: 'n',
+            description: 'Navigate to next unviewed file',
+            handler: () => goToNextUnviewed(timers, debug),
+            context: 'GitHub PR'
+        },
+        {
+            key: 'p',
+            description: 'Navigate to previous unviewed file',
+            handler: () => goToPreviousUnviewed(timers, debug),
+            context: 'GitHub PR'
+        }
+    ]);
+    keybindings.listen();
 
     // Check for files
     const files = getFiles();
@@ -531,7 +529,12 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
 
         // Remove document-level listeners
         document.removeEventListener('click', clickHandler, true);
-        document.removeEventListener('keydown', keyHandler);
+
+        // Unregister keybindings
+        keybindings.unregister('v');
+        keybindings.unregister('n');
+        keybindings.unregister('p');
+        keybindings.unlisten();
 
         // Remove CSS - use direct reference to the style element we created
         if (style && style.parentNode) {

@@ -6,6 +6,7 @@ import {
     jumpToExecution,
     extractPodNames,
 } from '../library/spinnaker/actions';
+import { keybindings } from '../library/keybindings';
 
 /**
  * Spinnaker tab component
@@ -19,43 +20,49 @@ import {
  */
 export function SpinnakerContent() {
     useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            // Don't trigger shortcuts when typing in input/textarea
-            const target = event.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                return;
+        // Register Spinnaker keybindings
+        keybindings.registerAll([
+            {
+                key: 'e',
+                description: 'Toggle execution details',
+                handler: toggleExecution,
+                context: 'Spinnaker'
+            },
+            {
+                key: 'x',
+                description: 'Show active execution',
+                handler: displayActiveExecution,
+                context: 'Spinnaker'
+            },
+            {
+                key: 's',
+                description: 'Show active stage',
+                handler: displayActiveStage,
+                context: 'Spinnaker'
+            },
+            {
+                key: 'j',
+                description: 'Jump to execution',
+                handler: jumpToExecution,
+                context: 'Spinnaker'
+            },
+            {
+                key: 'p',
+                description: 'Extract pod names',
+                handler: extractPodNames,
+                context: 'Spinnaker'
             }
-
-            const key = event.key.toLowerCase();
-
-            switch (key) {
-                case 'e':
-                    event.preventDefault();
-                    toggleExecution();
-                    break;
-                case 'x':
-                    event.preventDefault();
-                    displayActiveExecution();
-                    break;
-                case 's':
-                    event.preventDefault();
-                    displayActiveStage();
-                    break;
-                case 'j':
-                    event.preventDefault();
-                    jumpToExecution();
-                    break;
-                case 'p':
-                    event.preventDefault();
-                    extractPodNames();
-                    break;
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyDown);
+        ]);
+        keybindings.listen();
 
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+            // Unregister Spinnaker keybindings on unmount
+            keybindings.unregister('e');
+            keybindings.unregister('x');
+            keybindings.unregister('s');
+            keybindings.unregister('j');
+            keybindings.unregister('p');
+            keybindings.unlisten();
         };
     }, []);
 
