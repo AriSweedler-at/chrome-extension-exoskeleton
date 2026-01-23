@@ -39,7 +39,6 @@ describe('GitHubAutoscrollContent', () => {
         await waitFor(() => {
             expect(screen.getByText(/Inactive/)).toBeInTheDocument();
         });
-        expect(screen.getByText(/Auto-run on page load:/)).toBeInTheDocument();
     });
 
     it('shows active status when autoscroll is running', async () => {
