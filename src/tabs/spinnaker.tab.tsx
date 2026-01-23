@@ -9,6 +9,7 @@ TabRegistry.register({
     id: 'spinnaker',
     label: 'Spinnaker',
     component: SpinnakerComponent,
+    enablementToggle: true,
     getPriority: (url: string) => {
         // Show tab on any URL containing "spinnaker" (case-insensitive)
         if (url.toLowerCase().includes('spinnaker')) {
