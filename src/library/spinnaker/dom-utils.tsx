@@ -53,3 +53,27 @@ export function getActiveStageFromUrl(url: string = window.location.href): Stage
         return null;
     }
 }
+
+/**
+ * Find the "Execution Details" link in the Spinnaker UI
+ */
+export function findExecutionDetailsLink(): HTMLElement | null {
+    const links = document.querySelectorAll('a.clickable');
+    for (const link of Array.from(links)) {
+        if (link.textContent?.includes('Execution Details')) {
+            return link as HTMLElement;
+        }
+    }
+    return null;
+}
+
+/**
+ * Find error container within execution details
+ */
+export function findErrorContainer(): HTMLElement | null {
+    const detailsContainer = document.querySelector('.execution-details-container');
+    if (!detailsContainer) {
+        return null;
+    }
+    return detailsContainer.querySelector('.alert.alert-danger') as HTMLElement | null;
+}

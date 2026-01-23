@@ -1,8 +1,10 @@
-import {describe, it, expect} from 'vitest';
+import {describe, it, expect, beforeEach, afterEach} from 'vitest';
 import {
     getExecutionIdFromUrl,
     isExecutionOpen,
     getActiveStageFromUrl,
+    findExecutionDetailsLink,
+    findErrorContainer,
 } from '../../../src/library/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
@@ -66,6 +68,57 @@ describe('Spinnaker DOM Utils - URL Parsing', () => {
             const url =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=xyz&details=config';
             expect(getActiveStageFromUrl(url)).toBeNull();
+        });
+    });
+});
+
+describe('Spinnaker DOM Utils - Element Finding', () => {
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    describe('findExecutionDetailsLink', () => {
+        it('finds execution details link', () => {
+            document.body.innerHTML = `
+                <div>
+                    <a class="clickable">
+                        <span class="small glyphicon glyphicon-chevron-right"></span>
+                        Execution Details
+                    </a>
+                </div>
+            `;
+
+            const link = findExecutionDetailsLink();
+            expect(link).toBeTruthy();
+            expect(link?.textContent).toContain('Execution Details');
+        });
+
+        it('returns null when link not found', () => {
+            document.body.innerHTML = '<div>No execution details</div>';
+            expect(findExecutionDetailsLink()).toBeNull();
+        });
+    });
+
+    describe('findErrorContainer', () => {
+        it('finds error container in execution details', () => {
+            document.body.innerHTML = `
+                <div class="execution-details-container">
+                    <div class="alert alert-danger">Error message</div>
+                </div>
+            `;
+
+            const container = findErrorContainer();
+            expect(container).toBeTruthy();
+            expect(container?.textContent).toBe('Error message');
+        });
+
+        it('returns null when no error container', () => {
+            document.body.innerHTML = '<div>No errors</div>';
+            expect(findErrorContainer()).toBeNull();
         });
     });
 });
