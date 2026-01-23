@@ -1,6 +1,5 @@
-import {TabRegistry} from '../library/tabs/tab-registry';
-import {SpinnakerContent} from '../components/SpinnakerComponent';
-import {isSpinnakerSearchPage} from '../library/spinnaker';
+import { TabRegistry } from '../library/tabs/tab-registry';
+import { SpinnakerContent } from '../components/SpinnakerComponent';
 
 const SpinnakerComponent = () => {
     return <SpinnakerContent />;
@@ -11,10 +10,10 @@ TabRegistry.register({
     label: 'Spinnaker',
     component: SpinnakerComponent,
     getPriority: (url: string) => {
-        if (isSpinnakerSearchPage(url)) {
+        // Show tab on any URL containing "spinnaker" (case-insensitive)
+        if (url.toLowerCase().includes('spinnaker')) {
             return 0;
         }
         return Number.MAX_SAFE_INTEGER;
     },
-    enablementToggle: true,
 });
