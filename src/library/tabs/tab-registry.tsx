@@ -5,6 +5,7 @@ export interface TabRegistration {
     label: string;
     component: ComponentType;
     getPriority: (url: string) => number;
+    enablementToggle?: boolean;
 }
 
 export class TabRegistry {
