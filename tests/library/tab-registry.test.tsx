@@ -124,4 +124,21 @@ describe('TabRegistry', () => {
             expect(visible[0].priority).toBe(42);
         });
     });
+
+    describe('enablementToggle', () => {
+        it('supports enablementToggle field in registration', () => {
+            const TestComponent = () => <div>Test</div>;
+
+            TabRegistry.register({
+                id: 'test-with-enablement',
+                label: 'Test',
+                component: TestComponent,
+                getPriority: () => 0,
+                enablementToggle: true,
+            });
+
+            const tabs = TabRegistry.getVisibleTabs('http://example.com');
+            expect(tabs[0].enablementToggle).toBe(true);
+        });
+    });
 });
