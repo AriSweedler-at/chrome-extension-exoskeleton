@@ -1,6 +1,7 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import {TabBar} from '../../src/popup/TabBar';
+import {TabRegistry} from '../../src/library/tabs/tab-registry';
 import {Storage} from '../../src/library/storage';
 import chrome from 'sinon-chrome';
 
@@ -157,5 +158,52 @@ describe('TabBar', () => {
             const buttons = screen.getAllByRole('button');
             expect(buttons[0].className).toContain('active'); // SO SPRINT (first) should be active
         });
+    });
+
+    it('renders TabEnablementSection for tabs with enablementToggle', async () => {
+        TabRegistry.clearForTesting();
+
+        const TestComponent = () => <div>Test Content</div>;
+
+        TabRegistry.register({
+            id: 'test-enablement',
+            label: 'Test',
+            component: TestComponent,
+            getPriority: () => 0,
+            enablementToggle: true,
+        });
+
+        vi.spyOn(Storage, 'get').mockResolvedValue(true);
+
+        render(<TabBar />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Test Content')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText(/Enable on page load:/)).toBeInTheDocument();
+    });
+
+    it('does not render TabEnablementSection for tabs without enablementToggle', async () => {
+        TabRegistry.clearForTesting();
+
+        const TestComponent = () => <div>Test Content</div>;
+
+        TabRegistry.register({
+            id: 'test-no-enablement',
+            label: 'Test',
+            component: TestComponent,
+            getPriority: () => 0,
+        });
+
+        vi.spyOn(Storage, 'get').mockResolvedValue(null);
+
+        render(<TabBar />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Test Content')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByText(/Enable on page load:/)).not.toBeInTheDocument();
     });
 });
