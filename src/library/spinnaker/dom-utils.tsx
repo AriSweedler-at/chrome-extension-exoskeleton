@@ -24,20 +24,32 @@ export function isExecutionOpen(url: string = window.location.href): boolean {
  * Parse stage information from URL query params
  */
 export function getActiveStageFromUrl(url: string = window.location.href): StageInfo | null {
-    const urlObj = new URL(url);
-    const params = new URLSearchParams(urlObj.search || urlObj.hash.split('?')[1]);
+    try {
+        const urlObj = new URL(url);
+        const queryString = urlObj.search || urlObj.hash.split('?')[1] || '';
+        const params = new URLSearchParams(queryString);
 
-    const stage = params.get('stage');
-    const step = params.get('step');
-    const details = params.get('details');
+        const stage = params.get('stage');
+        const step = params.get('step');
+        const details = params.get('details');
 
-    if (stage && step && details) {
-        return {
-            stage: parseInt(stage, 10),
-            step: parseInt(step, 10),
-            details,
-        };
+        if (stage && step && details) {
+            const stageNum = parseInt(stage, 10);
+            const stepNum = parseInt(step, 10);
+
+            if (isNaN(stageNum) || isNaN(stepNum)) {
+                return null;
+            }
+
+            return {
+                stage: stageNum,
+                step: stepNum,
+                details,
+            };
+        }
+
+        return null;
+    } catch {
+        return null;
     }
-
-    return null;
 }
