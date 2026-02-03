@@ -1,5 +1,6 @@
 import {Commands} from '@library/commands';
 import {IncrementAction} from '../actions/increment.action';
+import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
 
 // Handle split tab from keyboard or popup
 async function handleOpenSplitTab() {
@@ -56,6 +57,17 @@ Commands.onCommand(async (command) => {
                 console.log('GitHub autoscroll toggled via keyboard shortcut, active:', response.active);
             } catch (error) {
                 console.error('Failed to toggle GitHub autoscroll:', error);
+            }
+        }
+    } else if (command === 'copy-rich-link') {
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+
+        if (tab.id && tab.url) {
+            try {
+                await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url});
+                console.log('Rich link copied via keyboard shortcut');
+            } catch (error) {
+                console.error('Failed to copy rich link:', error);
             }
         }
     }

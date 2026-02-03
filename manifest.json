@@ -47,6 +47,13 @@
                 "mac": "Ctrl+Shift+T"
             },
             "description": "Toggle GitHub PR autoscroll"
+        },
+        "copy-rich-link": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+C",
+                "mac": "Command+Shift+C"
+            },
+            "description": "Copy rich link to clipboard"
         }
     },
     "permissions": ["activeTab", "storage", "tabs", "notifications"],
