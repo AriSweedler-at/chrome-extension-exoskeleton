@@ -81,7 +81,7 @@ GetCountAction.handle(
 );
 
 // Register CopyRichLinkAction handler
-CopyRichLinkAction.handle(async (payload) => {
+CopyRichLinkAction.handle(async (payload, _sender, _context) => {
     const formats = await HandlerRegistry.getAllFormats(payload.url);
 
     // Get format index
@@ -119,7 +119,6 @@ console.log('Chrome Extension Starter: Content script loaded');
 // GitHub Autoscroll integration
 import {initializeAutoScroll, isGitHubPRChangesPage} from '../library/github-autoscroll';
 import {Storage} from '../library/storage';
-import {Notifications} from '../library/notifications';
 
 // GitHub Autoscroll message handlers
 chrome.runtime.onMessage.addListener(
