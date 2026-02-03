@@ -1,6 +1,6 @@
 import {IncrementAction} from '../actions/increment.action';
 import {GetCountAction} from '../actions/get-count.action';
-import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
+import {CopyRichLinkAction, CopyRichLinkPayload} from '../actions/copy-rich-link.action';
 import {HandlerRegistry} from '../library/richlink/handlers';
 import {Clipboard} from '../library/clipboard';
 import {Notifications} from '../library/notifications';
@@ -81,8 +81,22 @@ GetCountAction.handle(
 );
 
 // Register CopyRichLinkAction handler
-CopyRichLinkAction.handle(async (payload, _sender, _context) => {
+CopyRichLinkAction.handle(async (payload: CopyRichLinkPayload, _sender, _context) => {
     const formats = await HandlerRegistry.getAllFormats(payload.url);
+
+    // Check if we're cycling (within 1s of previous copy)
+    const isCycling = (() => {
+        const CACHE_KEY = 'richlink-last-copy';
+        const CACHE_EXPIRY_MS = 1000;
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (!cached) return false;
+            const data = JSON.parse(cached);
+            return Date.now() - data.timestamp <= CACHE_EXPIRY_MS;
+        } catch {
+            return false;
+        }
+    })();
 
     // Get format index
     const formatIndex = payload.formatIndex !== undefined
@@ -94,12 +108,34 @@ CopyRichLinkAction.handle(async (payload, _sender, _context) => {
     // Copy to clipboard
     await Clipboard.write(format.text, format.html);
 
-    // Increment counter
-    const newCount = await CopyCounter.increment();
+    // Only increment counter on first copy (not when cycling)
+    if (!isCycling) {
+        await CopyCounter.increment();
+    }
+
+    // Build preview of next cycles (show next 2-3 formats)
+    const nextFormats: string[] = [];
+    if (formats.length > 1) {
+        for (let i = 1; i <= Math.min(3, formats.length - 1); i++) {
+            const nextIndex = (formatIndex + i) % formats.length;
+            nextFormats.push(formats[nextIndex].label);
+        }
+    }
+    const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' → ')}` : undefined;
+
+    // Determine if this is a fallback handler (PageTitle or RawURL)
+    const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
+    const opacity = isFallback ? 0.6 : 1;
 
     // Show notification with format indicator
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
-    Notifications.show(`Copied${formatInfo}\n${format.label}\nTotal: ${newCount}`);
+    const message = `Copied${formatInfo}\n${format.label}`;
+
+    Notifications.showRichNotification(message, 'success', 3000, {
+        replace: isCycling, // Replace immediately when cycling
+        opacity: opacity, // Paler for fallbacks
+        preview: preview, // Show next cycles
+    });
 
     // Cache format index for cycling
     if (payload.formatIndex === undefined) {
