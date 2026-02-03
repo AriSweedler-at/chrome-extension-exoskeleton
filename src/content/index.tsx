@@ -1,5 +1,46 @@
 import {IncrementAction} from '../actions/increment.action';
 import {GetCountAction} from '../actions/get-count.action';
+import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
+import {HandlerRegistry} from '../library/richlink/handlers';
+import {Clipboard} from '../library/clipboard';
+import {Notifications} from '../library/notifications';
+import {CopyCounter} from '../library/richlink/copy-counter';
+
+// Format cycling for keyboard shortcut
+function getNextFormatIndex(totalFormats: number): number {
+    const CACHE_KEY = 'richlink-last-copy';
+    const CACHE_EXPIRY_MS = 1000;
+
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (!cached) {
+            return 0;
+        }
+
+        const data = JSON.parse(cached);
+        const isExpired = Date.now() - data.timestamp > CACHE_EXPIRY_MS;
+
+        if (isExpired) {
+            localStorage.removeItem(CACHE_KEY);
+            return 0;
+        }
+
+        // Cycle to next format
+        const nextIndex = (data.formatIndex + 1) % totalFormats;
+        return nextIndex;
+    } catch {
+        return 0;
+    }
+}
+
+function cacheFormatIndex(formatIndex: number): void {
+    const CACHE_KEY = 'richlink-last-copy';
+    const data = {
+        timestamp: Date.now(),
+        formatIndex,
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+}
 
 // Context state for this content script
 const context = {
@@ -38,6 +79,35 @@ GetCountAction.handle(
         return {count: ctx.count};
     },
 );
+
+// Register CopyRichLinkAction handler
+CopyRichLinkAction.handle(async (payload) => {
+    const formats = await HandlerRegistry.getAllFormats(payload.url);
+
+    // Get format index
+    const formatIndex = payload.formatIndex !== undefined
+        ? payload.formatIndex
+        : getNextFormatIndex(formats.length);
+
+    const format = formats[formatIndex];
+
+    // Copy to clipboard
+    await Clipboard.write(format.text, format.html);
+
+    // Increment counter
+    const newCount = await CopyCounter.increment();
+
+    // Show notification with format indicator
+    const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
+    Notifications.show(`Copied${formatInfo}\n${format.label}\nTotal: ${newCount}`);
+
+    // Cache format index for cycling
+    if (payload.formatIndex === undefined) {
+        cacheFormatIndex(formatIndex);
+    }
+
+    return {success: true, formatIndex, totalFormats: formats.length};
+});
 
 // Reset count on page load
 window.addEventListener('load', () => {
