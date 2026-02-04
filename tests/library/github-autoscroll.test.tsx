@@ -103,17 +103,23 @@ describe('initializeAutoScroll', () => {
             document.body.innerHTML = `
                 <div data-hpc="true">
                     <div class="d-flex flex-column gap-3">
-                        <div class="Diff-module__diffHeaderWrapper--abc123" id="file1">
-                            <div class="Diff-module__fileName--xyz">file1.ts</div>
-                            <button aria-pressed="false">Viewed</button>
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <div id="file1" class="Diff-module__fileName--xyz">
+                                <div class="Diff-module__fileName--xyz">file1.ts</div>
+                                <button aria-pressed="false">Viewed</button>
+                            </div>
                         </div>
-                        <div class="Diff-module__diffHeaderWrapper--abc123" id="file2">
-                            <div class="Diff-module__fileName--xyz">file2.ts</div>
-                            <button aria-pressed="false">Viewed</button>
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <div id="file2" class="Diff-module__fileName--xyz">
+                                <div class="Diff-module__fileName--xyz">file2.ts</div>
+                                <button aria-pressed="false">Viewed</button>
+                            </div>
                         </div>
-                        <div class="Diff-module__diffHeaderWrapper--abc123" id="file3">
-                            <div class="Diff-module__fileName--xyz">file3.ts</div>
-                            <button aria-pressed="false">Viewed</button>
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <div id="file3" class="Diff-module__fileName--xyz">
+                                <div class="Diff-module__fileName--xyz">file3.ts</div>
+                                <button aria-pressed="false">Viewed</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -158,13 +164,12 @@ describe('initializeAutoScroll', () => {
 
             await new Promise(resolve => setTimeout(resolve, 150));
 
-            // Check that flash class was added to file2's parent
-            const file2Parent = file2.parentElement as HTMLElement;
-            expect(file2Parent.classList.contains('gh-autoscroll-flash')).toBe(true);
+            // Check that flash class was added to file2
+            expect(file2.classList.contains('gh-autoscroll-flash')).toBe(true);
 
             // Wait for flash to be removed (1500ms + buffer)
             await new Promise(resolve => setTimeout(resolve, 1600));
-            expect(file2Parent.classList.contains('gh-autoscroll-flash')).toBe(false);
+            expect(file2.classList.contains('gh-autoscroll-flash')).toBe(false);
 
             stopFn();
         });

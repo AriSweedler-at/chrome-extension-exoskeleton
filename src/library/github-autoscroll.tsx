@@ -46,20 +46,26 @@ function getFiles(): HTMLElement[] {
     const container = document.querySelector('[data-hpc="true"] .d-flex.flex-column.gap-3');
 
     if (container) {
-        const diffHeaders = Array.from(
+        const diffHeaderWrappers = Array.from(
             container.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
         );
-        if (diffHeaders.length > 0) {
-            return diffHeaders as HTMLElement[];
+        if (diffHeaderWrappers.length > 0) {
+            // Extract the actual file header (first child) from each wrapper
+            return diffHeaderWrappers
+                .map(wrapper => wrapper.firstElementChild as HTMLElement)
+                .filter(el => el !== null);
         }
     }
 
     // Fallback: search globally for the diff header wrapper pattern
-    const globalDiffHeaders = Array.from(
+    const globalDiffHeaderWrappers = Array.from(
         document.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
     );
-    if (globalDiffHeaders.length > 0) {
-        return globalDiffHeaders as HTMLElement[];
+    if (globalDiffHeaderWrappers.length > 0) {
+        // Extract the actual file header (first child) from each wrapper
+        return globalDiffHeaderWrappers
+            .map(wrapper => wrapper.firstElementChild as HTMLElement)
+            .filter(el => el !== null);
     }
 
     // Final fallback selectors
@@ -198,7 +204,7 @@ function findPreviousUnviewedBefore(currentFile: HTMLElement | null): HTMLElemen
  * Add flash animation to file element
  */
 function flashFile(fileElement: HTMLElement, timers: number[]): void {
-    const cl = fileElement.parentElement!.classList;
+    const cl = fileElement.classList;
     cl.add('gh-autoscroll-flash');
     const timerId = window.setTimeout(() => {
         cl.remove('gh-autoscroll-flash');
@@ -261,11 +267,13 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         return;
     }
 
-    const fileElement =
-        (button.closest('[class*="Diff-module__diffHeaderWrapper--"]') as HTMLElement) ||
-        (button.closest(
-            '[data-tagsearch-path], [data-path], .file-header, .Box-row, .file, .js-file',
-        ) as HTMLElement);
+    // Find the wrapper first, then get its first child (the actual file header)
+    const wrapper = button.closest('[class*="Diff-module__diffHeaderWrapper--"]');
+    const fileElement = wrapper
+        ? (wrapper.firstElementChild as HTMLElement)
+        : (button.closest(
+              '[data-tagsearch-path], [data-path], .file-header, .Box-row, .file, .js-file',
+          ) as HTMLElement);
 
     if (!fileElement) {
         return;
