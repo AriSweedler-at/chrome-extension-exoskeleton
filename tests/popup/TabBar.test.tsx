@@ -18,18 +18,18 @@ describe('TabBar', () => {
 
     it('should render visible tabs', async () => {
         // This test will use the registered tabs
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
 
         render(<TabBar />);
 
         // Wait for async query
-        const element = await screen.findByText('Page Actions');
+        const element = await screen.findByText('Rich Link');
 
         expect(element).toBeTruthy();
     });
 
     it('should render tabs in priority order', async () => {
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
         await import('../../src/tabs/so-sprint.tab');
 
         // Query with Airtable URL
@@ -42,15 +42,15 @@ describe('TabBar', () => {
 
         render(<TabBar />);
 
-        await screen.findByText('SO SPRINT');
+        await screen.findByText('Rich Link');
 
         const buttons = screen.getAllByRole('button');
-        expect(buttons[0].textContent).toContain('SO SPRINT'); // Priority 0
-        expect(buttons[1].textContent).toContain('Page Actions'); // Priority 100
+        expect(buttons[0].textContent).toContain('Rich Link'); // Default tab (priority 0)
+        expect(buttons[1].textContent).toContain('SO SPRINT'); // Priority 0
     });
 
     it('should update active tab when clicked', async () => {
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
         await import('../../src/tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
@@ -65,7 +65,7 @@ describe('TabBar', () => {
 
         render(<TabBar />);
 
-        // Wait for both tabs to render and for SO SPRINT to be active
+        // Wait for both tabs to render and for Rich Link to be active
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
             expect(buttons[0].className).toContain('active');
@@ -73,11 +73,11 @@ describe('TabBar', () => {
 
         const buttons = screen.getAllByRole('button');
 
-        // SO SPRINT starts active (priority 0)
+        // Rich Link starts active (default tab, priority 0)
         expect(buttons[0].className).toContain('active');
         expect(buttons[1].className).toBe('');
 
-        // Click Page Actions
+        // Click SO SPRINT
         fireEvent.click(buttons[1]);
 
         await waitFor(() => {
@@ -88,7 +88,7 @@ describe('TabBar', () => {
     });
 
     it('should save tab selection to storage', async () => {
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
 
         chrome.tabs.query.yields([
             {
@@ -101,21 +101,21 @@ describe('TabBar', () => {
 
         render(<TabBar />);
 
-        await screen.findByText('Page Actions');
+        await screen.findByText('Rich Link');
 
         // Initially should not have called set (just restored)
         expect(storageSpy).not.toHaveBeenCalled();
 
-        const button = screen.getByRole('button', {name: 'Page Actions'});
+        const button = screen.getByRole('button', {name: 'Rich Link'});
         fireEvent.click(button);
 
         await waitFor(() => {
-            expect(storageSpy).toHaveBeenCalledWith('selectedTab:456', 'page-actions');
+            expect(storageSpy).toHaveBeenCalledWith('selectedTab:456', 'richlink');
         });
     });
 
     it('should restore stored selection on mount', async () => {
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
         await import('../../src/tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
@@ -125,21 +125,21 @@ describe('TabBar', () => {
             },
         ]);
 
-        // Mock storage to return page-actions (not the default first tab)
-        vi.spyOn(Storage, 'get').mockResolvedValue('page-actions');
+        // Mock storage to return so-sprint (not the default first tab)
+        vi.spyOn(Storage, 'get').mockResolvedValue('so-sprint');
 
         render(<TabBar />);
 
         // Wait for async storage load
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
-            // Page Actions should be active (even though SO SPRINT is priority 0)
+            // SO SPRINT should be active (even though Rich Link is default)
             expect(buttons[1].className).toContain('active');
         });
     });
 
     it('should fall back to first visible tab when stored tab not found', async () => {
-        await import('../../src/tabs/page-actions.tab');
+        await import('../../src/tabs/richlink.tab');
         await import('../../src/tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
@@ -156,7 +156,7 @@ describe('TabBar', () => {
 
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
-            expect(buttons[0].className).toContain('active'); // SO SPRINT (first) should be active
+            expect(buttons[0].className).toContain('active'); // Rich Link (first/default) should be active
         });
     });
 
