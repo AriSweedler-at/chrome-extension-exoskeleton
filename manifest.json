@@ -57,8 +57,8 @@
         },
         "copy-raw-url": {
             "suggested_key": {
-                "default": "Ctrl+Shift+Alt+C",
-                "mac": "Command+Shift+Ctrl+C"
+                "default": "Ctrl+Shift+K",
+                "mac": "Command+Shift+K"
             },
             "description": "Copy raw URL to clipboard"
         }
