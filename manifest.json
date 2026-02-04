@@ -54,6 +54,13 @@
                 "mac": "Command+Shift+C"
             },
             "description": "Copy rich link to clipboard"
+        },
+        "copy-raw-url": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Alt+C",
+                "mac": "Command+Shift+Ctrl+C"
+            },
+            "description": "Copy raw URL to clipboard"
         }
     },
     "permissions": ["activeTab", "storage", "tabs", "notifications"],

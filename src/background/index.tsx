@@ -70,6 +70,17 @@ Commands.onCommand(async (command) => {
                 console.error('Failed to copy rich link:', error);
             }
         }
+    } else if (command === 'copy-raw-url') {
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+
+        if (tab.id && tab.url) {
+            try {
+                await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url, formatLabel: 'Raw URL'});
+                console.log('Raw URL copied via keyboard shortcut');
+            } catch (error) {
+                console.error('Failed to copy raw URL:', error);
+            }
+        }
     }
 });
 
