@@ -27,20 +27,6 @@
         }
     ],
     "commands": {
-        "increment-counter": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+I",
-                "mac": "Command+Shift+I"
-            },
-            "description": "Increment page action counter"
-        },
-        "open-split-tab": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+S",
-                "mac": "Command+Shift+S"
-            },
-            "description": "Open split tab with homepage"
-        },
         "toggle-github-autoscroll": {
             "suggested_key": {
                 "default": "Ctrl+Shift+T",
