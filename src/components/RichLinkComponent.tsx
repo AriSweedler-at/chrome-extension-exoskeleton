@@ -71,41 +71,69 @@ export const RichLinkComponent: React.FC = () => {
     }
 
     return (
-        <div style={{padding: '16px'}}>
-            <div style={{marginBottom: '12px', fontSize: '14px', color: '#666'}}>
+        <div style={{padding: '16px', backgroundColor: '#000', minHeight: '100%'}}>
+            <div style={{marginBottom: '12px', fontSize: '14px', color: '#888'}}>
                 Total copied: {copyCount}
             </div>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                {formats.map((format, index) => (
-                    <button
-                        key={index}
-                        onClick={() => handleCopyFormat(index)}
-                        style={{
-                            padding: '12px',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px',
-                            backgroundColor: 'white',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                        }}
-                    >
-                        <div style={{fontWeight: 'bold', marginBottom: '4px'}}>{format.label}</div>
-                        <div
+                {formats.map((format, index) => {
+                    // Detect fallback handlers (Page Title, Raw URL)
+                    const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
+                    const opacity = isFallback ? 0.5 : 1;
+                    const backgroundColor = isFallback
+                        ? 'rgba(22, 101, 52, 0.4)' // Darker, paler green for fallbacks
+                        : 'rgba(22, 163, 74, 0.8)'; // Vibrant dark green for specialized
+
+                    return (
+                        <button
+                            key={index}
+                            onClick={() => handleCopyFormat(index)}
                             style={{
-                                fontSize: '12px',
-                                color: '#666',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
+                                padding: '12px',
+                                border: '1px solid rgba(34, 197, 94, 0.3)',
+                                borderRadius: '4px',
+                                backgroundColor: backgroundColor,
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                transition: 'all 0.15s ease',
+                                opacity: opacity,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = isFallback
+                                    ? 'rgba(22, 101, 52, 0.6)'
+                                    : 'rgba(34, 197, 94, 0.9)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = backgroundColor;
+                                e.currentTarget.style.transform = 'translateY(0)';
                             }}
                         >
-                            {format.text.length > 60
-                                ? format.text.substring(0, 60) + '...'
-                                : format.text}
-                        </div>
-                    </button>
-                ))}
+                            <div
+                                style={{
+                                    fontWeight: 'bold',
+                                    marginBottom: '4px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                {format.label}
+                            </div>
+                            <div
+                                style={{
+                                    fontSize: '11px',
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {format.text.length > 60 ? format.text.substring(0, 60) + '...' : format.text}
+                            </div>
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );

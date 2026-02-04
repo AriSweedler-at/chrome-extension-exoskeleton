@@ -181,7 +181,9 @@ describe('TabBar', () => {
             expect(screen.getByText('Test Content')).toBeInTheDocument();
         });
 
-        expect(screen.getByText(/Enable on page load:/)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText(/Enable on page load:/)).toBeInTheDocument();
+        });
     });
 
     it('does not render TabEnablementSection for tabs without enablementToggle', async () => {
