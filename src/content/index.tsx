@@ -99,9 +99,18 @@ CopyRichLinkAction.handle(async (payload: CopyRichLinkPayload, _sender, _context
     })();
 
     // Get format index
-    const formatIndex = payload.formatIndex !== undefined
-        ? payload.formatIndex
-        : getNextFormatIndex(formats.length);
+    let formatIndex: number;
+    if (payload.formatLabel) {
+        // Find format by label
+        formatIndex = formats.findIndex((f) => f.label === payload.formatLabel);
+        if (formatIndex === -1) {
+            formatIndex = 0; // Fallback to first format if not found
+        }
+    } else if (payload.formatIndex !== undefined) {
+        formatIndex = payload.formatIndex;
+    } else {
+        formatIndex = getNextFormatIndex(formats.length);
+    }
 
     const format = formats[formatIndex];
 
