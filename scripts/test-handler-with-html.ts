@@ -48,8 +48,8 @@ async function testHandler(handlerName: string, htmlFilePath: string, url: strin
     });
 
     // Set up global document and window
-    (global as any).document = dom.window.document;
-    (global as any).window = dom.window;
+    (global as Record<string, unknown>).document = dom.window.document;
+    (global as Record<string, unknown>).window = dom.window;
 
     // Get handler
     const HandlerClass = handlers[handlerName];

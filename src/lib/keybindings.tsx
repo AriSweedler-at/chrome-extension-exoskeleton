@@ -34,6 +34,7 @@ export class KeybindingRegistry {
     private keybindings: Map<string, Keybinding> = new Map();
     private helpOverlay: HTMLElement | null = null;
     private keydownHandler: ((event: KeyboardEvent) => void) | null = null;
+    private helpCloseHandler: ((event?: Event) => void) | null = null;
 
     constructor() {
         // Auto-register the help keybinding
@@ -281,7 +282,7 @@ export class KeybindingRegistry {
         document.addEventListener('keydown', closeHandler);
 
         // Store cleanup handler
-        (this.helpOverlay as any)._closeHandler = closeHandler;
+        this.helpCloseHandler = closeHandler;
     }
 
     /**
@@ -292,9 +293,9 @@ export class KeybindingRegistry {
             return;
         }
 
-        const closeHandler = (this.helpOverlay as any)._closeHandler;
-        if (closeHandler) {
-            document.removeEventListener('keydown', closeHandler);
+        if (this.helpCloseHandler) {
+            document.removeEventListener('keydown', this.helpCloseHandler);
+            this.helpCloseHandler = null;
         }
 
         this.helpOverlay.remove();

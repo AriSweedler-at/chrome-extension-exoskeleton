@@ -2,6 +2,12 @@ import {initializeAutoScroll, isGitHubPRChangesPage} from '@exo/exo-tabs/github-
 import {Storage} from '@exo/lib/storage';
 import {Notifications} from '@exo/lib/toast-notification';
 
+declare global {
+    interface Window {
+        __ghAutoScrollStop?: (() => void) | undefined;
+    }
+}
+
 /**
  * Try to auto-run autoscroll on GitHub PR changes pages
  */
@@ -16,7 +22,7 @@ async function tryAutoRunAutoscroll() {
     console.log('[Auto-run] On GitHub PR changes page');
 
     // Check if autoscroll is already running to prevent race condition
-    if (typeof (window as any).__ghAutoScrollStop === 'function') {
+    if (typeof window.__ghAutoScrollStop === 'function') {
         console.log('[Auto-run] Autoscroll already running, skipping');
         return;
     }
@@ -30,7 +36,7 @@ async function tryAutoRunAutoscroll() {
         console.log('[Auto-run] Starting autoscroll...');
         const stopFn = initializeAutoScroll(true); // Enable debug mode
         if (stopFn) {
-            (window as any).__ghAutoScrollStop = stopFn;
+            window.__ghAutoScrollStop = stopFn;
             Notifications.show('GitHub PR Autoscroll enabled');
             console.log('[Auto-run] Autoscroll enabled successfully');
         } else {
@@ -55,10 +61,10 @@ function setupSPANavigationListener() {
             // If we left a PR changes page, stop autoscroll
             if (
                 !isGitHubPRChangesPage(currentUrl) &&
-                typeof (window as any).__ghAutoScrollStop === 'function'
+                typeof window.__ghAutoScrollStop === 'function'
             ) {
                 console.log('[Auto-run] Left PR changes page, stopping autoscroll');
-                (window as any).__ghAutoScrollStop();
+                window.__ghAutoScrollStop();
             }
 
             // If we entered a PR changes page, maybe start autoscroll
@@ -75,27 +81,25 @@ function initializeMessageHandlers() {
         (
             message: {type: string},
             _sender: chrome.runtime.MessageSender,
-            sendResponse: (response: any) => void,
+            sendResponse: (response: {active: boolean}) => void,
         ) => {
             if (message.type === 'GITHUB_AUTOSCROLL_GET_STATUS') {
-                const active = typeof (window as any).__ghAutoScrollStop === 'function';
+                const active = typeof window.__ghAutoScrollStop === 'function';
                 sendResponse({active});
                 return true;
             }
 
             if (message.type === 'GITHUB_AUTOSCROLL_TOGGLE') {
-                const currentlyActive = typeof (window as any).__ghAutoScrollStop === 'function';
-
-                if (currentlyActive) {
+                if (typeof window.__ghAutoScrollStop === 'function') {
                     // Stop autoscroll
-                    (window as any).__ghAutoScrollStop();
+                    window.__ghAutoScrollStop();
                     Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
                     sendResponse({active: false});
                 } else {
                     // Start autoscroll
                     const stopFn = initializeAutoScroll(true); // Enable debug mode
                     if (stopFn) {
-                        (window as any).__ghAutoScrollStop = stopFn;
+                        window.__ghAutoScrollStop = stopFn;
                         Notifications.show('GitHub PR Autoscroll enabled');
                         sendResponse({active: true});
                     } else {
