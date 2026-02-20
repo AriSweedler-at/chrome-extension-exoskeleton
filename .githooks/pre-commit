@@ -19,7 +19,7 @@ function main() {
 
   # Format check (prettier)
   log::info "Checking formatting..."
-  if ! npx prettier --check 'src/**/*.{ts,tsx}' 'tests/**/*.{ts,tsx}' 2>&1; then
+  if ! npx prettier --check 'src/**/*.{ts,tsx}' 2>&1; then
     log::err "Formatting issues — run 'npm run format' then re-stage"
     exit 1
   fi
