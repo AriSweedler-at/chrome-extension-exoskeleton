@@ -3,7 +3,7 @@ import {render, screen} from '@testing-library/react';
 import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
-import '../../src/exo-tabs/so-sprint.tab';
+import './so-sprint.tab';
 
 describe('SO SPRINT Tab', () => {
     const AIRTABLE_URL = 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6';

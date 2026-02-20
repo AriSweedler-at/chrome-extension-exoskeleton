@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
-import '../../src/exo-tabs/spinnaker.tab';
+import './spinnaker.tab';
 
 describe('Spinnaker Tab', () => {
     it('registers tab with correct id and label', () => {
