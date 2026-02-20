@@ -3,7 +3,7 @@ import {OpenSearchComponent} from '@exo/exo-tabs/opensearch/OpenSearchComponent'
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
-} from '@exo/lib/actions/extract-log-command.action';
+} from '@exo/exo-tabs/opensearch/action';
 import {isOpenSearchPage} from '@exo/exo-tabs/opensearch';
 
 TabRegistry.register({

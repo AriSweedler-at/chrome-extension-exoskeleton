@@ -1,66 +1,15 @@
-import {CopyRichLinkPayload} from '@exo/lib/actions/copy-rich-link.action';
+import {CopyRichLinkAction, type CopyRichLinkPayload} from '@exo/exo-tabs/richlink/action';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
+import {
+    CACHE_EXPIRY_MS,
+    getNextFormatIndex,
+    cacheFormatIndex,
+    isCycling,
+} from '@exo/exo-tabs/richlink/format-cycling';
 
-const CACHE_KEY = 'richlink-last-copy';
-const CACHE_EXPIRY_MS = 3000;
-
-/**
- * Get the next format index for cycling
- */
-function getNextFormatIndex(totalFormats: number): number {
-    try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (!cached) {
-            return 0;
-        }
-
-        const data = JSON.parse(cached);
-        const isExpired = Date.now() - data.timestamp > CACHE_EXPIRY_MS;
-
-        if (isExpired) {
-            localStorage.removeItem(CACHE_KEY);
-            return 0;
-        }
-
-        // Cycle to next format
-        const nextIndex = (data.formatIndex + 1) % totalFormats;
-        return nextIndex;
-    } catch {
-        return 0;
-    }
-}
-
-/**
- * Cache the format index for cycling
- */
-function cacheFormatIndex(formatIndex: number): void {
-    const data = {
-        timestamp: Date.now(),
-        formatIndex,
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-}
-
-/**
- * Check if we're currently cycling (within 3s of previous copy)
- */
-function isCycling(): boolean {
-    try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (!cached) return false;
-        const data = JSON.parse(cached);
-        return Date.now() - data.timestamp <= CACHE_EXPIRY_MS;
-    } catch {
-        return false;
-    }
-}
-
-/**
- * Handle the CopyRichLink action
- */
 export async function handleCopyRichLink(
     payload: CopyRichLinkPayload,
     _sender: chrome.runtime.MessageSender,
@@ -72,10 +21,9 @@ export async function handleCopyRichLink(
     // Get format index
     let formatIndex: number;
     if (payload.formatLabel) {
-        // Find format by label
         formatIndex = formats.findIndex((f) => f.label === payload.formatLabel);
         if (formatIndex === -1) {
-            formatIndex = 0; // Fallback to first format if not found
+            formatIndex = 0;
         }
     } else if (payload.formatIndex !== undefined) {
         formatIndex = payload.formatIndex;
@@ -85,10 +33,8 @@ export async function handleCopyRichLink(
 
     const format = formats[formatIndex];
 
-    // Copy to clipboard
     await Clipboard.write(format.text, format.html);
 
-    // Only increment counter on first copy (not when cycling)
     if (!cycling) {
         await CopyCounter.increment();
     }
@@ -103,11 +49,9 @@ export async function handleCopyRichLink(
     }
     const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' → ')}` : undefined;
 
-    // Determine if this is a fallback handler (PageTitle or RawURL)
     const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
     const opacity = isFallback ? 0.75 : 1;
 
-    // Show notification with format indicator
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
     const message = `Copied${formatInfo}\n${format.label}`;
 
@@ -119,10 +63,12 @@ export async function handleCopyRichLink(
         preview,
     });
 
-    // Cache format index for cycling
     if (payload.formatIndex === undefined) {
         cacheFormatIndex(formatIndex);
     }
 
     return {success: true, formatIndex, totalFormats: formats.length};
 }
+
+// Self-register: importing this module wires the handler
+CopyRichLinkAction.handle(handleCopyRichLink);
