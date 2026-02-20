@@ -6,17 +6,26 @@ Tabs are the top-level unit of functionality in the extension. Each tab targets 
 
 | File | Purpose |
 |------|---------|
-| `src/components/MyFeatureComponent.tsx` | React component for the popup UI |
-| `src/tabs/my-feature.tab.tsx` | Tab registration (URL matching, priority, primary action) |
-| `src/tabs/index.tsx` | Add import to trigger registration |
-| `tests/tabs/my-feature.test.tsx` | Tests for URL matching and registration |
+| `src/library/my-feature/MyFeatureComponent.tsx` | React component for the popup UI |
+| `src/library/my-feature/index.ts` | Domain logic, URL matching, etc. |
+| `src/exo-tabs/my-feature.tab.tsx` | Tab registration (wires component + library together) |
+| `src/exo-tabs/index.tsx` | Add import to trigger registration |
+| `src/exo-tabs/my-feature.tab.test.tsx` | Tests (colocated with source) |
 
-## Step 1: Create the Component
+## Step 1: Create the Library Folder
 
-Create `src/components/MyFeatureComponent.tsx`:
+Create `src/library/my-feature/index.ts` with domain logic:
+
+```ts
+export function isMyFeaturePage(url: string): boolean {
+    return url.includes('example.com');
+}
+```
+
+Create `src/library/my-feature/MyFeatureComponent.tsx`:
 
 ```tsx
-import {theme} from '../theme/default';
+import {theme} from '@theme';
 
 export function MyFeatureComponent() {
     return (
@@ -28,15 +37,16 @@ export function MyFeatureComponent() {
 }
 ```
 
-Use colors from `theme` — never hardcode hex/rgba/hsla values in components.
+Use colors from `@theme` — never hardcode hex/rgba/hsla values in components.
 
 ## Step 2: Register the Tab
 
-Create `src/tabs/my-feature.tab.tsx`:
+Create `src/exo-tabs/my-feature.tab.tsx`:
 
 ```tsx
-import {TabRegistry} from '../library/tabs/tab-registry';
-import {MyFeatureComponent} from '../components/MyFeatureComponent';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import {MyFeatureComponent} from '@library/my-feature/MyFeatureComponent';
+import {isMyFeaturePage} from '@library/my-feature';
 
 TabRegistry.register({
     id: 'my-feature',
@@ -44,7 +54,7 @@ TabRegistry.register({
     component: MyFeatureComponent,
 
     getPriority: (url: string) => {
-        if (url.includes('example.com')) return 0;
+        if (isMyFeaturePage(url)) return 0;
         return Number.MAX_SAFE_INTEGER;
     },
 
@@ -60,7 +70,7 @@ TabRegistry.register({
 
 ## Step 3: Import the Tab
 
-Add a side-effect import to `src/tabs/index.tsx`:
+Add a side-effect import to `src/exo-tabs/index.tsx`:
 
 ```tsx
 import './my-feature.tab';
@@ -70,12 +80,12 @@ This ensures the tab registers before the popup renders.
 
 ## Step 4: Write Tests
 
-Create `tests/tabs/my-feature.test.tsx`:
+Create `src/exo-tabs/my-feature.tab.test.tsx` (colocated with source):
 
 ```tsx
-import {describe, it, expect, beforeAll} from 'vitest';
-import {TabRegistry} from '../../src/library/tabs/tab-registry';
-import '../../src/tabs/my-feature.tab';
+import {describe, it, expect} from 'vitest';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import './my-feature.tab';
 
 describe('My Feature Tab', () => {
     it('registers with correct id and label', () => {
@@ -96,6 +106,18 @@ describe('My Feature Tab', () => {
     });
 });
 ```
+
+## Import Conventions
+
+Use `@` path aliases for all cross-directory imports. Same-directory `./` imports are fine.
+
+| Alias | Resolves to |
+|---|---|
+| `@library/*` | `src/library/*` |
+| `@actions/*` | `src/actions/*` |
+| `@theme` | `src/theme/default` |
+| `@exo-tabs/*` | `src/exo-tabs/*` |
+| `@content/*` | `src/content/*` |
 
 ## Reference
 
@@ -139,11 +161,12 @@ When `true`, a toggle switch ("Enable on page load") appears below your componen
 
 ### Communicating with Content Scripts
 
-If your tab needs to run code in the page, create an action class:
+If your tab needs to run code in the page, create an action class and a content handler in your library folder:
 
 ```
-src/actions/my-action.action.ts     — Action definition
-src/content/my-feature-handler.ts   — Content script handler
+src/actions/my-action.action.ts              — Action definition
+src/library/my-feature/content-handler.ts    — Content script handler
+src/content/index.tsx                        — Wire up the handler
 ```
 
-Use `Action.sendToTab(tabId, payload)` from the popup or `primaryAction`, and `Action.handle(...)` in the content script. See `ExtractLogCommandAction` for a working example.
+Use `Action.sendToTab(tabId, payload)` from the popup or `primaryAction`, and `Action.handle(...)` in `src/content/index.tsx`. See `ExtractLogCommandAction` and `library/opensearch/content-handler.ts` for a working example.
