@@ -64,7 +64,7 @@ function isCycling(): boolean {
 export async function handleCopyRichLink(
     payload: CopyRichLinkPayload,
     _sender: chrome.runtime.MessageSender,
-    _context: any,
+    _context: void,
 ) {
     const formats = await HandlerRegistry.getAllFormats(payload.url);
     const cycling = isCycling();

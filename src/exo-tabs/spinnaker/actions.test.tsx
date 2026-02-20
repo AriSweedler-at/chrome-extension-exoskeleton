@@ -10,16 +10,16 @@ import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import * as podExtractor from '@exo/exo-tabs/spinnaker/pod-extractor';
 
 // Mock chrome.notifications and runtime APIs
-global.chrome = {
+(global as Record<string, unknown>).chrome = {
     notifications: {
-        create: vi.fn((id, options, callback) => {
+        create: vi.fn((_id: string, _options: unknown, callback?: (id: string) => void) => {
             if (callback) callback('notification-id');
         }),
     },
     runtime: {
         getURL: vi.fn((path: string) => `chrome-extension://fake-id/${path}`),
     },
-} as any;
+};
 
 // Mock navigator.clipboard
 Object.assign(navigator, {
@@ -39,13 +39,14 @@ describe('spinnaker actions', () => {
 
     describe('toggleExecution', () => {
         it('should click execution details link when found', () => {
-            const mockLink = {click: vi.fn()} as any;
+            const clickFn = vi.fn();
+            const mockLink = {click: clickFn} as unknown as HTMLElement;
             vi.spyOn(domUtils, 'findExecutionDetailsLink').mockReturnValue(mockLink);
 
             toggleExecution();
 
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(clickFn).toHaveBeenCalled();
             expect(chrome.notifications.create).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.objectContaining({
@@ -172,13 +173,14 @@ describe('spinnaker actions', () => {
 
     describe('jumpToExecution', () => {
         it('should be an alias for toggleExecution', () => {
-            const mockLink = {click: vi.fn()} as any;
+            const clickFn = vi.fn();
+            const mockLink = {click: clickFn} as unknown as HTMLElement;
             vi.spyOn(domUtils, 'findExecutionDetailsLink').mockReturnValue(mockLink);
 
             jumpToExecution();
 
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
-            expect(mockLink.click).toHaveBeenCalled();
+            expect(clickFn).toHaveBeenCalled();
             expect(chrome.notifications.create).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.objectContaining({
@@ -195,7 +197,7 @@ describe('spinnaker actions', () => {
         it('should extract pod names and copy first to clipboard', async () => {
             const mockErrorContainer = {
                 innerHTML: '{"metadata":{"name":"test-pod-123"}}',
-            } as any;
+            } as unknown as HTMLElement;
             vi.spyOn(domUtils, 'findErrorContainer').mockReturnValue(mockErrorContainer);
             vi.spyOn(podExtractor, 'extractPodNames').mockReturnValue(['test-pod-123']);
 
@@ -220,7 +222,7 @@ describe('spinnaker actions', () => {
         it('should show count when multiple pod names found', async () => {
             const mockErrorContainer = {
                 innerHTML: 'multiple pods',
-            } as any;
+            } as unknown as HTMLElement;
             vi.spyOn(domUtils, 'findErrorContainer').mockReturnValue(mockErrorContainer);
             vi.spyOn(podExtractor, 'extractPodNames').mockReturnValue(['pod-1', 'pod-2', 'pod-3']);
 
@@ -241,7 +243,7 @@ describe('spinnaker actions', () => {
         it('should show error when no pod names found', async () => {
             const mockErrorContainer = {
                 innerHTML: 'error without pod names',
-            } as any;
+            } as unknown as HTMLElement;
             vi.spyOn(domUtils, 'findErrorContainer').mockReturnValue(mockErrorContainer);
             vi.spyOn(podExtractor, 'extractPodNames').mockReturnValue([]);
 

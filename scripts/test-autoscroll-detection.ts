@@ -25,8 +25,8 @@ function testFileDetection(htmlFilePath: string) {
         runScripts: 'outside-only',
     });
 
-    global.document = dom.window.document as any;
-    global.window = dom.window as any;
+    (global as Record<string, unknown>).document = dom.window.document;
+    (global as Record<string, unknown>).window = dom.window;
 
     console.log('\n=== Testing File Detection ===\n');
 

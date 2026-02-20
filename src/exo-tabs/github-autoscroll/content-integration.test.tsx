@@ -1,7 +1,19 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 
+type ChromeMessageListener = (
+    message: {type: string},
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response: unknown) => void,
+) => boolean | void;
+
+declare global {
+    interface Window {
+        __ghAutoScrollStop?: (() => void) | undefined;
+    }
+}
+
 describe('GitHub Autoscroll Content Script Integration', () => {
-    let messageListeners: any[] = [];
+    let messageListeners: ChromeMessageListener[] = [];
 
     beforeEach(async () => {
         messageListeners = [];
@@ -26,7 +38,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
                 sendMessage: vi.fn(),
             },
         });
-        (window as any).__ghAutoScrollStop = undefined;
+        window.__ghAutoScrollStop = undefined;
 
         // Mock DOM elements needed for initialization
         document.body.innerHTML = '';
@@ -63,7 +75,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         const githubListener = messageListeners[messageListeners.length - 1];
 
         // Simulate autoscroll being active
-        (window as any).__ghAutoScrollStop = vi.fn();
+        window.__ghAutoScrollStop = vi.fn();
 
         const sendResponse = vi.fn();
         githubListener({type: 'GITHUB_AUTOSCROLL_GET_STATUS'}, {}, sendResponse);
@@ -100,7 +112,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
 
         expect(result).toBe(true); // Async handler
         expect(sendResponse).toHaveBeenCalledWith({active: true});
-        expect((window as any).__ghAutoScrollStop).toBeTypeOf('function');
+        expect(window.__ghAutoScrollStop).toBeTypeOf('function');
     });
 
     it('stops autoscroll on GITHUB_AUTOSCROLL_TOGGLE when active', async () => {
@@ -111,7 +123,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
 
         // Simulate autoscroll being active
         const stopFn = vi.fn();
-        (window as any).__ghAutoScrollStop = stopFn;
+        window.__ghAutoScrollStop = stopFn;
 
         const sendResponse = vi.fn();
         githubListener({type: 'GITHUB_AUTOSCROLL_TOGGLE'}, {}, sendResponse);
@@ -161,7 +173,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             // Wait for auto-run (500ms delay + buffer)
             await new Promise((resolve) => setTimeout(resolve, 600));
 
-            expect((window as any).__ghAutoScrollStop).toBeTypeOf('function');
+            expect(window.__ghAutoScrollStop).toBeTypeOf('function');
         });
 
         it('respects exorun-github-autoscroll storage setting (false)', async () => {
@@ -195,7 +207,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             // Wait for async operations
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect((window as any).__ghAutoScrollStop).toBeUndefined();
+            expect(window.__ghAutoScrollStop).toBeUndefined();
         });
 
         it('does not auto-run on non-GitHub pages', async () => {
@@ -218,7 +230,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             // Wait for async operations
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect((window as any).__ghAutoScrollStop).toBeUndefined();
+            expect(window.__ghAutoScrollStop).toBeUndefined();
         });
 
         it('does not auto-run if autoscroll is already active (race condition)', async () => {
@@ -240,7 +252,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
 
             // Simulate autoscroll already being active
             const existingStopFn = vi.fn();
-            (window as any).__ghAutoScrollStop = existingStopFn;
+            window.__ghAutoScrollStop = existingStopFn;
 
             // Mock storage to return undefined (default behavior)
             chrome.storage.local.get = vi.fn((_key, callback) => {
@@ -257,7 +269,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
 
             // Should still be the original function, not replaced
-            expect((window as any).__ghAutoScrollStop).toBe(existingStopFn);
+            expect(window.__ghAutoScrollStop).toBe(existingStopFn);
         });
     });
 });

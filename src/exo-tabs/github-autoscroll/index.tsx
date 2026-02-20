@@ -1,4 +1,4 @@
-import {scrollElementCenter, scrollElementTop} from '@exo/lib/scroll-utils';
+import {scrollElementCenter, scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {theme} from '@exo/theme/default';
 
