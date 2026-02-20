@@ -1,9 +1,9 @@
 import {CopyRichLinkAction} from '@exo/lib/actions/copy-rich-link.action';
 import {ExtractLogCommandAction} from '@exo/lib/actions/extract-log-command.action';
 import {ShowToastAction, type ShowToastPayload} from '@exo/lib/actions/show-toast.action';
-import {handleCopyRichLink} from '@exo/lib/richlink/content-handler';
-import {handleExtractLogCommand} from '@exo/lib/opensearch/content-handler';
-import {initializeGitHubAutoscroll} from '@exo/lib/github-autoscroll/content-integration';
+import {handleCopyRichLink} from '@exo/exo-tabs/richlink/content-handler';
+import {handleExtractLogCommand} from '@exo/exo-tabs/opensearch/content-handler';
+import {initializeGitHubAutoscroll} from '@exo/exo-tabs/github-autoscroll/content-integration';
 
 /**
  * Content script entry point

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {isOpenSearchPage} from '@exo/lib/opensearch';
+import {isOpenSearchPage} from '@exo/exo-tabs/opensearch';
 
 describe('isOpenSearchPage', () => {
     it('returns true for production opensearch URL', () => {

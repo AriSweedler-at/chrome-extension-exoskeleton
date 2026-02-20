@@ -1,4 +1,7 @@
-import {ensureInjectContentScript, CONTENT_SCRIPT_PATH} from '@exo/lib/service-worker/content-script-injector';
+import {
+    ensureInjectContentScript,
+    CONTENT_SCRIPT_PATH,
+} from '@exo/lib/service-worker/content-script-injector';
 import {initializeCommandHandlers} from '@exo/lib/service-worker/command-handlers';
 
 /**
