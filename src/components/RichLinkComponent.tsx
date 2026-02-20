@@ -3,6 +3,7 @@ import {HandlerRegistry} from '../library/richlink/handlers';
 import {LinkFormat} from '../library/richlink/base';
 import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
 import {CopyCounter} from '../library/richlink/copy-counter';
+import {theme} from '../theme/default';
 
 export const RichLinkComponent: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -81,8 +82,8 @@ export const RichLinkComponent: React.FC = () => {
     }
 
     return (
-        <div style={{padding: '16px', backgroundColor: '#000', minHeight: '100%'}}>
-            <div style={{marginBottom: '12px', fontSize: '14px', color: '#888'}}>
+        <div style={{padding: '16px', backgroundColor: theme.bg.page, minHeight: '100%'}}>
+            <div style={{marginBottom: '12px', fontSize: '14px', color: theme.text.tertiary}}>
                 Total copied: {copyCount}
             </div>
 
@@ -92,8 +93,8 @@ export const RichLinkComponent: React.FC = () => {
                     const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
                     const opacity = isFallback ? 0.75 : 1;
                     const backgroundColor = isFallback
-                        ? 'rgba(22, 163, 74, 0.5)' // Same green hue as specialized, just lighter
-                        : 'rgba(22, 163, 74, 0.8)'; // Vibrant dark green for specialized
+                        ? theme.richlink.fallbackBg
+                        : theme.richlink.specializedBg;
 
                     return (
                         <button
@@ -101,7 +102,7 @@ export const RichLinkComponent: React.FC = () => {
                             onClick={() => handleCopyFormat(index)}
                             style={{
                                 padding: '12px',
-                                border: '1px solid rgba(34, 197, 94, 0.3)',
+                                border: `1px solid ${theme.richlink.border}`,
                                 borderRadius: '4px',
                                 backgroundColor: backgroundColor,
                                 cursor: 'pointer',
@@ -111,8 +112,8 @@ export const RichLinkComponent: React.FC = () => {
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = isFallback
-                                    ? 'rgba(22, 163, 74, 0.7)'
-                                    : 'rgba(34, 197, 94, 0.9)';
+                                    ? theme.richlink.fallbackHoverBg
+                                    : theme.richlink.specializedHoverBg;
                                 e.currentTarget.style.transform = 'translateY(-1px)';
                             }}
                             onMouseLeave={(e) => {
@@ -124,7 +125,7 @@ export const RichLinkComponent: React.FC = () => {
                                 style={{
                                     fontWeight: 'bold',
                                     marginBottom: '4px',
-                                    color: '#fff',
+                                    color: theme.text.white,
                                     fontSize: '14px',
                                 }}
                             >
@@ -133,7 +134,7 @@ export const RichLinkComponent: React.FC = () => {
                             <div
                                 style={{
                                     fontSize: '11px',
-                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    color: theme.text.whiteTranslucent,
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',

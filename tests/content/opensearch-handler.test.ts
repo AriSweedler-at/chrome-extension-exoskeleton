@@ -9,12 +9,15 @@ vi.mock('@library/clipboard', () => ({
 }));
 
 // Mock Notifications
-vi.mock('@library/notifications', () => ({
-    Notifications: {
-        showRichNotification: vi.fn(),
-        show: vi.fn(),
-    },
-}));
+vi.mock('@library/notifications', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@library/notifications')>();
+    return {
+        ...actual,
+        Notifications: {
+            show: vi.fn(),
+        },
+    };
+});
 
 import {Clipboard} from '@library/clipboard';
 import {Notifications} from '@library/notifications';
@@ -47,9 +50,8 @@ describe('handleExtractLogCommand', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toBe('No open log');
-        expect(Notifications.showRichNotification).toHaveBeenCalledWith(
-            'No open log',
-            'error',
+        expect(Notifications.show).toHaveBeenCalledWith(
+            expect.objectContaining({message: 'No open log'}),
         );
     });
 
@@ -92,11 +94,11 @@ describe('handleExtractLogCommand', () => {
         expect(Clipboard.write).toHaveBeenCalledWith(result.command!);
         // Clipboard gets the flat (single-line) command
         expect(result.command).not.toContain('\n');
-        expect(Notifications.showRichNotification).toHaveBeenCalledWith(
-            'Copied log fetch command',
-            'success',
-            5000,
-            expect.objectContaining({detail: expect.stringContaining('--hostname=')}),
+        expect(Notifications.show).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'Copied log fetch command',
+                detail: expect.stringContaining('--hostname='),
+            }),
         );
     });
 

@@ -1,5 +1,8 @@
 import {Commands} from '@library/commands';
 import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
+import {ExtractLogCommandAction} from '../actions/extract-log-command.action';
+import {isGitHubPRChangesPage} from '../library/github-autoscroll';
+import {isOpenSearchPage} from '../tabs/opensearch.tab';
 
 /**
  * Command handlers for keyboard shortcuts
@@ -36,16 +39,29 @@ async function copyRichLink() {
     }
 }
 
-async function copyRawUrl() {
+
+async function extractLogCommand() {
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
 
-    if (tab.id && tab.url) {
+    if (tab.id) {
         try {
-            await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url, formatLabel: 'Raw URL'});
-            console.log('Raw URL copied via keyboard shortcut');
+            await ExtractLogCommandAction.sendToTab(tab.id, undefined as void);
         } catch (error) {
-            console.error('Failed to copy raw URL:', error);
+            console.error('Failed to extract log command:', error);
         }
+    }
+}
+
+async function dispatchPrimaryAction() {
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab.url) return;
+
+    if (isGitHubPRChangesPage(tab.url)) {
+        await toggleGithubAutoscroll();
+    } else if (isOpenSearchPage(tab.url)) {
+        await extractLogCommand();
+    } else {
+        await copyRichLink();
     }
 }
 
@@ -57,14 +73,11 @@ export function initializeCommandHandlers(): void {
         console.log('Command received:', command);
 
         switch (command) {
-            case 'toggle-github-autoscroll':
-                await toggleGithubAutoscroll();
-                break;
             case 'copy-rich-link':
                 await copyRichLink();
                 break;
-            case 'copy-raw-url':
-                await copyRawUrl();
+            case 'primary-action':
+                await dispatchPrimaryAction();
                 break;
         }
     });

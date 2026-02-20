@@ -1,5 +1,6 @@
 import {scrollElementCenter, scrollElementTop} from './scroll-utils';
 import { keybindings } from './keybindings';
+import {theme} from '../theme/default';
 
 /**
  * Check if URL is a GitHub PR changes page
@@ -493,7 +494,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
                 position: absolute;
                 z-index: 10;
                 inset: 0;
-                border: 8px solid #ffffff;
+                border: 8px solid ${theme.flashBorder};
                 pointer-events: none;
                 animation: flashBorder 0.75s ease alternate 2;
             }

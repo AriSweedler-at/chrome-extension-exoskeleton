@@ -111,10 +111,12 @@ export async function handleCopyRichLink(
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
     const message = `Copied${formatInfo}\n${format.label}`;
 
-    Notifications.showRichNotification(message, 'success', CACHE_EXPIRY_MS, {
-        replace: cycling, // Replace immediately when cycling
-        opacity: opacity, // Paler for fallbacks
-        preview: preview, // Show next cycles
+    Notifications.show({
+        message,
+        duration: CACHE_EXPIRY_MS,
+        replace: cycling,
+        opacity,
+        preview,
     });
 
     // Cache format index for cycling

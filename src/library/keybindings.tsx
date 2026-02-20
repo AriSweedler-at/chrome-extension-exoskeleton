@@ -1,3 +1,5 @@
+import {theme} from '../theme/default';
+
 /**
  * Keybinding Registry Library
  *
@@ -163,7 +165,7 @@ export class KeybindingRegistry {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: ${theme.overlay.dark};
       z-index: 999999;
       display: flex;
       align-items: center;
@@ -180,7 +182,7 @@ export class KeybindingRegistry {
       max-width: 600px;
       max-height: 80vh;
       overflow-y: auto;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      box-shadow: ${theme.shadow.overlay};
     `;
 
     // Add title
@@ -190,7 +192,7 @@ export class KeybindingRegistry {
       margin: 0 0 20px 0;
       font-size: 24px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: ${theme.text.primary};
     `;
     content.appendChild(title);
 
@@ -203,7 +205,7 @@ export class KeybindingRegistry {
         margin: 16px 0 8px 0;
         font-size: 14px;
         font-weight: 600;
-        color: #666;
+        color: ${theme.text.secondary};
         text-transform: uppercase;
         letter-spacing: 0.5px;
       `;
@@ -217,27 +219,27 @@ export class KeybindingRegistry {
           justify-content: space-between;
           align-items: center;
           padding: 8px 0;
-          border-bottom: 1px solid #f0f0f0;
+          border-bottom: 1px solid ${theme.border.separator};
         `;
 
         const desc = document.createElement('span');
         desc.textContent = kb.description;
         desc.style.cssText = `
           flex: 1;
-          color: #333;
+          color: ${theme.text.dark};
           font-size: 14px;
         `;
 
         const keyDisplay = document.createElement('kbd');
         keyDisplay.textContent = this.formatKeybinding(kb);
         keyDisplay.style.cssText = `
-          background: #f5f5f5;
-          border: 1px solid #d0d0d0;
+          background: ${theme.bg.cardSubtle};
+          border: 1px solid ${theme.border.medium};
           border-radius: 4px;
           padding: 4px 8px;
           font-family: 'Monaco', 'Courier New', monospace;
           font-size: 12px;
-          color: #333;
+          color: ${theme.text.dark};
           white-space: nowrap;
           margin-left: 16px;
         `;
@@ -254,7 +256,7 @@ export class KeybindingRegistry {
     closeHint.style.cssText = `
       margin: 20px 0 0 0;
       text-align: center;
-      color: #999;
+      color: ${theme.text.muted};
       font-size: 12px;
     `;
     content.appendChild(closeHint);

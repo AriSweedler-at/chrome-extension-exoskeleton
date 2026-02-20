@@ -1,4 +1,5 @@
 import React from 'react';
+import {theme} from '../../theme/default';
 import {useTabEnablement} from './use-tab-enablement';
 
 interface TabEnablementSectionProps {
@@ -19,7 +20,7 @@ export function TabEnablementSection({tabId}: TabEnablementSectionProps) {
     return (
         <div
             style={{
-                borderTop: '1px solid #ccc',
+                borderTop: `1px solid ${theme.border.light}`,
                 paddingTop: '16px',
                 display: 'flex',
                 justifyContent: 'space-between',
