@@ -1,5 +1,5 @@
-import {ensureInjectContentScript, CONTENT_SCRIPT_PATH} from '@exo/library/content-script-injector';
-import {initializeCommandHandlers} from '@exo/library/command-handlers';
+import {ensureInjectContentScript, CONTENT_SCRIPT_PATH} from '@exo/library/service-worker/content-script-injector';
+import {initializeCommandHandlers} from '@exo/library/service-worker/command-handlers';
 
 /**
  * Background service worker entry point

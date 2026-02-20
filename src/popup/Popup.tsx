@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {Tabs} from '@exo/library/tabs';
+import {Tabs} from '@exo/library/service-worker/tabs';
 import {TabBar} from '@exo/popup/TabBar';
 // eslint-disable-next-line no-restricted-imports -- CSS must use relative imports
 import './Popup.css';

@@ -1,4 +1,4 @@
-import {Tabs} from '@exo/library/tabs';
+import {Tabs} from '@exo/library/service-worker/tabs';
 
 /**
  * Utilities for injecting content scripts into tabs
