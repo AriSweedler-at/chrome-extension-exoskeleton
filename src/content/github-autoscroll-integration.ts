@@ -89,7 +89,7 @@ function initializeMessageHandlers() {
                 if (currentlyActive) {
                     // Stop autoscroll
                     (window as any).__ghAutoScrollStop();
-                    Notifications.show('GitHub PR Autoscroll disabled');
+                    Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
                     sendResponse({active: false});
                 } else {
                     // Start autoscroll
