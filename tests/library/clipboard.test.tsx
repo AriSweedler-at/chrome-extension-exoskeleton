@@ -42,15 +42,18 @@ describe('Clipboard', () => {
             expect(clipboardItems).toHaveLength(1);
         });
 
-        it('should reject if clipboard API fails', async () => {
+        it('should fall back to execCommand when clipboard API fails', async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigator.clipboard.writeText as any).mockRejectedValue(
                 new Error('Clipboard access denied'),
             );
 
-            await expect(Clipboard.write('test')).rejects.toThrow(
-                'Clipboard access denied',
-            );
+            // Mock execCommand so fallback works
+            document.execCommand = vi.fn().mockReturnValue(true);
+
+            await Clipboard.write('test');
+
+            expect(document.execCommand).toHaveBeenCalledWith('copy');
         });
     });
 });
