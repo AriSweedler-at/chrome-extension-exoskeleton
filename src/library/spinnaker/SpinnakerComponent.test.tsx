@@ -4,7 +4,7 @@ import {SpinnakerContent} from '@library/spinnaker/SpinnakerComponent';
 import * as actions from '@library/spinnaker/actions';
 
 // Mock the action functions
-vi.mock('../../src/library/spinnaker/actions', () => ({
+vi.mock('./actions', () => ({
     toggleExecution: vi.fn(),
     displayActiveExecution: vi.fn(),
     displayActiveStage: vi.fn(),

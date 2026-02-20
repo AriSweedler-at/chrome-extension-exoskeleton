@@ -3,7 +3,7 @@ import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 describe('Spinnaker Tab Registration', () => {
     beforeEach(async () => {
-        await import('../../src/exo-tabs/spinnaker.tab');
+        await import('./spinnaker.tab');
     });
 
     it('registers spinnaker tab', () => {

@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
-import '../../src/exo-tabs/github-autoscroll.tab';
+import './github-autoscroll.tab';
 
 describe('GitHub Autoscroll Tab', () => {
     it('registers tab with correct id and label', () => {
