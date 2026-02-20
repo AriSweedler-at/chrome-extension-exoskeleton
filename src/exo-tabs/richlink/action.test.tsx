@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {CopyRichLinkAction} from '@exo/lib/actions/copy-rich-link.action';
+import {CopyRichLinkAction} from '@exo/exo-tabs/richlink/action';
 
 describe('CopyRichLinkAction', () => {
     it('should have correct type', () => {

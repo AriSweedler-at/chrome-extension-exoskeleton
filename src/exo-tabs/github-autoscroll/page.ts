@@ -118,16 +118,12 @@ function initializeMessageHandlers() {
 }
 
 /**
- * Initialize GitHub autoscroll integration
+ * Initialize GitHub autoscroll (runs at module level)
  */
-export function initializeGitHubAutoscroll(): void {
-    // Setup message handlers
+function initialize(): void {
     initializeMessageHandlers();
-
-    // Setup SPA navigation listener
     setupSPANavigationListener();
 
-    // Check on initial load
     console.log('[Auto-run] Content script loaded, waiting for DOM...');
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
@@ -139,3 +135,6 @@ export function initializeGitHubAutoscroll(): void {
         setTimeout(tryAutoRunAutoscroll, 500); // Wait for GitHub to render
     }
 }
+
+// Self-register: importing this module initializes GitHub autoscroll
+initialize();

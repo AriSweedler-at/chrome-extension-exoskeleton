@@ -8,14 +8,19 @@ Each tab is a self-contained folder under `src/exo-tabs/`:
 
 ```
 src/exo-tabs/my-feature/
-  tab.tsx              # TabRegistry.register() — auto-discovered
+  tab.tsx              # TabRegistry.register() — popup side (auto-discovered)
   tab.test.tsx         # registration + URL matching tests
   MyComponent.tsx      # React component for the popup UI
   index.ts             # domain logic, URL matching helpers
-  content-handler.ts   # content script handler (if needed)
+  action.tsx           # typed action contract (if needed)
+  page.ts              # page-side wiring (if needed) — auto-discovered
 ```
 
-Tabs are auto-discovered — `exo-tabs/index.tsx` uses `import.meta.glob('./*/tab.tsx', {eager: true})` to find all tab registrations at build time. No manual imports needed.
+**Popup side:** `exo-tabs/index.tsx` uses `import.meta.glob('./*/tab.tsx', {eager: true})` to auto-discover tab registrations.
+
+**Page side:** `src/index.tsx` uses `import.meta.glob('./exo-tabs/*/page.ts', {eager: true})` to auto-discover page modules. Each `page.ts` self-registers by calling `Action.handle()` at module level.
+
+No manual imports needed for either side.
 
 ## Step 1: Create the Tab Folder
 
@@ -77,7 +82,43 @@ TabRegistry.register({
 
 That's it — the glob pattern in `exo-tabs/index.tsx` will pick it up automatically.
 
-## Step 3: Write Tests
+## Step 3: Add Page-Side Actions (Optional)
+
+If your tab needs to run logic on the page (handle actions from the popup, respond to keyboard shortcuts, etc.), create an action contract and a `page.ts`.
+
+Create `src/exo-tabs/my-feature/action.tsx`:
+
+```tsx
+import {Action} from '@exo/lib/actions/base-action';
+
+export interface MyActionResult {
+    success: boolean;
+}
+
+export class MyAction extends Action<void, MyActionResult> {
+    type = 'MY_ACTION' as const;
+}
+```
+
+Create `src/exo-tabs/my-feature/page.ts`:
+
+```ts
+import {MyAction, type MyActionResult} from '@exo/exo-tabs/my-feature/action';
+
+async function handleMyAction(): Promise<MyActionResult> {
+    // ... handler logic ...
+    return {success: true};
+}
+
+// Self-register: importing this module wires the handler
+MyAction.handle(handleMyAction);
+```
+
+The glob in `src/index.tsx` auto-discovers `page.ts` files — no manual wiring needed.
+
+Keep `page.ts` thin — domain logic belongs in `index.ts` or dedicated modules.
+
+## Step 4: Write Tests
 
 Create `src/exo-tabs/my-feature/tab.test.tsx`:
 
@@ -114,6 +155,7 @@ Use `@exo/*` for all imports. It maps to `src/*`.
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {theme} from '@exo/theme/default';
 import {isMyFeaturePage} from '@exo/exo-tabs/my-feature';
+import {MyAction} from '@exo/exo-tabs/my-feature/action';
 ```
 
 ## Reference
@@ -145,12 +187,13 @@ Called on **Cmd+Shift+X**. Return `true` if handled, `false` to pass to the next
 
 ### Communicating with Content Scripts
 
-Create an action class in `src/lib/actions/` and a content handler in your tab folder:
+Each tab has two entry points:
 
 ```
-src/lib/actions/my-action.action.ts          # typed message contract
-src/exo-tabs/my-feature/content-handler.ts   # handler logic
-src/index.tsx                                # wire up the handler
+src/exo-tabs/my-feature/tab.tsx     # popup side — UI, priority, primary action
+src/exo-tabs/my-feature/page.ts     # page side — action handlers, page behaviors
 ```
 
-See `ExtractLogCommandAction` and `exo-tabs/opensearch/content-handler.ts` for a working example.
+Both are auto-discovered via `import.meta.glob`. Domain logic lives in `index.ts` or dedicated modules.
+
+See `exo-tabs/opensearch/` for a working example.

@@ -12,6 +12,22 @@ declare global {
     }
 }
 
+/** Find the listener that handles GitHub autoscroll messages */
+function findGitHubListener(listeners: ChromeMessageListener[]): ChromeMessageListener {
+    for (const listener of listeners) {
+        const probe = vi.fn();
+        const handled = listener(
+            {type: 'GITHUB_AUTOSCROLL_GET_STATUS'},
+            {} as chrome.runtime.MessageSender,
+            probe,
+        );
+        if (handled === true) {
+            return listener;
+        }
+    }
+    throw new Error('No GitHub autoscroll listener found');
+}
+
 describe('GitHub Autoscroll Content Script Integration', () => {
     let messageListeners: ChromeMessageListener[] = [];
 
@@ -59,8 +75,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     it('responds to GITHUB_AUTOSCROLL_GET_STATUS when inactive', async () => {
         await import('@exo/index');
 
-        // Find the GitHub autoscroll listener (the last one registered)
-        const githubListener = messageListeners[messageListeners.length - 1];
+        const githubListener = findGitHubListener(messageListeners);
 
         const sendResponse = vi.fn();
         githubListener({type: 'GITHUB_AUTOSCROLL_GET_STATUS'}, {}, sendResponse);
@@ -71,8 +86,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     it('responds to GITHUB_AUTOSCROLL_GET_STATUS when active', async () => {
         await import('@exo/index');
 
-        // Find the GitHub autoscroll listener (the last one registered)
-        const githubListener = messageListeners[messageListeners.length - 1];
+        const githubListener = findGitHubListener(messageListeners);
 
         // Simulate autoscroll being active
         window.__ghAutoScrollStop = vi.fn();
@@ -86,8 +100,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     it('starts autoscroll on GITHUB_AUTOSCROLL_TOGGLE when inactive', async () => {
         await import('@exo/index');
 
-        // Find the GitHub autoscroll listener (the last one registered)
-        const githubListener = messageListeners[messageListeners.length - 1];
+        const githubListener = findGitHubListener(messageListeners);
 
         // Mock GitHub PR page structure with files
         const container = document.createElement('div');
@@ -118,8 +131,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     it('stops autoscroll on GITHUB_AUTOSCROLL_TOGGLE when active', async () => {
         await import('@exo/index');
 
-        // Find the GitHub autoscroll listener (the last one registered)
-        const githubListener = messageListeners[messageListeners.length - 1];
+        const githubListener = findGitHubListener(messageListeners);
 
         // Simulate autoscroll being active
         const stopFn = vi.fn();
@@ -135,8 +147,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     it('returns false for unknown message types', async () => {
         await import('@exo/index');
 
-        // Find the GitHub autoscroll listener (the last one registered)
-        const githubListener = messageListeners[messageListeners.length - 1];
+        const githubListener = findGitHubListener(messageListeners);
 
         const sendResponse = vi.fn();
         const result = githubListener({type: 'UNKNOWN_MESSAGE'}, {}, sendResponse);

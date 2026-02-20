@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
 import {LinkFormat} from '@exo/exo-tabs/richlink/base';
-import {CopyRichLinkAction} from '@exo/lib/actions/copy-rich-link.action';
+import {CopyRichLinkAction} from '@exo/exo-tabs/richlink/action';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 import {theme} from '@exo/theme/default';
 
