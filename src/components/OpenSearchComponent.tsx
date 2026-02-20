@@ -1,10 +1,11 @@
 import {useState} from 'react';
-import {Card} from './Card';
 import {theme} from '../theme/default';
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
 } from '../actions/extract-log-command.action';
+
+const GDOC_HOW_TO_ACCESS_DEBUG_LOGS = 'https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus';
 
 const buttonStyle = {
     width: '100%',
@@ -82,17 +83,18 @@ export function OpenSearchComponent() {
                 </button>
             </div>
 
-            <Card style={{marginTop: '12px', textAlign: 'center', fontSize: '12px'}}>
+            <button
+                onClick={() => window.open(GDOC_HOW_TO_ACCESS_DEBUG_LOGS, '_blank')}
+                style={{
+                    ...buttonStyle,
+                    marginTop: '12px',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                }}
+            >
                 <span style={{color: theme.text.secondary}}>gdoc: </span>
-                <a
-                    href="https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{color: theme.text.link, textDecoration: 'none'}}
-                >
-                    How to access _debug logs
-                </a>
-            </Card>
+                How to access _debug logs
+            </button>
         </div>
     );
 }
