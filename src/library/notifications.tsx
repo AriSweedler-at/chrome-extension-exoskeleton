@@ -1,4 +1,4 @@
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 
 const DEFAULT_DURATION_MS = 5000;
 

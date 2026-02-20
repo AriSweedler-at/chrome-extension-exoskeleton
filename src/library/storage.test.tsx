@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {Storage} from '@library/storage';
+import {Storage} from '@exo/library/storage';
 import chrome from 'sinon-chrome';
 
 describe('Storage', () => {

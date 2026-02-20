@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {Clipboard} from '@library/clipboard';
+import {Clipboard} from '@exo/library/clipboard';
 
 describe('Clipboard', () => {
     beforeEach(() => {

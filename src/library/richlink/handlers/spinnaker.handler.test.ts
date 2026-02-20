@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {SpinnakerHandler} from '@library/richlink/handlers/spinnaker.handler';
+import {SpinnakerHandler} from '@exo/library/richlink/handlers/spinnaker.handler';
 
 describe('SpinnakerHandler', () => {
     let handler: SpinnakerHandler;

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {extractPodNames} from '@library/spinnaker/pod-extractor';
+import {extractPodNames} from '@exo/library/spinnaker/pod-extractor';
 
 describe('pod-extractor', () => {
     describe('extractPodNames', () => {

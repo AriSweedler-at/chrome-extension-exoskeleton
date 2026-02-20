@@ -1,5 +1,5 @@
 import React from 'react';
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 import {useTabEnablement} from './use-tab-enablement';
 
 interface TabEnablementSectionProps {

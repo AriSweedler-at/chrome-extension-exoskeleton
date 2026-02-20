@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {PageTitleHandler} from '@library/richlink/handlers/page-title.handler';
+import {PageTitleHandler} from '@exo/library/richlink/handlers/page-title.handler';
 
 describe('PageTitleHandler', () => {
     let handler: PageTitleHandler;

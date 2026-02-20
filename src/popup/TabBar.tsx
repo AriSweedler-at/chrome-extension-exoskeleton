@@ -1,8 +1,8 @@
 import {useState, useEffect} from 'react';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
-import {Storage} from '@library/storage';
+import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
+import {Storage} from '@exo/library/storage';
 import {TabErrorBoundary} from './TabErrorBoundary';
-import {TabEnablementSection} from '@library/popup-exo-tabs/TabEnablementSection';
+import {TabEnablementSection} from '@exo/library/popup-exo-tabs/TabEnablementSection';
 import './TabBar.css';
 
 export function TabBar() {

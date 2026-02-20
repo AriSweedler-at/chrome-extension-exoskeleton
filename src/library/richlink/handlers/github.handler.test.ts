@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {GitHubHandler} from '@library/richlink/handlers/github.handler';
+import {GitHubHandler} from '@exo/library/richlink/handlers/github.handler';
 
 describe('GitHubHandler', () => {
     let handler: GitHubHandler;

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {isOpenSearchPage} from '@library/opensearch';
+import {isOpenSearchPage} from '@exo/library/opensearch';
 
 describe('isOpenSearchPage', () => {
     it('returns true for production opensearch URL', () => {

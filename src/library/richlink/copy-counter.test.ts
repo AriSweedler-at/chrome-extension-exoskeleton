@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {CopyCounter} from '@library/richlink/copy-counter';
+import {CopyCounter} from '@exo/library/richlink/copy-counter';
 
 describe('CopyCounter', () => {
     beforeEach(() => {

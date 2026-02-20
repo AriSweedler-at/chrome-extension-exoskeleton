@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {isSpinnakerSearchPage} from '@library/spinnaker';
+import {isSpinnakerSearchPage} from '@exo/library/spinnaker';
 
 describe('isSpinnakerSearchPage', () => {
     it('returns true for spinnaker.k8s.shadowbox.cloud search page', () => {

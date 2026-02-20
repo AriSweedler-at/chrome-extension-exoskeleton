@@ -14,13 +14,7 @@
         "types": ["chrome", "vite/client", "vitest/globals"],
         "baseUrl": ".",
         "paths": {
-            "@library/*": ["src/library/*"],
-            "@actions/*": ["src/actions/*"],
-            "@shared/*": ["src/shared/*"],
-            "@theme": ["src/theme/default"],
-
-            "@exo-tabs/*": ["src/exo-tabs/*"],
-            "@content/*": ["src/content/*"]
+            "@exo/*": ["src/*"]
         }
     },
     "include": ["src/**/*"],

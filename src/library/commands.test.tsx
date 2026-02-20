@@ -1,5 +1,5 @@
 import {describe, it, expect, vi} from 'vitest';
-import {Commands} from '@library/commands';
+import {Commands} from '@exo/library/commands';
 import chrome from 'sinon-chrome';
 
 describe('Commands', () => {

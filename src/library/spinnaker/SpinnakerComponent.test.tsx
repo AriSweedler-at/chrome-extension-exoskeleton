@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
-import {SpinnakerContent} from '@library/spinnaker/SpinnakerComponent';
-import * as actions from '@library/spinnaker/actions';
+import {SpinnakerContent} from '@exo/library/spinnaker/SpinnakerComponent';
+import * as actions from '@exo/library/spinnaker/actions';
 
 // Mock the action functions
 vi.mock('./actions', () => ({

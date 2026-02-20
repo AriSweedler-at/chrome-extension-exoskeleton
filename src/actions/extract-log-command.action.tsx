@@ -1,4 +1,4 @@
-import {Action} from '@library/actions/base-action';
+import {Action} from '@exo/library/actions/base-action';
 
 export interface ExtractLogCommandResult {
     success: boolean;

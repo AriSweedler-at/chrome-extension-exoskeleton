@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {Tabs} from '@library/tabs';
+import {Tabs} from '@exo/library/tabs';
 import {TabBar} from './TabBar';
 import './Popup.css';
 

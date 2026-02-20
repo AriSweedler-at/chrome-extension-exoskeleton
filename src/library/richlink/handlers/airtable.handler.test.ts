@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {AirtableHandler} from '@library/richlink/handlers/airtable.handler';
+import {AirtableHandler} from '@exo/library/richlink/handlers/airtable.handler';
 
 describe('AirtableHandler', () => {
     let handler: AirtableHandler;

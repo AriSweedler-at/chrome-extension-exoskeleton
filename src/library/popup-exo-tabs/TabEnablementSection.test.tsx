@@ -1,7 +1,7 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {TabEnablementSection} from '@library/popup-exo-tabs/TabEnablementSection';
+import {TabEnablementSection} from '@exo/library/popup-exo-tabs/TabEnablementSection';
 
 describe('TabEnablementSection', () => {
     beforeEach(() => {

@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {GoogleDocsHandler} from '@library/richlink/handlers/google-docs.handler';
+import {GoogleDocsHandler} from '@exo/library/richlink/handlers/google-docs.handler';
 
 describe('GoogleDocsHandler', () => {
     let handler: GoogleDocsHandler;

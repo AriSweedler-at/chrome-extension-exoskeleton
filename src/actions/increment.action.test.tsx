@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {IncrementAction} from '@actions/increment.action';
+import {IncrementAction} from '@exo/actions/increment.action';
 
 describe('IncrementAction', () => {
     it('should have correct type', () => {

@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {Action} from '@library/actions/base-action';
+import {Action} from '@exo/library/actions/base-action';
 import chrome from 'sinon-chrome';
 
 // Test action classes

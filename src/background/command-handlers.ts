@@ -1,5 +1,5 @@
-import {Commands} from '@library/commands';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import {Commands} from '@exo/library/commands';
+import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 
 // Import tabs to trigger registration (side-effect imports)
 import '../exo-tabs';

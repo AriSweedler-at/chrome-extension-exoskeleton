@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {isGitHubPRChangesPage, initializeAutoScroll} from '@library/github-autoscroll';
+import {isGitHubPRChangesPage, initializeAutoScroll} from '@exo/library/github-autoscroll';
 
 describe('isGitHubPRChangesPage', () => {
     it('returns true for valid GitHub PR changes URL', () => {

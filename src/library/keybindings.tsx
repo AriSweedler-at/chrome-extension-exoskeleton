@@ -1,4 +1,4 @@
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 
 /**
  * Keybinding Registry Library

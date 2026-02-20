@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {AtlassianHandler} from '@library/richlink/handlers/atlassian.handler';
+import {AtlassianHandler} from '@exo/library/richlink/handlers/atlassian.handler';
 
 describe('AtlassianHandler', () => {
     let handler: AtlassianHandler;
