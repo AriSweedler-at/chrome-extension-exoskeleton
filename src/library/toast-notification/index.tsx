@@ -64,9 +64,9 @@ export class Notifications {
         // Determine background color based on type
         let backgroundColor: string;
         if (type === 'success') {
-            backgroundColor = theme.toast.successBg; // green
+            backgroundColor = theme.toast.successBg;
         } else if (type === 'error') {
-            backgroundColor = theme.toast.errorBg; // red
+            backgroundColor = theme.toast.errorBg;
         } else {
             backgroundColor = theme.toast.defaultBg;
         }
@@ -79,14 +79,14 @@ export class Notifications {
 
         notification.style.cssText = `
             position: relative;
-            padding: 12px 16px;
-            margin-bottom: 8px;
+            padding: ${theme.toast.padding};
+            margin-bottom: ${theme.toast.marginBottom};
             background: ${backgroundColor};
-            color: white;
-            border-radius: 4px;
-            font-size: 14px;
+            color: ${theme.text.white};
+            border-radius: ${theme.toast.borderRadius};
+            font-size: ${theme.toast.fontSize};
             box-shadow: ${theme.shadow.sm};
-            line-height: 1.4;
+            line-height: ${theme.toast.lineHeight};
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
             opacity: 1;
             transform: translateX(0);
@@ -104,13 +104,13 @@ export class Notifications {
             const detailBlock = document.createElement('pre');
             detailBlock.textContent = detail;
             detailBlock.style.cssText = `
-                font-size: 11px;
+                font-size: ${theme.toast.detailFontSize};
                 margin: 8px 0 0 0;
-                padding: 8px;
+                padding: ${theme.toast.detailPadding};
                 background: ${theme.toast.detailBg};
-                border-radius: 3px;
+                border-radius: ${theme.toast.detailBorderRadius};
                 white-space: pre;
-                font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+                font-family: ${theme.toast.detailFontFamily};
                 line-height: 1.5;
             `;
             notification.appendChild(detailBlock);
@@ -121,9 +121,9 @@ export class Notifications {
             const previewText = document.createElement('div');
             previewText.textContent = preview;
             previewText.style.cssText = `
-                font-size: 11px;
+                font-size: ${theme.toast.previewFontSize};
                 margin-top: 4px;
-                opacity: 0.7;
+                opacity: ${theme.toast.previewOpacity};
             `;
             notification.appendChild(previewText);
         }
@@ -136,7 +136,7 @@ export class Notifications {
                 position: absolute;
                 top: 4px;
                 right: 8px;
-                font-size: 16px;
+                font-size: ${theme.toast.closeBtnFontSize};
                 color: ${theme.toast.closeBtnDefault};
                 cursor: pointer;
                 line-height: 1;
@@ -215,7 +215,7 @@ export class Notifications {
                     }
                 }
                 this.pendingRemoval = null;
-            }, 300);
+            }, theme.toast.fadeMs);
         }, delay);
     }
 
@@ -245,7 +245,7 @@ export class Notifications {
             if (this.currentNotification === notification) {
                 this.currentNotification = null;
             }
-        }, 300);
+        }, theme.toast.fadeMs);
     }
 
     private static createContainer(): void {
@@ -253,10 +253,10 @@ export class Notifications {
         this.container.id = 'notification-container';
         this.container.style.cssText = `
             position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 10000;
-            min-width: 200px;
+            top: ${theme.toast.containerTop};
+            right: ${theme.toast.containerRight};
+            z-index: ${theme.toast.containerZIndex};
+            min-width: ${theme.toast.containerMinWidth};
             max-width: max-content;
         `;
         document.body.appendChild(this.container);

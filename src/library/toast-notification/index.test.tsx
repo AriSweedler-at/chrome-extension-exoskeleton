@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi, afterEach} from 'vitest';
-import {Notifications} from '@exo/library/notifications';
+import {Notifications} from '@exo/library/toast-notification';
 
 describe('Notifications', () => {
     let container: HTMLElement;

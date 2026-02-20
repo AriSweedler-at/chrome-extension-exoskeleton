@@ -1,6 +1,6 @@
 import {initializeAutoScroll, isGitHubPRChangesPage} from '@exo/library/github-autoscroll';
 import {Storage} from '@exo/library/storage';
-import {Notifications} from '@exo/library/notifications';
+import {Notifications} from '@exo/library/toast-notification';
 
 /**
  * Try to auto-run autoscroll on GitHub PR changes pages

@@ -1,5 +1,5 @@
 import {Clipboard} from '@exo/library/clipboard';
-import {Notifications, NotificationType} from '@exo/library/notifications';
+import {Notifications, NotificationType} from '@exo/library/toast-notification';
 import {findOpenFlyout, buildCommand} from '@exo/library/opensearch';
 import type {ExtractLogCommandResult} from '@exo/library/actions/extract-log-command.action';
 

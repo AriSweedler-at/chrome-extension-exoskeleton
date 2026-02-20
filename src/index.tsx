@@ -15,7 +15,7 @@ CopyRichLinkAction.handle(handleCopyRichLink);
 ExtractLogCommandAction.handle(handleExtractLogCommand);
 
 ShowToastAction.handle(async (payload: ShowToastPayload) => {
-    const {Notifications} = await import('@exo/library/notifications');
+    const {Notifications} = await import('@exo/library/toast-notification');
     Notifications.show({
         message: payload.message,
         type: payload.type,
@@ -27,4 +27,4 @@ ShowToastAction.handle(async (payload: ShowToastPayload) => {
 
 initializeGitHubAutoscroll();
 
-console.log('Chrome Extension Starter: Content script loaded');
+console.log("Ari's chrome exoskeleton loaded");
