@@ -1,14 +1,7 @@
 import {TabRegistry} from '../library/tabs/tab-registry';
 import {OpenSearchComponent} from '../components/OpenSearchComponent';
 import {ExtractLogCommandAction, type ExtractLogCommandResult} from '../actions/extract-log-command.action';
-
-export function isOpenSearchPage(url: string): boolean {
-    return (
-        url.includes('opensearch-applogs.shadowbox.cloud') ||
-        url.includes('opensearch-applogs.staging-shadowbox.cloud') ||
-        url.includes('opensearch-applogs.alpha-shadowbox.cloud')
-    );
-}
+import {isOpenSearchPage} from '../library/opensearch';
 
 TabRegistry.register({
     id: 'opensearch',
