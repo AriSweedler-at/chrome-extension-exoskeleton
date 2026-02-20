@@ -2,7 +2,7 @@ import React from 'react';
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {GitHubAutoscrollContent} from '@library/github-autoscroll/GitHubAutoscrollComponent';
+import {GitHubAutoscrollContent} from '@exo/library/github-autoscroll/GitHubAutoscrollComponent';
 
 describe('GitHubAutoscrollContent', () => {
     beforeEach(() => {

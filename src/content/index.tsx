@@ -1,11 +1,11 @@
-import {IncrementAction} from '@actions/increment.action';
-import {GetCountAction} from '@actions/get-count.action';
-import {CopyRichLinkAction} from '@actions/copy-rich-link.action';
-import {ExtractLogCommandAction} from '@actions/extract-log-command.action';
-import {ShowToastAction, type ShowToastPayload} from '@actions/show-toast.action';
-import {handleCopyRichLink} from '@library/richlink/content-handler';
-import {handleExtractLogCommand} from '@library/opensearch/content-handler';
-import {initializeGitHubAutoscroll} from '@library/github-autoscroll/content-integration';
+import {IncrementAction} from '@exo/actions/increment.action';
+import {GetCountAction} from '@exo/actions/get-count.action';
+import {CopyRichLinkAction} from '@exo/actions/copy-rich-link.action';
+import {ExtractLogCommandAction} from '@exo/actions/extract-log-command.action';
+import {ShowToastAction, type ShowToastPayload} from '@exo/actions/show-toast.action';
+import {handleCopyRichLink} from '@exo/library/richlink/content-handler';
+import {handleExtractLogCommand} from '@exo/library/opensearch/content-handler';
+import {initializeGitHubAutoscroll} from '@exo/library/github-autoscroll/content-integration';
 
 /**
  * Content script entry point
@@ -39,7 +39,7 @@ CopyRichLinkAction.handle(handleCopyRichLink);
 ExtractLogCommandAction.handle(handleExtractLogCommand);
 
 ShowToastAction.handle(async (payload: ShowToastPayload) => {
-    const {Notifications} = await import('@library/notifications');
+    const {Notifications} = await import('@exo/library/notifications');
     Notifications.show({
         message: payload.message,
         type: payload.type,

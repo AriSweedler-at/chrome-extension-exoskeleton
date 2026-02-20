@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import React from 'react';
-import {Component} from '@library/components/base-component';
+import {Component} from '@exo/library/components/base-component';
 
 describe('Component', () => {
     describe('render', () => {

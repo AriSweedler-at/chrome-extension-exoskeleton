@@ -5,7 +5,7 @@ import {
     getActiveStageFromUrl,
     findExecutionDetailsLink,
     findErrorContainer,
-} from '@library/spinnaker/dom-utils';
+} from '@exo/library/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
     describe('getExecutionIdFromUrl', () => {

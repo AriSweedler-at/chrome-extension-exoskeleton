@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {Handler} from '@library/richlink/base';
+import {Handler} from '@exo/library/richlink/base';
 
 class TestHandler extends Handler {
     canHandle(url: string): boolean {

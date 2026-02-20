@@ -7,13 +7,7 @@ export default defineConfig({
     plugins: [react(), crx({manifest})],
     resolve: {
         alias: {
-            '@library': '/src/library',
-            '@actions': '/src/actions',
-            '@shared': '/src/shared',
-            '@theme': '/src/theme/default',
-
-            '@exo-tabs': '/src/exo-tabs',
-            '@content': '/src/content',
+            '@exo': '/src',
         },
     },
 });

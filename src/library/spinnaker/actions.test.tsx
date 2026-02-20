@@ -5,9 +5,9 @@ import {
     displayActiveStage,
     jumpToExecution,
     extractPodNames,
-} from '@library/spinnaker/actions';
-import * as domUtils from '@library/spinnaker/dom-utils';
-import * as podExtractor from '@library/spinnaker/pod-extractor';
+} from '@exo/library/spinnaker/actions';
+import * as domUtils from '@exo/library/spinnaker/dom-utils';
+import * as podExtractor from '@exo/library/spinnaker/pod-extractor';
 
 // Mock chrome.notifications and runtime APIs
 global.chrome = {

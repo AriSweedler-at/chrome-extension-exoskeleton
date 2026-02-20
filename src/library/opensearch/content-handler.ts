@@ -1,7 +1,7 @@
-import {Clipboard} from '@library/clipboard';
-import {Notifications, NotificationType} from '@library/notifications';
-import {findOpenFlyout, buildCommand} from '@library/opensearch';
-import type {ExtractLogCommandResult} from '@actions/extract-log-command.action';
+import {Clipboard} from '@exo/library/clipboard';
+import {Notifications, NotificationType} from '@exo/library/notifications';
+import {findOpenFlyout, buildCommand} from '@exo/library/opensearch';
+import type {ExtractLogCommandResult} from '@exo/actions/extract-log-command.action';
 
 export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult> {
     if (!findOpenFlyout()) {

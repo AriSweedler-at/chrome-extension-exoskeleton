@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
 import './github-autoscroll.tab';

@@ -1,8 +1,8 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import {TabBar} from './TabBar';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
-import {Storage} from '@library/storage';
+import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
+import {Storage} from '@exo/library/storage';
 import chrome from 'sinon-chrome';
 
 describe('TabBar', () => {
@@ -18,7 +18,7 @@ describe('TabBar', () => {
 
     it('should render visible tabs', async () => {
         // This test will use the registered tabs
-        await import('@exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/richlink.tab');
 
         render(<TabBar />);
 
@@ -29,8 +29,8 @@ describe('TabBar', () => {
     });
 
     it('should render tabs in priority order', async () => {
-        await import('@exo-tabs/richlink.tab');
-        await import('@exo-tabs/so-sprint.tab');
+        await import('@exo/exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/so-sprint.tab');
 
         // Query with Airtable URL
         chrome.tabs.query.yields([
@@ -50,8 +50,8 @@ describe('TabBar', () => {
     });
 
     it('should update active tab when clicked', async () => {
-        await import('@exo-tabs/richlink.tab');
-        await import('@exo-tabs/so-sprint.tab');
+        await import('@exo/exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
             {
@@ -88,7 +88,7 @@ describe('TabBar', () => {
     });
 
     it('should save tab selection to storage', async () => {
-        await import('@exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/richlink.tab');
 
         chrome.tabs.query.yields([
             {
@@ -115,8 +115,8 @@ describe('TabBar', () => {
     });
 
     it('should restore stored selection on mount', async () => {
-        await import('@exo-tabs/richlink.tab');
-        await import('@exo-tabs/so-sprint.tab');
+        await import('@exo/exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
             {
@@ -139,8 +139,8 @@ describe('TabBar', () => {
     });
 
     it('should fall back to first visible tab when stored tab not found', async () => {
-        await import('@exo-tabs/richlink.tab');
-        await import('@exo-tabs/so-sprint.tab');
+        await import('@exo/exo-tabs/richlink.tab');
+        await import('@exo/exo-tabs/so-sprint.tab');
 
         chrome.tabs.query.yields([
             {

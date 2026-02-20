@@ -1,6 +1,6 @@
 import {scrollElementCenter, scrollElementTop} from '../scroll-utils';
 import {keybindings} from '../keybindings';
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 
 /**
  * Check if URL is a GitHub PR changes page

@@ -2,15 +2,15 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {handleExtractLogCommand} from './content-handler';
 
 // Mock Clipboard
-vi.mock('@library/clipboard', () => ({
+vi.mock('@exo/library/clipboard', () => ({
     Clipboard: {
         write: vi.fn().mockResolvedValue(undefined),
     },
 }));
 
 // Mock Notifications
-vi.mock('@library/notifications', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@library/notifications')>();
+vi.mock('@exo/library/notifications', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@exo/library/notifications')>();
     return {
         ...actual,
         Notifications: {
@@ -19,8 +19,8 @@ vi.mock('@library/notifications', async (importOriginal) => {
     };
 });
 
-import {Clipboard} from '@library/clipboard';
-import {Notifications} from '@library/notifications';
+import {Clipboard} from '@exo/library/clipboard';
+import {Notifications} from '@exo/library/notifications';
 
 function setUpFlyout(fields: Record<string, string>) {
     // Create the flyout container

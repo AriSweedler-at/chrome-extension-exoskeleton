@@ -1,5 +1,5 @@
 import {ComponentType} from 'react';
-import {ShowToastAction} from '@actions/show-toast.action';
+import {ShowToastAction} from '@exo/actions/show-toast.action';
 import {NotificationType} from '../notifications';
 
 export interface TabRegistration {

@@ -5,9 +5,9 @@ import {
     displayActiveStage,
     jumpToExecution,
     extractPodNames,
-} from '@library/spinnaker/actions';
-import {keybindings} from '@library/keybindings';
-import {theme} from '@theme';
+} from '@exo/library/spinnaker/actions';
+import {keybindings} from '@exo/library/keybindings';
+import {theme} from '@exo/theme/default';
 
 /**
  * Spinnaker tab component

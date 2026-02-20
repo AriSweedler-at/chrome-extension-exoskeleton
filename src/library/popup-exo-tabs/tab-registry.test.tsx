@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 
 const TestComponent = () => <div>Test</div>;
 

@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 
 const MESSAGE_TYPES = {
     GET_STATUS: 'GITHUB_AUTOSCROLL_GET_STATUS',

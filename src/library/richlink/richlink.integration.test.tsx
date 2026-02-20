@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {HandlerRegistry} from '@library/richlink/handlers';
+import {HandlerRegistry} from '@exo/library/richlink/handlers';
 
 describe('Rich Link Integration', () => {
     beforeEach(() => {

@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {SpaceliftHandler} from '@library/richlink/handlers/spacelift.handler';
+import {SpaceliftHandler} from '@exo/library/richlink/handlers/spacelift.handler';
 
 describe('SpaceliftHandler', () => {
     let handler: SpaceliftHandler;
