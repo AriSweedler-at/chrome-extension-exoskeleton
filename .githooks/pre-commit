@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+function check_exo_tab_folders() {
+  local failed=0
+  for dir in src/exo-tabs/*/; do
+    local name="$(basename "$dir")"
+    [[ "$name" == "node_modules" ]] && continue
+    if [[ ! -f "${dir}tab.tsx" ]]; then
+      log::err "exo-tab folder '$name' is missing tab.tsx"
+      failed=1
+    fi
+  done
+  return "$failed"
+}
+
 function main() {
   if ! source "$HOME/.config/bash/plugins/log.bash" &>/dev/null; then
     function log::info { echo "[INFO] [$(date -u +%Y-%m-%dT%H:%M:%S.000Z)] $@" >&2; }
@@ -9,7 +22,12 @@ function main() {
 
   log::info "Pre-commit hook"
 
-  # Lint (eslint + typescript rules)
+  log::info "Checking exo-tab folders..."
+  if ! check_exo_tab_folders; then
+    exit 1
+  fi
+  log::info "Exo-tab folders OK"
+
   log::info "Running linter..."
   if ! npx eslint . --ext ts,tsx --max-warnings 0 2>&1; then
     log::err "Lint failed — fix errors and warnings before committing"
@@ -17,7 +35,6 @@ function main() {
   fi
   log::info "Lint passed"
 
-  # Format check (prettier)
   log::info "Checking formatting..."
   if ! npx prettier --check 'src/**/*.{ts,tsx}' 2>&1; then
     log::err "Formatting issues — run 'npm run format' then re-stage"
@@ -25,7 +42,6 @@ function main() {
   fi
   log::info "Formatting passed"
 
-  # Tests
   log::info "Running tests..."
   if ! npx vitest run --reporter=dot 2>&1; then
     log::err "Tests failed — aborting commit"
