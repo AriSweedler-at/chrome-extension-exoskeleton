@@ -1,4 +1,4 @@
-import {theme} from '../theme/default';
+import {theme} from '@theme';
 
 const DEFAULT_DURATION_MS = 5000;
 
@@ -74,10 +74,7 @@ export class Notifications {
         // Apply opacity if specified (for fallback handlers)
         const effectiveOpacity = opacity ?? 1;
         if (effectiveOpacity !== 1) {
-            backgroundColor = backgroundColor.replace(
-                /[\d.]+\)$/,
-                `${0.8 * effectiveOpacity})`,
-            );
+            backgroundColor = backgroundColor.replace(/[\d.]+\)$/, `${0.8 * effectiveOpacity})`);
         }
 
         notification.style.cssText = `

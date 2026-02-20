@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {Storage} from '../../src/library/storage';
+import {Storage} from '@library/storage';
 import chrome from 'sinon-chrome';
 
 describe('Storage', () => {
@@ -28,9 +28,7 @@ describe('Storage', () => {
 
             await Storage.set('testKey', 'testValue');
 
-            expect(chrome.storage.local.set.calledWith({testKey: 'testValue'})).toBe(
-                true,
-            );
+            expect(chrome.storage.local.set.calledWith({testKey: 'testValue'})).toBe(true);
         });
 
         it('should handle complex objects', async () => {

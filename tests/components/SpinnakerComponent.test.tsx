@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { SpinnakerContent } from '../../src/components/SpinnakerComponent';
-import * as actions from '../../src/library/spinnaker/actions';
+import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {render, screen, fireEvent} from '@testing-library/react';
+import {SpinnakerContent} from '@library/spinnaker/SpinnakerComponent';
+import * as actions from '@library/spinnaker/actions';
 
 // Mock the action functions
 vi.mock('../../src/library/spinnaker/actions', () => ({
@@ -95,7 +95,7 @@ describe('SpinnakerComponent', () => {
         it('should call toggleExecution when "e" key pressed', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'e' });
+            fireEvent.keyDown(document, {key: 'e'});
 
             expect(actions.toggleExecution).toHaveBeenCalledTimes(1);
         });
@@ -103,7 +103,7 @@ describe('SpinnakerComponent', () => {
         it('should call displayActiveExecution when "x" key pressed', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'x' });
+            fireEvent.keyDown(document, {key: 'x'});
 
             expect(actions.displayActiveExecution).toHaveBeenCalledTimes(1);
         });
@@ -111,7 +111,7 @@ describe('SpinnakerComponent', () => {
         it('should call displayActiveStage when "s" key pressed', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 's' });
+            fireEvent.keyDown(document, {key: 's'});
 
             expect(actions.displayActiveStage).toHaveBeenCalledTimes(1);
         });
@@ -119,7 +119,7 @@ describe('SpinnakerComponent', () => {
         it('should call jumpToExecution when "j" key pressed', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'j' });
+            fireEvent.keyDown(document, {key: 'j'});
 
             expect(actions.jumpToExecution).toHaveBeenCalledTimes(1);
         });
@@ -127,7 +127,7 @@ describe('SpinnakerComponent', () => {
         it('should call extractPodNames when "p" key pressed', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'p' });
+            fireEvent.keyDown(document, {key: 'p'});
 
             expect(actions.extractPodNames).toHaveBeenCalledTimes(1);
         });
@@ -137,13 +137,13 @@ describe('SpinnakerComponent', () => {
                 <div>
                     <input type="text" data-testid="test-input" />
                     <SpinnakerContent />
-                </div>
+                </div>,
             );
 
             const input = screen.getByTestId('test-input');
             input.focus();
 
-            fireEvent.keyDown(input, { key: 'e' });
+            fireEvent.keyDown(input, {key: 'e'});
 
             expect(actions.toggleExecution).not.toHaveBeenCalled();
         });
@@ -153,13 +153,13 @@ describe('SpinnakerComponent', () => {
                 <div>
                     <textarea data-testid="test-textarea" />
                     <SpinnakerContent />
-                </div>
+                </div>,
             );
 
             const textarea = screen.getByTestId('test-textarea');
             textarea.focus();
 
-            fireEvent.keyDown(textarea, { key: 's' });
+            fireEvent.keyDown(textarea, {key: 's'});
 
             expect(actions.displayActiveStage).not.toHaveBeenCalled();
         });
@@ -167,7 +167,7 @@ describe('SpinnakerComponent', () => {
         it('should handle uppercase keys', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'E' });
+            fireEvent.keyDown(document, {key: 'E'});
 
             expect(actions.toggleExecution).toHaveBeenCalledTimes(1);
         });
@@ -175,7 +175,7 @@ describe('SpinnakerComponent', () => {
         it('should ignore unregistered keys', () => {
             render(<SpinnakerContent />);
 
-            fireEvent.keyDown(document, { key: 'z' });
+            fireEvent.keyDown(document, {key: 'z'});
 
             expect(actions.toggleExecution).not.toHaveBeenCalled();
             expect(actions.displayActiveExecution).not.toHaveBeenCalled();
@@ -188,7 +188,7 @@ describe('SpinnakerComponent', () => {
     describe('cleanup', () => {
         it('should remove event listener on unmount', () => {
             const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
-            const { unmount } = render(<SpinnakerContent />);
+            const {unmount} = render(<SpinnakerContent />);
 
             unmount();
 

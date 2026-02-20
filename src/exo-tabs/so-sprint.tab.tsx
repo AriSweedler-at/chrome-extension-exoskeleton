@@ -1,4 +1,4 @@
-import {TabRegistry} from '../library/tabs/tab-registry';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 const SoSprintComponent = () => {
     return <div>HELLO, WORLD - you are in SO SPRINT</div>;

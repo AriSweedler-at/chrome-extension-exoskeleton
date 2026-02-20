@@ -51,11 +51,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         const githubListener = messageListeners[messageListeners.length - 1];
 
         const sendResponse = vi.fn();
-        githubListener(
-            {type: 'GITHUB_AUTOSCROLL_GET_STATUS'},
-            {},
-            sendResponse
-        );
+        githubListener({type: 'GITHUB_AUTOSCROLL_GET_STATUS'}, {}, sendResponse);
 
         expect(sendResponse).toHaveBeenCalledWith({active: false});
     });
@@ -70,11 +66,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         (window as any).__ghAutoScrollStop = vi.fn();
 
         const sendResponse = vi.fn();
-        githubListener(
-            {type: 'GITHUB_AUTOSCROLL_GET_STATUS'},
-            {},
-            sendResponse
-        );
+        githubListener({type: 'GITHUB_AUTOSCROLL_GET_STATUS'}, {}, sendResponse);
 
         expect(sendResponse).toHaveBeenCalledWith({active: true});
     });
@@ -104,11 +96,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         document.body.appendChild(container);
 
         const sendResponse = vi.fn();
-        const result = githubListener(
-            {type: 'GITHUB_AUTOSCROLL_TOGGLE'},
-            {},
-            sendResponse
-        );
+        const result = githubListener({type: 'GITHUB_AUTOSCROLL_TOGGLE'}, {}, sendResponse);
 
         expect(result).toBe(true); // Async handler
         expect(sendResponse).toHaveBeenCalledWith({active: true});
@@ -126,11 +114,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         (window as any).__ghAutoScrollStop = stopFn;
 
         const sendResponse = vi.fn();
-        githubListener(
-            {type: 'GITHUB_AUTOSCROLL_TOGGLE'},
-            {},
-            sendResponse
-        );
+        githubListener({type: 'GITHUB_AUTOSCROLL_TOGGLE'}, {}, sendResponse);
 
         expect(stopFn).toHaveBeenCalled();
         expect(sendResponse).toHaveBeenCalledWith({active: false});
@@ -143,11 +127,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         const githubListener = messageListeners[messageListeners.length - 1];
 
         const sendResponse = vi.fn();
-        const result = githubListener(
-            {type: 'UNKNOWN_MESSAGE'},
-            {},
-            sendResponse
-        );
+        const result = githubListener({type: 'UNKNOWN_MESSAGE'}, {}, sendResponse);
 
         expect(result).toBe(false);
         expect(sendResponse).not.toHaveBeenCalled();
@@ -179,7 +159,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             await import('../../src/content/index');
 
             // Wait for auto-run (500ms delay + buffer)
-            await new Promise(resolve => setTimeout(resolve, 600));
+            await new Promise((resolve) => setTimeout(resolve, 600));
 
             expect((window as any).__ghAutoScrollStop).toBeTypeOf('function');
         });
@@ -213,7 +193,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             window.dispatchEvent(loadEvent);
 
             // Wait for async operations
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect((window as any).__ghAutoScrollStop).toBeUndefined();
         });
@@ -236,7 +216,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             window.dispatchEvent(loadEvent);
 
             // Wait for async operations
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect((window as any).__ghAutoScrollStop).toBeUndefined();
         });
@@ -274,7 +254,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             window.dispatchEvent(loadEvent);
 
             // Wait for async operations
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             // Should still be the original function, not replaced
             expect((window as any).__ghAutoScrollStop).toBe(existingStopFn);

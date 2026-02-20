@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {
     toggleExecution,
     displayActiveExecution,
     displayActiveStage,
     jumpToExecution,
     extractPodNames,
-} from '../../../src/library/spinnaker/actions';
-import * as domUtils from '../../../src/library/spinnaker/dom-utils';
-import * as podExtractor from '../../../src/library/spinnaker/pod-extractor';
+} from '@library/spinnaker/actions';
+import * as domUtils from '@library/spinnaker/dom-utils';
+import * as podExtractor from '@library/spinnaker/pod-extractor';
 
 // Mock chrome.notifications and runtime APIs
 global.chrome = {
@@ -39,7 +39,7 @@ describe('spinnaker actions', () => {
 
     describe('toggleExecution', () => {
         it('should click execution details link when found', () => {
-            const mockLink = { click: vi.fn() } as any;
+            const mockLink = {click: vi.fn()} as any;
             vi.spyOn(domUtils, 'findExecutionDetailsLink').mockReturnValue(mockLink);
 
             toggleExecution();
@@ -53,7 +53,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Toggled execution details',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -70,14 +70,16 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Execution details link not found',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
     });
 
     describe('displayActiveExecution', () => {
         it('should display execution ID and open status', () => {
-            vi.spyOn(domUtils, 'getExecutionIdFromUrl').mockReturnValue('01HPN64GE091GK831P0XG2JQQT');
+            vi.spyOn(domUtils, 'getExecutionIdFromUrl').mockReturnValue(
+                '01HPN64GE091GK831P0XG2JQQT',
+            );
             vi.spyOn(domUtils, 'isExecutionOpen').mockReturnValue(true);
 
             displayActiveExecution();
@@ -89,12 +91,14 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (open)',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
         it('should display execution ID and closed status', () => {
-            vi.spyOn(domUtils, 'getExecutionIdFromUrl').mockReturnValue('01HPN64GE091GK831P0XG2JQQT');
+            vi.spyOn(domUtils, 'getExecutionIdFromUrl').mockReturnValue(
+                '01HPN64GE091GK831P0XG2JQQT',
+            );
             vi.spyOn(domUtils, 'isExecutionOpen').mockReturnValue(false);
 
             displayActiveExecution();
@@ -106,7 +110,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (closed)',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -123,7 +127,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'No execution found in URL',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
     });
@@ -145,7 +149,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Stage 2: runJobConfig',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -161,14 +165,14 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'No stage open',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
     });
 
     describe('jumpToExecution', () => {
         it('should be an alias for toggleExecution', () => {
-            const mockLink = { click: vi.fn() } as any;
+            const mockLink = {click: vi.fn()} as any;
             vi.spyOn(domUtils, 'findExecutionDetailsLink').mockReturnValue(mockLink);
 
             jumpToExecution();
@@ -182,7 +186,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Toggled execution details',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
     });
@@ -198,7 +202,9 @@ describe('spinnaker actions', () => {
             await extractPodNames();
 
             expect(domUtils.findErrorContainer).toHaveBeenCalled();
-            expect(podExtractor.extractPodNames).toHaveBeenCalledWith('{"metadata":{"name":"test-pod-123"}}');
+            expect(podExtractor.extractPodNames).toHaveBeenCalledWith(
+                '{"metadata":{"name":"test-pod-123"}}',
+            );
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith('test-pod-123');
             expect(chrome.notifications.create).toHaveBeenCalledWith(
                 expect.any(String),
@@ -207,7 +213,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Copied pod name: test-pod-123',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -228,7 +234,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'Copied pod name: pod-1 (3 total found)',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -249,7 +255,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'No pod names found in error',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
 
@@ -266,7 +272,7 @@ describe('spinnaker actions', () => {
                     title: 'Spinnaker',
                     message: 'No error container found',
                 }),
-                expect.any(Function)
+                expect.any(Function),
             );
         });
     });

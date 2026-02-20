@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {theme} from '../theme/default';
+import {theme} from '@theme';
 
 const MESSAGE_TYPES = {
     GET_STATUS: 'GITHUB_AUTOSCROLL_GET_STATUS',
@@ -98,7 +98,9 @@ export function GitHubAutoscrollContent() {
                         cursor: 'pointer',
                         backgroundColor: active ? theme.status.successDark : theme.status.errorDark,
                         color: 'white',
-                        borderColor: active ? theme.status.successDarkBorder : theme.status.errorDarkBorder,
+                        borderColor: active
+                            ? theme.status.successDarkBorder
+                            : theme.status.errorDarkBorder,
                         transition: 'all 0.2s',
                     }}
                 >

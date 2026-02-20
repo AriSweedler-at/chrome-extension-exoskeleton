@@ -1,6 +1,6 @@
 import {describe, it, expect, vi} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
-import {RichLinkComponent} from '../../src/components/RichLinkComponent';
+import {RichLinkComponent} from '@library/richlink/RichLinkComponent';
 
 describe('RichLinkComponent', () => {
     it('should render loading state initially', () => {

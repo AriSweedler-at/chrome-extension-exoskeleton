@@ -27,7 +27,7 @@ describe('TabErrorBoundary', () => {
         render(
             <TabErrorBoundary>
                 <WorkingComponent />
-            </TabErrorBoundary>
+            </TabErrorBoundary>,
         );
 
         expect(screen.getByText('Working content')).toBeTruthy();
@@ -37,7 +37,7 @@ describe('TabErrorBoundary', () => {
         render(
             <TabErrorBoundary>
                 <ErrorComponent />
-            </TabErrorBoundary>
+            </TabErrorBoundary>,
         );
 
         expect(screen.getByText('This tab failed to load')).toBeTruthy();
@@ -49,13 +49,13 @@ describe('TabErrorBoundary', () => {
         render(
             <TabErrorBoundary>
                 <ErrorComponent />
-            </TabErrorBoundary>
+            </TabErrorBoundary>,
         );
 
         expect(consoleErrorSpy).toHaveBeenCalled();
         // Check that our custom error logging was called
         const ourErrorCall = consoleErrorSpy.mock.calls.find(
-            call => call[0] === 'Tab render error:'
+            (call) => call[0] === 'Tab render error:',
         );
         expect(ourErrorCall).toBeTruthy();
     });
@@ -64,7 +64,7 @@ describe('TabErrorBoundary', () => {
         const {rerender} = render(
             <TabErrorBoundary>
                 <ErrorComponent />
-            </TabErrorBoundary>
+            </TabErrorBoundary>,
         );
 
         // Verify error state
@@ -74,7 +74,7 @@ describe('TabErrorBoundary', () => {
         rerender(
             <TabErrorBoundary>
                 <WorkingComponent />
-            </TabErrorBoundary>
+            </TabErrorBoundary>,
         );
 
         // Should show working content, not error

@@ -49,7 +49,9 @@ export class AtlassianHandler extends Handler {
         // TODO: Verify these selectors work across different Jira versions
         if (url.includes('/browse/')) {
             // Modern Jira selector
-            const summaryElement = document.querySelector('[data-test-id="issue.views.issue-base.foundation.summary.heading"]');
+            const summaryElement = document.querySelector(
+                '[data-test-id="issue.views.issue-base.foundation.summary.heading"]',
+            );
             if (summaryElement?.textContent) {
                 return summaryElement.textContent.trim();
             }

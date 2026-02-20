@@ -9,12 +9,7 @@ export class Tabs {
         }
 
         // Chrome internal pages where content scripts cannot run
-        const restrictedPrefixes = [
-            'chrome://',
-            'chrome-extension://',
-            'about:',
-            'edge://',
-        ];
+        const restrictedPrefixes = ['chrome://', 'chrome-extension://', 'about:', 'edge://'];
 
         return !restrictedPrefixes.some((prefix) => url.startsWith(prefix));
     }

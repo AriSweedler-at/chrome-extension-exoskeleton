@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {TabRegistry} from '../../src/library/tabs/tab-registry';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 const TestComponent = () => <div>Test</div>;
 
@@ -40,7 +40,6 @@ describe('TabRegistry', () => {
     });
 
     describe('getVisibleTabs', () => {
-
         it('should return tabs sorted by priority', () => {
             TabRegistry.register({
                 id: 'tab1',

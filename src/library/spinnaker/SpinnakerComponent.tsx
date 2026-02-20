@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 import {
     toggleExecution,
     displayActiveExecution,
     displayActiveStage,
     jumpToExecution,
     extractPodNames,
-} from '../library/spinnaker/actions';
-import { keybindings } from '../library/keybindings';
-import { theme } from '../theme/default';
+} from '@library/spinnaker/actions';
+import {keybindings} from '@library/keybindings';
+import {theme} from '@theme';
 
 /**
  * Spinnaker tab component
@@ -27,32 +27,32 @@ export function SpinnakerContent() {
                 key: 'e',
                 description: 'Toggle execution details',
                 handler: toggleExecution,
-                context: 'Spinnaker'
+                context: 'Spinnaker',
             },
             {
                 key: 'x',
                 description: 'Show active execution',
                 handler: displayActiveExecution,
-                context: 'Spinnaker'
+                context: 'Spinnaker',
             },
             {
                 key: 's',
                 description: 'Show active stage',
                 handler: displayActiveStage,
-                context: 'Spinnaker'
+                context: 'Spinnaker',
             },
             {
                 key: 'j',
                 description: 'Jump to execution',
                 handler: jumpToExecution,
-                context: 'Spinnaker'
+                context: 'Spinnaker',
             },
             {
                 key: 'p',
                 description: 'Extract pod names',
                 handler: extractPodNames,
-                context: 'Spinnaker'
-            }
+                context: 'Spinnaker',
+            },
         ]);
         keybindings.listen();
 
@@ -68,10 +68,10 @@ export function SpinnakerContent() {
     }, []);
 
     return (
-        <div style={{ padding: '16px' }}>
-            <h2 style={{ marginTop: 0, marginBottom: '16px' }}>Execution Controls</h2>
+        <div style={{padding: '16px'}}>
+            <h2 style={{marginTop: 0, marginBottom: '16px'}}>Execution Controls</h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
                 <button
                     onClick={toggleExecution}
                     style={{

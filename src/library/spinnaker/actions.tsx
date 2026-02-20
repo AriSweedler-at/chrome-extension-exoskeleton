@@ -16,7 +16,7 @@ import {
     getActiveStageFromUrl,
     findErrorContainer,
 } from './dom-utils';
-import { extractPodNames as extractPodNamesFromHtml } from './pod-extractor';
+import {extractPodNames as extractPodNamesFromHtml} from './pod-extractor';
 
 /**
  * Show a Chrome notification
@@ -32,7 +32,7 @@ function showNotification(message: string): void {
         },
         () => {
             // Optional callback
-        }
+        },
     );
 }
 

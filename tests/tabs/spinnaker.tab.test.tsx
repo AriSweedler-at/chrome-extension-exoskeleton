@@ -1,9 +1,9 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {TabRegistry} from '../../src/library/tabs/tab-registry';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 describe('Spinnaker Tab Registration', () => {
     beforeEach(async () => {
-        await import('../../src/tabs/spinnaker.tab');
+        await import('../../src/exo-tabs/spinnaker.tab');
     });
 
     it('registers spinnaker tab', () => {

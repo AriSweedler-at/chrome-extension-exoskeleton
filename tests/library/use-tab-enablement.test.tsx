@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {renderHook, waitFor, act} from '@testing-library/react';
-import {useTabEnablement} from '../../src/library/tabs/use-tab-enablement';
+import {useTabEnablement} from '@library/popup-exo-tabs/use-tab-enablement';
 
 describe('useTabEnablement', () => {
     beforeEach(() => {
@@ -57,7 +57,7 @@ describe('useTabEnablement', () => {
 
         expect(chrome.storage.local.set).toHaveBeenCalledWith(
             {'exorun-test-tab': false},
-            expect.any(Function)
+            expect.any(Function),
         );
         expect(result.current.enabled).toBe(false);
     });

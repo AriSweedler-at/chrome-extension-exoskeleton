@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {GitHubHandler} from '../../../../src/library/richlink/handlers/github.handler';
+import {GitHubHandler} from '@library/richlink/handlers/github.handler';
 
 describe('GitHubHandler', () => {
     let handler: GitHubHandler;
@@ -46,10 +46,14 @@ describe('GitHubHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://github.com/user/repo/pull/123">Fix bug in authentication (#123)</a>');
+        expect(html).toBe(
+            '<a href="https://github.com/user/repo/pull/123">Fix bug in authentication (#123)</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('Fix bug in authentication (#123) (https://github.com/user/repo/pull/123)');
+        expect(text).toBe(
+            'Fix bug in authentication (#123) (https://github.com/user/repo/pull/123)',
+        );
 
         document.body.removeChild(mockTitle);
     });
@@ -79,10 +83,14 @@ describe('GitHubHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://github.com/anthropics/escalation/pull/200045/files">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>');
+        expect(html).toBe(
+            '<a href="https://github.com/anthropics/escalation/pull/200045/files">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045/files)');
+        expect(text).toBe(
+            'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045/files)',
+        );
 
         document.body.removeChild(mockTitle);
     });

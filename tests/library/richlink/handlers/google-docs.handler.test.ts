@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {GoogleDocsHandler} from '../../../../src/library/richlink/handlers/google-docs.handler';
+import {GoogleDocsHandler} from '@library/richlink/handlers/google-docs.handler';
 
 describe('GoogleDocsHandler', () => {
     let handler: GoogleDocsHandler;
@@ -41,10 +41,14 @@ describe('GoogleDocsHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://docs.google.com/document/d/abc123/edit">Project Requirements Document</a>');
+        expect(html).toBe(
+            '<a href="https://docs.google.com/document/d/abc123/edit">Project Requirements Document</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('Project Requirements Document (https://docs.google.com/document/d/abc123/edit)');
+        expect(text).toBe(
+            'Project Requirements Document (https://docs.google.com/document/d/abc123/edit)',
+        );
 
         document.body.removeChild(mockTitle);
     });
@@ -57,7 +61,9 @@ describe('GoogleDocsHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://docs.google.com/document/d/abc123/edit">Google Doc</a>');
+        expect(html).toBe(
+            '<a href="https://docs.google.com/document/d/abc123/edit">Google Doc</a>',
+        );
     });
 
     it('should handle alternative title selector', async () => {
@@ -74,7 +80,9 @@ describe('GoogleDocsHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://docs.google.com/document/d/xyz789/edit">Meeting Notes</a>');
+        expect(html).toBe(
+            '<a href="https://docs.google.com/document/d/xyz789/edit">Meeting Notes</a>',
+        );
 
         document.body.removeChild(mockTitle);
     });

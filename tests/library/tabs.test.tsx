@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {Tabs} from '../../src/library/tabs';
+import {Tabs} from '@library/tabs';
 
 describe('Tabs', () => {
     describe('canInjectContent', () => {

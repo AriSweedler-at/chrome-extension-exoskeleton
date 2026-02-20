@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {GetCountAction} from '../../../src/actions/get-count.action';
+import {GetCountAction} from '@actions/get-count.action';
 
 describe('GetCountAction', () => {
     it('should have correct type', () => {

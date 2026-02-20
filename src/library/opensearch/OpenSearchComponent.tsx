@@ -1,11 +1,12 @@
 import {useState} from 'react';
-import {theme} from '../theme/default';
+import {theme} from '@theme';
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
-} from '../actions/extract-log-command.action';
+} from '@actions/extract-log-command.action';
 
-const GDOC_HOW_TO_ACCESS_DEBUG_LOGS = 'https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus';
+const GDOC_HOW_TO_ACCESS_DEBUG_LOGS =
+    'https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus';
 
 const buttonStyle = {
     width: '100%',
@@ -33,8 +34,10 @@ export function OpenSearchComponent() {
             await chrome.tabs.update(tab.id, {active: true});
             await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const result: ExtractLogCommandResult =
-                await ExtractLogCommandAction.sendToTab(tab.id, undefined as void);
+            const result: ExtractLogCommandResult = await ExtractLogCommandAction.sendToTab(
+                tab.id,
+                undefined as void,
+            );
 
             if (result.success) {
                 setStatus('success');
@@ -54,7 +57,6 @@ export function OpenSearchComponent() {
             setMessage('');
         }, 2000);
     };
-
 
     return (
         <div style={{padding: '16px'}}>

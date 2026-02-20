@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import {Popup} from './Popup';
 
 // Import tabs to register them
-import '../tabs';
+import '../exo-tabs';
 
 const root = document.getElementById('root');
 if (root) {

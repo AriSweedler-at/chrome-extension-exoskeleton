@@ -1,5 +1,5 @@
 import React from 'react';
-import {theme} from '../../theme/default';
+import {theme} from '@theme';
 import {useTabEnablement} from './use-tab-enablement';
 
 interface TabEnablementSectionProps {

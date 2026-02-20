@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {AirtableHandler} from '../../../../src/library/richlink/handlers/airtable.handler';
+import {AirtableHandler} from '@library/richlink/handlers/airtable.handler';
 
 describe('AirtableHandler', () => {
     let handler: AirtableHandler;
@@ -91,7 +91,9 @@ describe('AirtableHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>');
+        expect(html).toBe(
+            '<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>',
+        );
 
         document.body.removeChild(mockViewTitle);
     });

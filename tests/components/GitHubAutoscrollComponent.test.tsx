@@ -2,7 +2,7 @@ import React from 'react';
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {GitHubAutoscrollContent} from '../../src/components/GitHubAutoscrollComponent';
+import {GitHubAutoscrollContent} from '@library/github-autoscroll/GitHubAutoscrollComponent';
 
 describe('GitHubAutoscrollContent', () => {
     beforeEach(() => {
@@ -32,7 +32,9 @@ describe('GitHubAutoscrollContent', () => {
         (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({active: false});
+        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({
+            active: false,
+        });
 
         render(<GitHubAutoscrollContent />);
 
@@ -45,7 +47,9 @@ describe('GitHubAutoscrollContent', () => {
         (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({active: true});
+        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({
+            active: true,
+        });
 
         render(<GitHubAutoscrollContent />);
 
@@ -120,6 +124,8 @@ describe('GitHubAutoscrollContent', () => {
         await waitFor(() => {
             expect(screen.getByTestId('error-message')).toBeInTheDocument();
         });
-        expect(screen.getByText('Failed to toggle autoscroll. Please try again.')).toBeInTheDocument();
+        expect(
+            screen.getByText('Failed to toggle autoscroll. Please try again.'),
+        ).toBeInTheDocument();
     });
 });

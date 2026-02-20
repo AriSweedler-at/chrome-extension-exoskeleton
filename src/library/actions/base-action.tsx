@@ -129,6 +129,4 @@ type ActionHandler<TPayload, TResult, TContext> = (
     context: TContext,
 ) => TResult | Promise<TResult>;
 
-type ActionResponse<TResult> =
-    | {success: true; data: TResult}
-    | {success: false; error: string};
+type ActionResponse<TResult> = {success: true; data: TResult} | {success: false; error: string};
