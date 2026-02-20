@@ -1,9 +1,9 @@
-import {CopyRichLinkAction} from '@exo/library/actions/copy-rich-link.action';
-import {ExtractLogCommandAction} from '@exo/library/actions/extract-log-command.action';
-import {ShowToastAction, type ShowToastPayload} from '@exo/library/actions/show-toast.action';
-import {handleCopyRichLink} from '@exo/library/richlink/content-handler';
-import {handleExtractLogCommand} from '@exo/library/opensearch/content-handler';
-import {initializeGitHubAutoscroll} from '@exo/library/github-autoscroll/content-integration';
+import {CopyRichLinkAction} from '@exo/lib/actions/copy-rich-link.action';
+import {ExtractLogCommandAction} from '@exo/lib/actions/extract-log-command.action';
+import {ShowToastAction, type ShowToastPayload} from '@exo/lib/actions/show-toast.action';
+import {handleCopyRichLink} from '@exo/lib/richlink/content-handler';
+import {handleExtractLogCommand} from '@exo/lib/opensearch/content-handler';
+import {initializeGitHubAutoscroll} from '@exo/lib/github-autoscroll/content-integration';
 
 /**
  * Content script entry point
@@ -15,7 +15,7 @@ CopyRichLinkAction.handle(handleCopyRichLink);
 ExtractLogCommandAction.handle(handleExtractLogCommand);
 
 ShowToastAction.handle(async (payload: ShowToastPayload) => {
-    const {Notifications} = await import('@exo/library/toast-notification');
+    const {Notifications} = await import('@exo/lib/toast-notification');
     Notifications.show({
         message: payload.message,
         type: payload.type,

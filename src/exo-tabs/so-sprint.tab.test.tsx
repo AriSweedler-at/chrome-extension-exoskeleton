@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {render, screen} from '@testing-library/react';
-import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
 import '@exo/exo-tabs/so-sprint.tab';

@@ -1,6 +1,6 @@
-import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
-import {GitHubAutoscrollContent} from '@exo/library/github-autoscroll/GitHubAutoscrollComponent';
-import {isGitHubPRChangesPage} from '@exo/library/github-autoscroll';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {GitHubAutoscrollContent} from '@exo/lib/github-autoscroll/GitHubAutoscrollComponent';
+import {isGitHubPRChangesPage} from '@exo/lib/github-autoscroll';
 
 const GitHubAutoscrollComponent = () => {
     return <GitHubAutoscrollContent />;
