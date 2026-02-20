@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 
 describe('Spinnaker Tab Registration', () => {
     beforeEach(async () => {

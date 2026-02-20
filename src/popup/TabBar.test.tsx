@@ -1,8 +1,8 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import {TabBar} from '@exo/popup/TabBar';
-import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
-import {Storage} from '@exo/library/storage';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {Storage} from '@exo/lib/storage';
 import chrome from 'sinon-chrome';
 
 describe('TabBar', () => {
