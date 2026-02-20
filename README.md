@@ -2,18 +2,7 @@
 
 [![CI/CD](https://github.com/AriSweedler-at/chrome-extension-exoskeleton/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AriSweedler-at/chrome-extension-exoskeleton/actions/workflows/ci-cd.yml)
 
-Ari's Chrome exoskeleton with reusable library, testing, and CI/CD.
-
-## Features
-
-- TypeScript with strict mode
-- React popup UI
-- Vite bundler with HMR
-- Vitest test runner
-- Class-based action system for type-safe messaging
-- Chrome API utility library (clipboard, storage, notifications, commands)
-- GitHub Actions workflow
-- ESLint and Prettier
+Chrome extension that adds site-specific productivity tools via a tabbed popup.
 
 ## Installation
 
@@ -29,71 +18,51 @@ Load the extension:
 3. Select "Load unpacked"
 4. Choose the `dist/` directory
 
-## Example Extension
-
-The starter includes a working counter extension. Press `Ctrl+Shift+I` or click the popup button to increment. Counter resets on page navigation.
-
 ## Project Structure
 
 ```
 src/
-├── library/        Reusable Chrome API utilities
-├── actions/        Extension-specific message actions
-├── popup/          React UI components
-├── background/     Service worker entry point
-├── content/        Content script entry point
-└── shared/         Shared types and constants
-
-tests/              Unit and component tests
+  index.tsx              # Content script entry point
+  service-worker.tsx     # Background service worker entry point
+  exo-tabs/              # Self-contained tab folders (auto-discovered via glob)
+  lib/                   # Shared utilities (actions, clipboard, storage, etc.)
+  popup/                 # Extension popup UI
+  theme/                 # Design tokens (HSLA colors)
+  test/                  # Test infrastructure (vitest setup)
 ```
 
-## Library API
+Each tab lives in `src/exo-tabs/{name}/` with its own component, domain logic, content handler, and colocated tests. See `docs/adding-a-tab.md` for the full guide.
 
-**Actions**
+## Config Files
 
-Define actions as classes extending `Action<TPayload, TResult>`:
-
-```typescript
-class IncrementAction extends Action<{amount: number}, {count: number}> {
-    type = 'INCREMENT' as const;
-}
-
-// In content script
-IncrementAction.setContext(context);
-IncrementAction.handle(async (payload, sender, context) => {
-    context.count += payload.amount;
-    return {count: context.count};
-});
-
-// In popup
-const result = await IncrementAction.sendToActiveTab({amount: 1});
-```
-
-**Utilities**
-
-```typescript
-Clipboard.write(text: string, html?: string): Promise<void>
-Notifications.show(message: string, duration?: number): void
-Storage.get<T>(key: string): Promise<T>
-Storage.set(key: string, value: any): Promise<void>
-Commands.getAll(): Promise<chrome.commands.Command[]>
-Commands.onCommand(callback: (command: string) => void): void
-Tabs.canInjectContent(url: string | undefined): boolean
-```
+| File | Purpose |
+|------|---------|
+| `manifest.json` | Chrome extension manifest (permissions, entry points, keyboard shortcuts) |
+| `package.json` | npm dependencies and scripts (dev, build, test, lint, format) |
+| `package-lock.json` | Locked dependency versions |
+| `tsconfig.json` | TypeScript config for IDE/LSP (includes test files for autocomplete) |
+| `tsconfig.build.json` | TypeScript config for production builds (excludes test files) |
+| `eslint.config.js` | Linter rules (no relative imports, no unused vars, no any) |
+| `vite.config.ts` | Vite bundler config (React plugin, crx plugin, `@exo` path alias) |
+| `vitest.config.ts` | Test runner config (jsdom environment, setup file, `@exo` path alias) |
+| `.prettierrc` | Code formatter settings (single quotes, 4-space indent, 100 char width) |
 
 ## Development
 
 ```bash
 npm run dev         # Start dev server with HMR
+npm run build       # Production build
 npm test            # Run tests in watch mode
-npm run lint        # Run ESLint
-npm run build       # Build for production
-npm run zip         # Create distribution ZIP
+npm run lint        # Run linter
+npm run format      # Auto-format with prettier
+npm run zip         # Build and package as extension.zip
 ```
+
+See `docs/development.md` for details on HMR and debugging.
 
 ## Testing
 
-Tests use Vitest with jsdom and sinon-chrome for Chrome API mocking.
+Tests are colocated with source (`X.test.tsx` next to `X.tsx`). Uses Vitest with jsdom and sinon-chrome for Chrome API mocking.
 
 ```bash
 npm test                # Watch mode
