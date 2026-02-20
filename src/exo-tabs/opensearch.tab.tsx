@@ -1,10 +1,10 @@
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
-import {OpenSearchComponent} from '@exo/lib/opensearch/OpenSearchComponent';
+import {OpenSearchComponent} from '@exo/exo-tabs/opensearch/OpenSearchComponent';
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
 } from '@exo/lib/actions/extract-log-command.action';
-import {isOpenSearchPage} from '@exo/lib/opensearch';
+import {isOpenSearchPage} from '@exo/exo-tabs/opensearch';
 
 TabRegistry.register({
     id: 'opensearch',
