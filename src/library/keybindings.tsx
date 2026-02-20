@@ -11,6 +11,12 @@ import {theme} from '../theme/default';
  * - Context-aware filtering (skips INPUT/TEXTAREA elements)
  */
 
+const INPUT_TAG_NAMES = ['INPUT', 'TEXTAREA'] as const;
+
+function isTypingInInputField(target: HTMLElement): boolean {
+  return INPUT_TAG_NAMES.some(tag => target.tagName === tag) || target.isContentEditable;
+}
+
 export interface Keybinding {
   key: string;
   description: string;
@@ -72,8 +78,7 @@ export class KeybindingRegistry {
 
     this.keydownHandler = (event: KeyboardEvent) => {
       // Skip if user is typing in an input field
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      if (isTypingInInputField(event.target as HTMLElement)) {
         return;
       }
 

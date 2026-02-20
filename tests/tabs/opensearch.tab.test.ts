@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {isOpenSearchPage} from '../../src/tabs/opensearch.tab';
+import {isOpenSearchPage} from '../../src/library/opensearch';
 
 describe('isOpenSearchPage', () => {
     it('returns true for production opensearch URL', () => {
