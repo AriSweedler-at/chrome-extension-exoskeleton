@@ -4,10 +4,10 @@ import {Clipboard} from '@exo/lib/clipboard';
 describe('Clipboard', () => {
     beforeEach(() => {
         // Mock ClipboardItem
-        global.ClipboardItem = class ClipboardItem {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (globalThis as any).ClipboardItem = class ClipboardItem {
             constructor(public data: Record<string, Blob>) {}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
+        };
 
         // Mock navigator.clipboard
         Object.assign(navigator, {

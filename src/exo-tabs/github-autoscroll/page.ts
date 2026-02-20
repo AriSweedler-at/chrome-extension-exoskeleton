@@ -37,7 +37,7 @@ async function tryAutoRunAutoscroll() {
         const stopFn = initializeAutoScroll(true); // Enable debug mode
         if (stopFn) {
             window.__ghAutoScrollStop = stopFn;
-            Notifications.show('GitHub PR Autoscroll enabled');
+            Notifications.show({message: 'GitHub PR Autoscroll enabled'});
             console.log('[Auto-run] Autoscroll enabled successfully');
         } else {
             console.log('[Auto-run] initializeAutoScroll returned null (no files found)');
@@ -100,12 +100,13 @@ function initializeMessageHandlers() {
                     const stopFn = initializeAutoScroll(true); // Enable debug mode
                     if (stopFn) {
                         window.__ghAutoScrollStop = stopFn;
-                        Notifications.show('GitHub PR Autoscroll enabled');
+                        Notifications.show({message: 'GitHub PR Autoscroll enabled'});
                         sendResponse({active: true});
                     } else {
-                        Notifications.show(
-                            "No files found. Make sure you're on a GitHub PR changes page.",
-                        );
+                        Notifications.show({
+                            message:
+                                "No files found. Make sure you're on a GitHub PR changes page.",
+                        });
                         sendResponse({active: false});
                     }
                 }

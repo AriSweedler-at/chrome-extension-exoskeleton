@@ -5,6 +5,7 @@ import {
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications, NotificationType} from '@exo/lib/toast-notification';
 import {findOpenFlyout, buildCommand} from '@exo/exo-tabs/opensearch';
+import {theme} from '@exo/theme/default';
 
 export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult> {
     if (!findOpenFlyout()) {
@@ -24,7 +25,18 @@ export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult
     await Clipboard.write(cmd.flat);
     Notifications.show({
         message: 'Copied log fetch command',
-        detail: cmd.display,
+        children: (
+            <pre
+                style={{
+                    ...theme.toast.detail,
+                    margin: '8px 0 0 0',
+                    whiteSpace: 'pre',
+                    lineHeight: '1.5',
+                }}
+            >
+                {cmd.display}
+            </pre>
+        ),
     });
     return {success: true, command: cmd.flat};
 }

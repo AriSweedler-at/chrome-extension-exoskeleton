@@ -15,6 +15,7 @@ describe('TabRegistry', () => {
                     id: 'test',
                     label: 'Test',
                     component: TestComponent,
+                    primaryAction: async () => false,
                     getPriority: () => 100,
                 });
             }).not.toThrow();
@@ -25,6 +26,7 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -33,6 +35,7 @@ describe('TabRegistry', () => {
                     id: 'test',
                     label: 'Test 2',
                     component: TestComponent,
+                    primaryAction: async () => false,
                     getPriority: () => 100,
                 });
             }).toThrow("Tab ID 'test' already registered");
@@ -45,6 +48,7 @@ describe('TabRegistry', () => {
                 id: 'tab1',
                 label: 'Tab 1',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -52,6 +56,7 @@ describe('TabRegistry', () => {
                 id: 'tab2',
                 label: 'Tab 2',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 0,
             });
 
@@ -59,6 +64,7 @@ describe('TabRegistry', () => {
                 id: 'tab3',
                 label: 'Tab 3',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 50,
             });
 
@@ -75,6 +81,7 @@ describe('TabRegistry', () => {
                 id: 'visible',
                 label: 'Visible',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -82,6 +89,7 @@ describe('TabRegistry', () => {
                 id: 'hidden',
                 label: 'Hidden',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => Number.MAX_SAFE_INTEGER,
             });
 
@@ -99,6 +107,7 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: (url: string) => {
                     receivedUrl = url;
                     return 100;
@@ -115,6 +124,7 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 42,
             });
 
@@ -132,6 +142,7 @@ describe('TabRegistry', () => {
                 id: 'test-with-enablement',
                 label: 'Test',
                 component: TestComponent,
+                primaryAction: async () => false,
                 getPriority: () => 0,
                 enablementToggle: true,
             });

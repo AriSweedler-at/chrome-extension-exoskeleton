@@ -1,5 +1,4 @@
-import React from 'react';
-import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {describe, it, expect, vi, beforeEach, type Mock} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {GitHubAutoscrollContent} from '@exo/exo-tabs/github-autoscroll/GitHubAutoscrollComponent';
@@ -29,10 +28,10 @@ describe('GitHubAutoscrollContent', () => {
     });
 
     it('renders status and toggle button', async () => {
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({
+        (chrome.tabs.sendMessage as Mock).mockResolvedValue({
             active: false,
         });
 
@@ -44,10 +43,10 @@ describe('GitHubAutoscrollContent', () => {
     });
 
     it('shows active status when autoscroll is running', async () => {
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage).mockResolvedValue({
+        (chrome.tabs.sendMessage as Mock).mockResolvedValue({
             active: true,
         });
 
@@ -60,10 +59,10 @@ describe('GitHubAutoscrollContent', () => {
 
     it('toggles autoscroll when button clicked', async () => {
         const user = userEvent.setup();
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage)
+        (chrome.tabs.sendMessage as Mock)
             .mockResolvedValueOnce({active: false})
             .mockResolvedValueOnce({active: true});
 
@@ -81,7 +80,7 @@ describe('GitHubAutoscrollContent', () => {
     });
 
     it('handles empty tabs array gracefully', async () => {
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([]);
         });
 
@@ -93,7 +92,7 @@ describe('GitHubAutoscrollContent', () => {
     });
 
     it('handles tab without ID', async () => {
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([{} as chrome.tabs.Tab]);
         });
 
@@ -106,10 +105,10 @@ describe('GitHubAutoscrollContent', () => {
 
     it('shows error message when toggle fails', async () => {
         const user = userEvent.setup();
-        (chrome.tabs.query as typeof chrome.tabs.query).mockImplementation((_, callback) => {
+        (chrome.tabs.query as Mock).mockImplementation((_, callback) => {
             callback([{id: 123}]);
         });
-        (chrome.tabs.sendMessage as typeof chrome.tabs.sendMessage)
+        (chrome.tabs.sendMessage as Mock)
             .mockResolvedValueOnce({active: false})
             .mockRejectedValueOnce(new Error('Connection error'));
 

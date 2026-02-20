@@ -9,6 +9,7 @@ import {
     cacheFormatIndex,
     isCycling,
 } from '@exo/exo-tabs/richlink/format-cycling';
+import {theme} from '@exo/theme/default';
 
 export async function handleCopyRichLink(
     payload: CopyRichLinkPayload,
@@ -47,7 +48,7 @@ export async function handleCopyRichLink(
             nextFormats.push(formats[nextIndex].label);
         }
     }
-    const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' → ')}` : undefined;
+    const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' \u2192 ')}` : undefined;
 
     const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
     const opacity = isFallback ? 0.75 : 1;
@@ -60,7 +61,9 @@ export async function handleCopyRichLink(
         duration: CACHE_EXPIRY_MS,
         replace: cycling,
         opacity,
-        preview,
+        children: preview ? (
+            <div style={{...theme.toast.preview, marginTop: '4px'}}>{preview}</div>
+        ) : undefined,
     });
 
     if (payload.formatIndex === undefined) {

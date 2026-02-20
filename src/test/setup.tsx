@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 
 // Mock Chrome APIs globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-global.chrome = chrome as any;
+(globalThis as any).chrome = chrome;
 
 // Mock window.scrollBy for jsdom (not implemented by default)
 window.scrollBy = vi.fn();

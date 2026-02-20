@@ -169,6 +169,7 @@ describe('TabBar', () => {
             id: 'test-enablement',
             label: 'Test',
             component: TestComponent,
+            primaryAction: async () => false,
             getPriority: () => 0,
             enablementToggle: true,
         });
@@ -195,6 +196,7 @@ describe('TabBar', () => {
             id: 'test-no-enablement',
             label: 'Test',
             component: TestComponent,
+            primaryAction: async () => false,
             getPriority: () => 0,
         });
 

@@ -73,7 +73,7 @@ describe('initializeAutoScroll', () => {
     it('returns a stop function', () => {
         const stopFn = initializeAutoScroll();
         expect(typeof stopFn).toBe('function');
-        stopFn();
+        stopFn!();
     });
 
     it('injects CSS styles', () => {
@@ -87,12 +87,12 @@ describe('initializeAutoScroll', () => {
         const stopFn = initializeAutoScroll();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect((window as any).__ghAutoScrollStop).toBe(stopFn);
-        stopFn();
+        stopFn!();
     });
 
     it('removes CSS when stopped', () => {
         const stopFn = initializeAutoScroll();
-        stopFn();
+        stopFn!();
         const style = document.getElementById('gh-autoscroll-styles');
         expect(style).toBeNull();
     });
@@ -171,7 +171,7 @@ describe('initializeAutoScroll', () => {
             await new Promise((resolve) => setTimeout(resolve, 1600));
             expect(file2.classList.contains('gh-autoscroll-flash')).toBe(false);
 
-            stopFn();
+            stopFn!();
         });
 
         it('does nothing when all files are viewed', async () => {
@@ -193,7 +193,7 @@ describe('initializeAutoScroll', () => {
             // Should not scroll when no unviewed files remain
             expect(scrollSpy).not.toHaveBeenCalled();
 
-            stopFn();
+            stopFn!();
         });
 
         it('skips viewed files and scrolls to next unviewed', async () => {
@@ -219,7 +219,7 @@ describe('initializeAutoScroll', () => {
             expect(scrollSpy).toHaveBeenCalled();
 
             scrollSpy.mockRestore();
-            stopFn();
+            stopFn!();
         });
     });
 });

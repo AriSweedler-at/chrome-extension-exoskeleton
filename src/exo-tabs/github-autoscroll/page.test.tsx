@@ -175,9 +175,10 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             `;
 
             // Mock storage to return undefined (default behavior)
-            chrome.storage.local.get = vi.fn((_key, callback) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            chrome.storage.local.get = vi.fn((_key: any, callback: any) => {
                 callback({});
-            });
+            }) as unknown as typeof chrome.storage.local.get;
 
             await import('@exo/index');
 
@@ -205,9 +206,10 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             `;
 
             // Mock storage to return false
-            chrome.storage.local.get = vi.fn((_key, callback) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            chrome.storage.local.get = vi.fn((_key: any, callback: any) => {
                 callback({'exorun-github-autoscroll': false});
-            });
+            }) as unknown as typeof chrome.storage.local.get;
 
             await import('@exo/index');
 
@@ -228,9 +230,10 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             });
 
             // Mock storage to return true (auto-run enabled)
-            chrome.storage.local.get = vi.fn((_key, callback) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            chrome.storage.local.get = vi.fn((_key: any, callback: any) => {
                 callback({'exorun-github-autoscroll': true});
-            });
+            }) as unknown as typeof chrome.storage.local.get;
 
             await import('@exo/index');
 
@@ -266,9 +269,10 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             window.__ghAutoScrollStop = existingStopFn;
 
             // Mock storage to return undefined (default behavior)
-            chrome.storage.local.get = vi.fn((_key, callback) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            chrome.storage.local.get = vi.fn((_key: any, callback: any) => {
                 callback({});
-            });
+            }) as unknown as typeof chrome.storage.local.get;
 
             await import('@exo/index');
 
