@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Ari's Chrome Exoskeleton",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Ari's Chrome exoskeleton with reusable library",
     "icons": {
         "16": "assets/icon16.png",
