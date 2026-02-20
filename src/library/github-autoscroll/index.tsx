@@ -1,5 +1,5 @@
-import {scrollElementCenter, scrollElementTop} from '../scroll-utils';
-import {keybindings} from '../keybindings';
+import {scrollElementCenter, scrollElementTop} from '@exo/library/scroll-utils';
+import {keybindings} from '@exo/library/keybindings';
 import {theme} from '@exo/theme/default';
 
 /**

@@ -14,13 +14,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import handlers
-import { GitHubHandler } from '../src/library/richlink/handlers/github.handler';
-import { GoogleDocsHandler } from '../src/library/richlink/handlers/google-docs.handler';
-import { AtlassianHandler } from '../src/library/richlink/handlers/atlassian.handler';
-import { AirtableHandler } from '../src/library/richlink/handlers/airtable.handler';
-import { SpinnakerHandler } from '../src/library/richlink/handlers/spinnaker.handler';
-import { SpaceliftHandler } from '../src/library/richlink/handlers/spacelift.handler';
-import { Handler } from '../src/library/richlink/base';
+import { GitHubHandler } from '@exo/library/richlink/handlers/github.handler';
+import { GoogleDocsHandler } from '@exo/library/richlink/handlers/google-docs.handler';
+import { AtlassianHandler } from '@exo/library/richlink/handlers/atlassian.handler';
+import { AirtableHandler } from '@exo/library/richlink/handlers/airtable.handler';
+import { SpinnakerHandler } from '@exo/library/richlink/handlers/spinnaker.handler';
+import { SpaceliftHandler } from '@exo/library/richlink/handlers/spacelift.handler';
+import { Handler } from '@exo/library/richlink/base';
 
 const handlers: Record<string, new () => Handler> = {
     GitHubHandler,

@@ -1,8 +1,9 @@
 import {useState, useEffect} from 'react';
 import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 import {Storage} from '@exo/library/storage';
-import {TabErrorBoundary} from './TabErrorBoundary';
+import {TabErrorBoundary} from '@exo/popup/TabErrorBoundary';
 import {TabEnablementSection} from '@exo/library/popup-exo-tabs/TabEnablementSection';
+// eslint-disable-next-line no-restricted-imports -- CSS must use relative imports
 import './TabBar.css';
 
 export function TabBar() {

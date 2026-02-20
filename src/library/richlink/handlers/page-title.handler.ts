@@ -1,4 +1,4 @@
-import {Handler} from '../base';
+import {Handler} from '@exo/library/richlink/base';
 
 export class PageTitleHandler extends Handler {
     canHandle(_url: string): boolean {

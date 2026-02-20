@@ -1,24 +1,24 @@
-import {HandlerRegistry} from '../handler-registry';
-import {PageTitleHandler} from './page-title.handler';
-import {RawUrlHandler} from './raw-url.handler';
-import {GitHubHandler} from './github.handler';
-import {GoogleDocsHandler} from './google-docs.handler';
-import {AtlassianHandler} from './atlassian.handler';
-import {AirtableHandler} from './airtable.handler';
-import {SpinnakerHandler} from './spinnaker.handler';
-import {SpaceliftHandler} from './spacelift.handler';
+import {HandlerRegistry} from '@exo/library/richlink/handler-registry';
+import {PageTitleHandler} from '@exo/library/richlink/handlers/page-title.handler';
+import {RawUrlHandler} from '@exo/library/richlink/handlers/raw-url.handler';
+import {GitHubHandler} from '@exo/library/richlink/handlers/github.handler';
+import {GoogleDocsHandler} from '@exo/library/richlink/handlers/google-docs.handler';
+import {AtlassianHandler} from '@exo/library/richlink/handlers/atlassian.handler';
+import {AirtableHandler} from '@exo/library/richlink/handlers/airtable.handler';
+import {SpinnakerHandler} from '@exo/library/richlink/handlers/spinnaker.handler';
+import {SpaceliftHandler} from '@exo/library/richlink/handlers/spacelift.handler';
 
 // Export everything
-export {HandlerRegistry} from '../handler-registry';
-export * from '../base';
-export * from './page-title.handler';
-export * from './raw-url.handler';
-export * from './github.handler';
-export * from './google-docs.handler';
-export * from './atlassian.handler';
-export * from './airtable.handler';
-export * from './spinnaker.handler';
-export * from './spacelift.handler';
+export {HandlerRegistry} from '@exo/library/richlink/handler-registry';
+export * from '@exo/library/richlink/base';
+export * from '@exo/library/richlink/handlers/page-title.handler';
+export * from '@exo/library/richlink/handlers/raw-url.handler';
+export * from '@exo/library/richlink/handlers/github.handler';
+export * from '@exo/library/richlink/handlers/google-docs.handler';
+export * from '@exo/library/richlink/handlers/atlassian.handler';
+export * from '@exo/library/richlink/handlers/airtable.handler';
+export * from '@exo/library/richlink/handlers/spinnaker.handler';
+export * from '@exo/library/richlink/handlers/spacelift.handler';
 
 // Auto-register handlers on module load
 HandlerRegistry.registerSpecialized(new GitHubHandler());

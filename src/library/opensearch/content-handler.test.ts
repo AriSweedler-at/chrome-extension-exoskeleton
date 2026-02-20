@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {handleExtractLogCommand} from './content-handler';
+import {handleExtractLogCommand} from '@exo/library/opensearch/content-handler';
 
 // Mock Clipboard
 vi.mock('@exo/library/clipboard', () => ({

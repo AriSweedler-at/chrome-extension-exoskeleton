@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {Storage} from '../storage';
+import {Storage} from '@exo/library/storage';
 
 export function useTabEnablement(tabId: string) {
     const [enabled, setEnabled] = useState<boolean>(true);

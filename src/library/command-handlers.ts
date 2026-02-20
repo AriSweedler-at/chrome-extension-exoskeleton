@@ -2,7 +2,7 @@ import {Commands} from '@exo/library/commands';
 import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 
 // Import tabs to trigger registration (side-effect imports)
-import '../exo-tabs';
+import '@exo/exo-tabs';
 
 /**
  * Initialize command handlers for keyboard shortcuts
