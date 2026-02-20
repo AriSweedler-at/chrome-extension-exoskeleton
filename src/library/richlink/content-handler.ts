@@ -1,7 +1,7 @@
 import {CopyRichLinkPayload} from '@exo/library/actions/copy-rich-link.action';
 import {HandlerRegistry} from '@exo/library/richlink/handlers';
 import {Clipboard} from '@exo/library/clipboard';
-import {Notifications} from '@exo/library/notifications';
+import {Notifications} from '@exo/library/toast-notification';
 import {CopyCounter} from '@exo/library/richlink/copy-counter';
 
 const CACHE_KEY = 'richlink-last-copy';

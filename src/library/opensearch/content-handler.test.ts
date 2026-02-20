@@ -9,8 +9,8 @@ vi.mock('@exo/library/clipboard', () => ({
 }));
 
 // Mock Notifications
-vi.mock('@exo/library/notifications', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@exo/library/notifications')>();
+vi.mock('@exo/library/toast-notification', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@exo/library/toast-notification')>();
     return {
         ...actual,
         Notifications: {
@@ -20,7 +20,7 @@ vi.mock('@exo/library/notifications', async (importOriginal) => {
 });
 
 import {Clipboard} from '@exo/library/clipboard';
-import {Notifications} from '@exo/library/notifications';
+import {Notifications} from '@exo/library/toast-notification';
 
 function setUpFlyout(fields: Record<string, string>) {
     // Create the flyout container

@@ -1,5 +1,5 @@
 import {Action} from '@exo/library/actions/base-action';
-import type {NotificationType} from '@exo/library/notifications';
+import type {NotificationType} from '@exo/library/toast-notification';
 
 export interface ShowToastPayload {
     message: string;
