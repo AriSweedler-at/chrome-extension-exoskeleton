@@ -2,19 +2,28 @@
 
 Tabs are the top-level unit of functionality in the extension. Each tab targets specific websites, renders its own UI in the popup, and can respond to the universal keyboard shortcut (Cmd+Shift+X).
 
-## Files to Create/Modify
+## Structure
 
-| File | Purpose |
-|------|---------|
-| `src/library/my-feature/MyFeatureComponent.tsx` | React component for the popup UI |
-| `src/library/my-feature/index.ts` | Domain logic, URL matching, etc. |
-| `src/exo-tabs/my-feature.tab.tsx` | Tab registration (wires component + library together) |
-| `src/exo-tabs/index.tsx` | Add import to trigger registration |
-| `src/exo-tabs/my-feature.tab.test.tsx` | Tests (colocated with source) |
+Each tab is a self-contained folder under `src/exo-tabs/`:
 
-## Step 1: Create the Library Folder
+```
+src/exo-tabs/my-feature/
+  tab.tsx              # TabRegistry.register() — auto-discovered
+  tab.test.tsx         # registration + URL matching tests
+  MyComponent.tsx      # React component for the popup UI
+  index.ts             # domain logic, URL matching helpers
+  content-handler.ts   # content script handler (if needed)
+```
 
-Create `src/library/my-feature/index.ts` with domain logic:
+Tabs are auto-discovered — `exo-tabs/index.tsx` uses `import.meta.glob('./*/tab.tsx', {eager: true})` to find all tab registrations at build time. No manual imports needed.
+
+## Step 1: Create the Tab Folder
+
+```bash
+mkdir src/exo-tabs/my-feature
+```
+
+Create `src/exo-tabs/my-feature/index.ts` with domain logic:
 
 ```ts
 export function isMyFeaturePage(url: string): boolean {
@@ -22,12 +31,12 @@ export function isMyFeaturePage(url: string): boolean {
 }
 ```
 
-Create `src/library/my-feature/MyFeatureComponent.tsx`:
+Create `src/exo-tabs/my-feature/MyComponent.tsx`:
 
 ```tsx
-import {theme} from '@theme';
+import {theme} from '@exo/theme/default';
 
-export function MyFeatureComponent() {
+export function MyComponent() {
     return (
         <div style={{padding: '16px'}}>
             <h2 style={{marginTop: 0, marginBottom: '16px'}}>My Feature</h2>
@@ -37,87 +46,75 @@ export function MyFeatureComponent() {
 }
 ```
 
-Use colors from `@theme` — never hardcode hex/rgba/hsla values in components.
+Use colors from `@exo/theme/default` — never hardcode color values in components.
 
 ## Step 2: Register the Tab
 
-Create `src/exo-tabs/my-feature.tab.tsx`:
+Create `src/exo-tabs/my-feature/tab.tsx`:
 
 ```tsx
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
-import {MyFeatureComponent} from '@library/my-feature/MyFeatureComponent';
-import {isMyFeaturePage} from '@library/my-feature';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {MyComponent} from '@exo/exo-tabs/my-feature/MyComponent';
+import {isMyFeaturePage} from '@exo/exo-tabs/my-feature';
 
 TabRegistry.register({
     id: 'my-feature',
     label: 'My Feature',
-    component: MyFeatureComponent,
+    component: MyComponent,
 
     getPriority: (url: string) => {
         if (isMyFeaturePage(url)) return 0;
         return Number.MAX_SAFE_INTEGER;
     },
 
-    primaryAction: async (tabId, url) => {
-        // Return true if this tab handled the action, false to pass to the next tab
+    primaryAction: async (tabId: number, url: string) => {
         return false;
     },
 
-    // Optional: show an enable/disable toggle in the popup
-    // enablementToggle: true,
+    // enablementToggle: true,  // optional: show enable/disable toggle
 });
 ```
 
-## Step 3: Import the Tab
+That's it — the glob pattern in `exo-tabs/index.tsx` will pick it up automatically.
 
-Add a side-effect import to `src/exo-tabs/index.tsx`:
+## Step 3: Write Tests
 
-```tsx
-import './my-feature.tab';
-```
-
-This ensures the tab registers before the popup renders.
-
-## Step 4: Write Tests
-
-Create `src/exo-tabs/my-feature.tab.test.tsx` (colocated with source):
+Create `src/exo-tabs/my-feature/tab.test.tsx`:
 
 ```tsx
 import {describe, it, expect} from 'vitest';
-import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
-import './my-feature.tab';
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import '@exo/exo-tabs/my-feature/tab';
 
 describe('My Feature Tab', () => {
     it('registers with correct id and label', () => {
         const tabs = TabRegistry.getVisibleTabs('https://example.com');
-        const tab = tabs.find((t) => t.id === 'my-feature');
+        const tab = tabs.find((t: {id: string}) => t.id === 'my-feature');
         expect(tab).toBeDefined();
         expect(tab?.label).toBe('My Feature');
     });
 
     it('is visible on matching URLs', () => {
         const tabs = TabRegistry.getVisibleTabs('https://example.com/page');
-        expect(tabs.find((t) => t.id === 'my-feature')).toBeDefined();
+        expect(tabs.find((t: {id: string}) => t.id === 'my-feature')).toBeDefined();
     });
 
     it('is hidden on non-matching URLs', () => {
         const tabs = TabRegistry.getVisibleTabs('https://other-site.com');
-        expect(tabs.find((t) => t.id === 'my-feature')).toBeUndefined();
+        expect(tabs.find((t: {id: string}) => t.id === 'my-feature')).toBeUndefined();
     });
 });
 ```
 
-## Import Conventions
+## Import Convention
 
-Use `@` path aliases for all cross-directory imports. Same-directory `./` imports are fine.
+Use `@exo/*` for all imports. It maps to `src/*`.
 
-| Alias | Resolves to |
-|---|---|
-| `@library/*` | `src/library/*` |
-| `@actions/*` | `src/actions/*` |
-| `@theme` | `src/theme/default` |
-| `@exo-tabs/*` | `src/exo-tabs/*` |
-| `@content/*` | `src/content/*` |
+```typescript
+import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {theme} from '@exo/theme/default';
+import {isMyFeaturePage} from '@exo/exo-tabs/my-feature';
+```
 
 ## Reference
 
@@ -125,18 +122,16 @@ Use `@` path aliases for all cross-directory imports. Same-directory `./` import
 
 ```typescript
 interface TabRegistration {
-    id: string;                    // Unique identifier
-    label: string;                 // Display name in the popup tab bar
-    component: ComponentType;      // React component rendered in popup
+    id: string;
+    label: string;
+    component: ComponentType;
     getPriority: (url: string) => number;
     primaryAction: (tabId: number, url: string) => Promise<boolean>;
-    enablementToggle?: boolean;    // Show enable/disable toggle
+    enablementToggle?: boolean;
 }
 ```
 
 ### `getPriority(url)`
-
-Controls when the tab appears and in what order.
 
 | Return value | Meaning |
 |---|---|
@@ -144,29 +139,18 @@ Controls when the tab appears and in what order.
 | `1`, `2`, ... | Visible, lower priority |
 | `Number.MAX_SAFE_INTEGER` | Hidden for this URL |
 
-Tabs are sorted ascending — lower number appears first.
-
 ### `primaryAction(tabId, url)`
 
-Called when the user presses **Cmd+Shift+X**. The system iterates visible tabs by priority and stops at the first one that returns `true`.
-
-- Return `true` — action handled, stop iterating
-- Return `false` — pass to the next tab
-
-If your tab doesn't have a keyboard action yet, use `async () => false`.
-
-### `enablementToggle`
-
-When `true`, a toggle switch ("Enable on page load") appears below your component. State persists in `chrome.storage.local` under the key `exorun-{tabId}`. Read it in your content script via `useTabEnablement(tabId)`.
+Called on **Cmd+Shift+X**. Return `true` if handled, `false` to pass to the next tab.
 
 ### Communicating with Content Scripts
 
-If your tab needs to run code in the page, create an action class and a content handler in your library folder:
+Create an action class in `src/lib/actions/` and a content handler in your tab folder:
 
 ```
-src/actions/my-action.action.ts              — Action definition
-src/library/my-feature/content-handler.ts    — Content script handler
-src/content/index.tsx                        — Wire up the handler
+src/lib/actions/my-action.action.ts          # typed message contract
+src/exo-tabs/my-feature/content-handler.ts   # handler logic
+src/index.tsx                                # wire up the handler
 ```
 
-Use `Action.sendToTab(tabId, payload)` from the popup or `primaryAction`, and `Action.handle(...)` in `src/content/index.tsx`. See `ExtractLogCommandAction` and `library/opensearch/content-handler.ts` for a working example.
+See `ExtractLogCommandAction` and `exo-tabs/opensearch/content-handler.ts` for a working example.
