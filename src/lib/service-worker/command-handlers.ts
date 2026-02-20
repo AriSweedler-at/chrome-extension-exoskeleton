@@ -1,5 +1,6 @@
 import {Commands} from '@exo/lib/service-worker/commands';
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {CopyRichLinkAction} from '@exo/exo-tabs/richlink/action';
 
 // Import tabs to trigger registration (side-effect imports)
 import '@exo/exo-tabs';
@@ -15,13 +16,7 @@ export function initializeCommandHandlers(): void {
             case 'copy-rich-link': {
                 const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
                 if (!tab.id || !tab.url) return;
-                // Rich link copy is always the richlink tab's primary action
-                const richlink = TabRegistry.getVisibleTabs(tab.url).find(
-                    (t) => t.id === 'richlink',
-                );
-                if (richlink) {
-                    await richlink.primaryAction(tab.id, tab.url);
-                }
+                await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url});
                 break;
             }
             case 'primary-action': {

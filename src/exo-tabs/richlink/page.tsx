@@ -51,7 +51,7 @@ export async function handleCopyRichLink(
     const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' \u2192 ')}` : undefined;
 
     const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
-    const opacity = isFallback ? 0.75 : 1;
+    const opacity = isFallback ? 0.9 : 1;
 
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
     const message = `Copied${formatInfo}\n${format.label}`;
