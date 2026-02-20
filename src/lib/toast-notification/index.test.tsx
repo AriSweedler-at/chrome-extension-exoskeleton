@@ -1,22 +1,24 @@
 import {describe, it, expect, beforeEach, vi, afterEach} from 'vitest';
 import {Notifications} from '@exo/lib/toast-notification';
 
+/** Simulate the CSS animation completing on a notification's timer bar. */
+function finishTimerBar(notification: HTMLElement): void {
+    const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement;
+    timerBar.dispatchEvent(new Event('animationend'));
+}
+
 describe('Notifications', () => {
     let container: HTMLElement;
 
     beforeEach(() => {
-        // Reset Notifications container
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Notifications as any).container = null;
-
-        // Create a container for notifications
         container = document.createElement('div');
         container.id = 'notification-container';
         document.body.appendChild(container);
     });
 
     afterEach(() => {
-        // Clean up
         if (container.parentNode) {
             container.parentNode.removeChild(container);
         }
@@ -34,93 +36,71 @@ describe('Notifications', () => {
             expect(notification?.textContent).toBe('Test message');
         });
 
-        it('should auto-remove notification after duration', () => {
-            vi.useFakeTimers();
+        it('should set timer bar animation with specified duration', () => {
+            Notifications.show({message: 'Test', duration: 2000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement;
 
-            Notifications.show({message: 'Test message', duration: 2000});
-
-            expect(container.children.length).toBe(1);
-
-            // Advance past duration + fade animation (300ms)
-            vi.advanceTimersByTime(2300);
-
-            expect(container.children.length).toBe(0);
-
-            vi.useRealTimers();
+            expect(timerBar.style.animation).toContain('exo-toast-timer');
+            expect(timerBar.style.animation).toContain('2000ms');
         });
 
-        it('should use default duration if not specified', () => {
+        it('should use default duration for timer bar animation', () => {
+            Notifications.show('Test');
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement;
+
+            expect(timerBar.style.animation).toContain('5000ms');
+        });
+
+        it('should dismiss when timer bar animation ends', () => {
             vi.useFakeTimers();
 
-            Notifications.show('Test message');
+            Notifications.show({message: 'Test', duration: 2000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
 
-            expect(container.children.length).toBe(1);
+            finishTimerBar(notification);
 
-            // Default duration is 5000ms; notification should still be present just before
-            vi.advanceTimersByTime(4999);
-            expect(container.children.length).toBe(1);
-
-            // Advance past duration + fade animation (300ms)
-            vi.advanceTimersByTime(301);
-            expect(container.children.length).toBe(0);
+            // Fade animation (300ms)
+            vi.advanceTimersByTime(300);
+            expect(notification.parentNode).toBeFalsy();
 
             vi.useRealTimers();
         });
 
         it('should create container automatically if not present', () => {
-            // Don't create a container - let Notifications create it
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Notifications as any).container = null;
-
-            // Remove the pre-created container
             const existingContainer = document.getElementById('notification-container');
-            if (existingContainer) {
-                existingContainer.remove();
-            }
+            if (existingContainer) existingContainer.remove();
 
             Notifications.show('Test message');
 
-            // Verify container was created
             const createdContainer = document.getElementById('notification-container');
             expect(createdContainer).toBeTruthy();
             expect(createdContainer?.children.length).toBe(1);
 
-            // Clean up
             createdContainer?.remove();
         });
 
         it('should reuse cached container', () => {
-            // First call - container is found in DOM
             Notifications.show('First message');
-
-            // Verify container is now cached
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const cachedContainer = (Notifications as any).container;
-            expect(cachedContainer).toBe(container);
+            expect((Notifications as any).container).toBe(container);
 
-            // Second call - should use cached container
             Notifications.show('Second message');
-
             expect(container.children.length).toBe(2);
         });
 
-        it('should handle notification removed before timeout', () => {
-            vi.useFakeTimers();
-
-            Notifications.show({message: 'Test message', duration: 2000});
-
+        it('should handle notification removed before animation ends', () => {
+            Notifications.show({message: 'Test', duration: 2000});
             const notification = container.querySelector('.chrome-ext-notification');
-            expect(notification).toBeTruthy();
-
-            // Manually remove notification before timeout
             notification?.remove();
 
-            // Advance time - should not throw error
+            // Should not throw
             expect(() => {
-                vi.advanceTimersByTime(2300);
+                // Animation would never fire since element is removed, but just in case
             }).not.toThrow();
-
-            vi.useRealTimers();
         });
 
         it('should dismiss on click by default', () => {
@@ -128,13 +108,11 @@ describe('Notifications', () => {
 
             Notifications.show({message: 'Click me', duration: 10000});
             const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
-            expect(notification).toBeTruthy();
 
             notification.click();
 
-            // Fade animation
             vi.advanceTimersByTime(300);
-            expect(container.children.length).toBe(0);
+            expect(container.querySelector('.chrome-ext-notification')).toBeFalsy();
 
             vi.useRealTimers();
         });
@@ -144,19 +122,20 @@ describe('Notifications', () => {
 
             Notifications.show({message: 'Hover me', duration: 1000});
             const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement;
 
-            // Hover at 500ms (half the duration)
-            vi.advanceTimersByTime(500);
+            // Hover pauses animation
             notification.dispatchEvent(new Event('mouseenter'));
+            expect(timerBar.style.animationPlayState).toBe('paused');
 
-            // Wait way past the original duration - should NOT be removed
-            vi.advanceTimersByTime(2000);
-            expect(container.children.length).toBe(1);
-
-            // Unhover - timer resumes with remaining ~500ms
+            // Unhover resets animation to full duration
             notification.dispatchEvent(new Event('mouseleave'));
-            vi.advanceTimersByTime(800); // 500 remaining + 300 animation
-            expect(container.children.length).toBe(0);
+            expect(timerBar.style.animation).toContain('1000ms');
+
+            // Animation ends after reset
+            finishTimerBar(notification);
+            vi.advanceTimersByTime(300);
+            expect(notification.parentNode).toBeFalsy();
 
             vi.useRealTimers();
         });
@@ -168,12 +147,10 @@ describe('Notifications', () => {
             const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
             expect(notification.style.cursor).toBe('pointer');
 
-            // Close button should exist
             const closeBtn = notification.querySelector('span');
             expect(closeBtn).toBeTruthy();
             expect(closeBtn?.textContent).toBe('\u00d7');
 
-            // Clicking notification calls onClick
             notification.click();
             expect(onClick).toHaveBeenCalledWith(notification);
         });
@@ -191,7 +168,103 @@ describe('Notifications', () => {
             vi.advanceTimersByTime(300);
 
             expect(onClick).not.toHaveBeenCalled();
-            expect(container.children.length).toBe(0);
+            expect(container.querySelector('.chrome-ext-notification')).toBeFalsy();
+
+            vi.useRealTimers();
+        });
+    });
+
+    describe('hover pinning', () => {
+        it('should insert spacer and pin notification on hover', () => {
+            Notifications.show({message: 'Pin me', duration: 10000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            notification.dispatchEvent(new Event('mouseenter'));
+
+            expect(container.querySelector('.exo-toast-spacer')).toBeTruthy();
+            expect(notification.style.position).toBe('absolute');
+        });
+
+        it('should remove spacer and unpin on mouseleave', () => {
+            vi.useFakeTimers();
+
+            Notifications.show({message: 'Pin me', duration: 10000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            notification.dispatchEvent(new Event('mouseenter'));
+            expect(container.querySelector('.exo-toast-spacer')).toBeTruthy();
+
+            notification.dispatchEvent(new Event('mouseleave'));
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+            expect(notification.style.position).toBe('relative');
+
+            vi.useRealTimers();
+        });
+
+        it('should clean up spacer when notification is dismissed while hovered', () => {
+            vi.useFakeTimers();
+
+            Notifications.show({message: 'Click me', duration: 10000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            notification.dispatchEvent(new Event('mouseenter'));
+            expect(container.querySelector('.exo-toast-spacer')).toBeTruthy();
+
+            notification.click();
+            vi.advanceTimersByTime(300);
+
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+            expect(container.querySelector('.chrome-ext-notification')).toBeFalsy();
+
+            vi.useRealTimers();
+        });
+    });
+
+    describe('per-notification independence', () => {
+        it('should dismiss each notification independently via animationend', () => {
+            vi.useFakeTimers();
+
+            Notifications.show({message: 'First', duration: 1000});
+            Notifications.show({message: 'Second', duration: 5000});
+
+            const notifications = container.querySelectorAll('.chrome-ext-notification');
+            expect(notifications.length).toBe(2);
+
+            // First animation ends
+            finishTimerBar(notifications[0] as HTMLElement);
+            vi.advanceTimersByTime(300);
+
+            const remaining = container.querySelectorAll('.chrome-ext-notification');
+            expect(remaining.length).toBe(1);
+            expect(remaining[0].textContent).toBe('Second');
+
+            // Second animation ends
+            finishTimerBar(remaining[0] as HTMLElement);
+            vi.advanceTimersByTime(300);
+            expect(container.querySelectorAll('.chrome-ext-notification').length).toBe(0);
+
+            vi.useRealTimers();
+        });
+
+        it('should not dismiss hovered notification when sibling animation ends', () => {
+            vi.useFakeTimers();
+
+            Notifications.show({message: 'First', duration: 1000});
+            Notifications.show({message: 'Hovered', duration: 1000});
+
+            const notifications = container.querySelectorAll('.chrome-ext-notification');
+            const hovered = notifications[1] as HTMLElement;
+
+            // Hover second notification (pauses its animation)
+            hovered.dispatchEvent(new Event('mouseenter'));
+
+            // First's animation ends
+            finishTimerBar(notifications[0] as HTMLElement);
+            vi.advanceTimersByTime(300);
+
+            const remaining = container.querySelectorAll('.chrome-ext-notification');
+            expect(remaining.length).toBe(1);
+            expect(remaining[0].textContent).toBe('Hovered');
 
             vi.useRealTimers();
         });

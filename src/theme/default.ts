@@ -72,6 +72,8 @@ export const theme = {
         containerRight: '16px',
         containerZIndex: 10000,
         containerMinWidth: '200px',
+        timerBarHeight: '4px',
+        timerBarColor: 'hsla(0, 0%, 100%, 0.45)',
     },
 
     // --- Rich link ---

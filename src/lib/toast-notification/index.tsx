@@ -22,9 +22,8 @@ export interface NotificationOptions {
 export class Notifications {
     private static container: HTMLElement | null = null;
     private static currentNotification: HTMLElement | null = null;
-    private static pendingRemoval: number | null = null;
-    private static pendingRemovalStart: number = 0;
-    private static pendingRemovalRemaining: number = 0;
+    private static keyframesInjected = false;
+    private static pinCleanups = new WeakMap<HTMLElement, () => void>();
 
     /**
      * Show a toast notification.
@@ -44,6 +43,8 @@ export class Notifications {
             detail,
             onClick,
         } = opts;
+
+        this.injectKeyframes();
 
         // Use existing container if present (for testing)
         if (!this.container) {
@@ -88,8 +89,9 @@ export class Notifications {
             box-shadow: ${theme.shadow.sm};
             line-height: ${theme.toast.lineHeight};
             transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;
-            opacity: 1;
+            opacity: ${effectiveOpacity};
             transform: translateX(0);
+            overflow: hidden;
             ${onClick ? 'cursor: pointer;' : ''}
         `;
 
@@ -128,6 +130,25 @@ export class Notifications {
             notification.appendChild(previewText);
         }
 
+        // Timer bar — CSS animation is the single source of truth for auto-dismiss
+        const timerBar = document.createElement('div');
+        timerBar.className = 'exo-toast-timer-bar';
+        timerBar.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: ${theme.toast.timerBarHeight};
+            background: ${theme.toast.timerBarColor};
+            border-radius: 0 0 ${theme.toast.borderRadius} ${theme.toast.borderRadius};
+            animation: exo-toast-timer ${duration}ms linear forwards;
+        `;
+        notification.appendChild(timerBar);
+
+        // When the timer bar animation completes, dismiss the notification
+        timerBar.addEventListener('animationend', () => {
+            this.dismiss(notification);
+        });
+
         // Close button (only when onClick is provided)
         if (onClick) {
             const closeBtn = document.createElement('span');
@@ -149,13 +170,65 @@ export class Notifications {
             });
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                cleanupPin();
                 this.dismiss(notification);
             });
             notification.appendChild(closeBtn);
         }
 
-        // Click behavior
-        notification.addEventListener('click', () => {
+        // --- Per-notification hover/pause state (closure) ---
+        let paused = false;
+        let pausedLabel: HTMLElement | null = null;
+        let spacer: HTMLElement | null = null;
+        let layoutObserver: MutationObserver | null = null;
+        let pinnedTop = 0;
+        let pinnedHeight = 0;
+
+        const cleanupPin = () => {
+            if (layoutObserver) {
+                layoutObserver.disconnect();
+                layoutObserver = null;
+            }
+            if (spacer) {
+                spacer.remove();
+                spacer = null;
+            }
+            notification.style.position = 'relative';
+            notification.style.top = '';
+            notification.style.width = '';
+        };
+        this.pinCleanups.set(notification, cleanupPin);
+
+        // Right-click pause toggle
+        notification.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            paused = !paused;
+            if (paused) {
+                timerBar.style.animationPlayState = 'paused';
+                pausedLabel = document.createElement('span');
+                pausedLabel.textContent = '\u23F8';
+                pausedLabel.style.cssText = `
+                    position: absolute;
+                    bottom: 4px;
+                    right: 8px;
+                    font-size: 10px;
+                    color: hsla(0, 0%, 100%, 0.5);
+                    pointer-events: none;
+                `;
+                notification.appendChild(pausedLabel);
+            } else {
+                timerBar.style.animationPlayState = 'running';
+                if (pausedLabel) {
+                    pausedLabel.remove();
+                    pausedLabel = null;
+                }
+            }
+        });
+
+        // Click behavior (left-click only)
+        notification.addEventListener('click', (e) => {
+            if (e.button !== 0) return;
+            cleanupPin();
             if (onClick) {
                 onClick(notification);
             } else {
@@ -163,29 +236,67 @@ export class Notifications {
             }
         });
 
-        // Hover pauses auto-dismiss and pops the notification
+        // Fully opaque background for hover state
+        const hoverBg = backgroundColor.replace(/[\d.]+\)$/, '1)');
+
+        // Hover: pin position, pause animation, pop visually
         notification.addEventListener('mouseenter', () => {
-            if (this.pendingRemoval) {
-                this.pendingRemovalRemaining -= Date.now() - this.pendingRemovalStart;
-                clearTimeout(this.pendingRemoval);
-                this.pendingRemoval = null;
+            // Pin notification to prevent layout shift from sibling removal
+            if (!spacer && this.container) {
+                pinnedTop = notification.offsetTop;
+                pinnedHeight = notification.offsetHeight;
+                const pinnedWidth = notification.offsetWidth;
+                spacer = document.createElement('div');
+                spacer.className = 'exo-toast-spacer';
+                spacer.style.cssText = `
+                    height: ${pinnedHeight}px;
+                    margin-bottom: ${theme.toast.marginBottom};
+                `;
+                notification.parentNode!.insertBefore(spacer, notification);
+                notification.style.position = 'absolute';
+                notification.style.top = `${pinnedTop}px`;
+                notification.style.width = `${pinnedWidth}px`;
+
+                layoutObserver = new MutationObserver(() => {
+                    if (!spacer) return;
+                    const spacerTop = spacer.offsetTop;
+                    if (spacerTop > pinnedTop) {
+                        pinnedTop = spacerTop;
+                        notification.style.top = `${spacerTop}px`;
+                    }
+                    spacer.style.height = `${pinnedTop + pinnedHeight - spacerTop}px`;
+                });
+                layoutObserver.observe(this.container, {childList: true});
             }
+
+            // Visual pop
             notification.style.opacity = '1';
-            notification.style.transform = 'translateX(0) scale(1.03)';
+            notification.style.background = hoverBg;
+            notification.style.transform = 'translateX(0)';
             notification.style.boxShadow = theme.shadow.overlay;
+
+            if (paused) return;
+            timerBar.style.animationPlayState = 'paused';
         });
+
         notification.addEventListener('mouseleave', () => {
-            notification.style.transform = 'translateX(0) scale(1)';
+            cleanupPin();
+
+            notification.style.opacity = String(effectiveOpacity);
+            notification.style.background = backgroundColor;
+            notification.style.transform = 'translateX(0)';
             notification.style.boxShadow = theme.shadow.sm;
-            if (this.currentNotification === notification && !this.pendingRemoval) {
-                this.startFadeOut(notification, this.pendingRemovalRemaining);
-            }
+
+            if (paused) return;
+
+            // Reset timer bar animation from the beginning
+            timerBar.style.animation = 'none';
+            void timerBar.offsetWidth;
+            timerBar.style.animation = `exo-toast-timer ${duration}ms linear forwards`;
         });
 
         this.container!.appendChild(notification);
         this.currentNotification = notification;
-
-        this.startFadeOut(notification, duration);
     }
 
     /**
@@ -205,30 +316,14 @@ export class Notifications {
         this.show({message, type, duration, ...options});
     }
 
-    private static startFadeOut(notification: HTMLElement, delay: number): void {
-        this.pendingRemovalStart = Date.now();
-        this.pendingRemovalRemaining = delay;
-        this.pendingRemoval = window.setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(20px)';
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                    if (this.currentNotification === notification) {
-                        this.currentNotification = null;
-                    }
-                }
-                this.pendingRemoval = null;
-            }, theme.toast.fadeMs);
-        }, delay);
-    }
-
     private static dismiss(notification: HTMLElement, immediate?: boolean): void {
-        if (this.pendingRemoval) {
-            clearTimeout(this.pendingRemoval);
-            this.pendingRemoval = null;
-        }
+        // Stop timer bar animation to prevent animationend from re-firing
+        const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement | null;
+        if (timerBar) timerBar.style.animation = 'none';
+
+        // Clean up pin spacer if present
+        const cleanupPin = this.pinCleanups.get(notification);
+        if (cleanupPin) cleanupPin();
 
         if (immediate) {
             if (notification.parentNode) {
@@ -251,6 +346,19 @@ export class Notifications {
                 this.currentNotification = null;
             }
         }, theme.toast.fadeMs);
+    }
+
+    private static injectKeyframes(): void {
+        if (this.keyframesInjected) return;
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes exo-toast-timer {
+                from { width: 0%; }
+                to { width: 100%; }
+            }
+        `;
+        document.head.appendChild(style);
+        this.keyframesInjected = true;
     }
 
     private static createContainer(): void {
