@@ -1,69 +1,8 @@
 import {Commands} from '@library/commands';
-import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
-import {ExtractLogCommandAction} from '../actions/extract-log-command.action';
-import {isGitHubPRChangesPage} from '../library/github-autoscroll';
-import {isOpenSearchPage} from '../tabs/opensearch.tab';
+import {TabRegistry} from '../library/tabs/tab-registry';
 
-/**
- * Command handlers for keyboard shortcuts
- */
-
-async function toggleGithubAutoscroll() {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-
-    if (tab.id) {
-        try {
-            const response = await chrome.tabs.sendMessage(tab.id, {
-                type: 'GITHUB_AUTOSCROLL_TOGGLE',
-            });
-            console.log(
-                'GitHub autoscroll toggled via keyboard shortcut, active:',
-                response.active,
-            );
-        } catch (error) {
-            console.error('Failed to toggle GitHub autoscroll:', error);
-        }
-    }
-}
-
-async function copyRichLink() {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-
-    if (tab.id && tab.url) {
-        try {
-            await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url});
-            console.log('Rich link copied via keyboard shortcut');
-        } catch (error) {
-            console.error('Failed to copy rich link:', error);
-        }
-    }
-}
-
-
-async function extractLogCommand() {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-
-    if (tab.id) {
-        try {
-            await ExtractLogCommandAction.sendToTab(tab.id, undefined as void);
-        } catch (error) {
-            console.error('Failed to extract log command:', error);
-        }
-    }
-}
-
-async function dispatchPrimaryAction() {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-    if (!tab.url) return;
-
-    if (isGitHubPRChangesPage(tab.url)) {
-        await toggleGithubAutoscroll();
-    } else if (isOpenSearchPage(tab.url)) {
-        await extractLogCommand();
-    } else {
-        await copyRichLink();
-    }
-}
+// Import tabs to trigger registration (side-effect imports)
+import '../tabs';
 
 /**
  * Initialize command handlers for keyboard shortcuts
@@ -73,12 +12,24 @@ export function initializeCommandHandlers(): void {
         console.log('Command received:', command);
 
         switch (command) {
-            case 'copy-rich-link':
-                await copyRichLink();
+            case 'copy-rich-link': {
+                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+                if (!tab.id || !tab.url) return;
+                // Rich link copy is always the richlink tab's primary action
+                const richlink = TabRegistry.getVisibleTabs(tab.url).find(
+                    (t) => t.id === 'richlink',
+                );
+                if (richlink) {
+                    await richlink.primaryAction(tab.id, tab.url);
+                }
                 break;
-            case 'primary-action':
-                await dispatchPrimaryAction();
+            }
+            case 'primary-action': {
+                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+                if (!tab.id || !tab.url) return;
+                await TabRegistry.dispatchPrimaryAction(tab.id, tab.url);
                 break;
+            }
         }
     });
 }

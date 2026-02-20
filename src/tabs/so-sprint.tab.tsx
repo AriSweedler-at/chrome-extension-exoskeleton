@@ -8,6 +8,7 @@ TabRegistry.register({
     id: 'so-sprint',
     label: 'SO SPRINT',
     component: SoSprintComponent,
+    primaryAction: async () => false, // No action yet
     getPriority: (url: string) => {
         if (url === 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6') {
             return 0;

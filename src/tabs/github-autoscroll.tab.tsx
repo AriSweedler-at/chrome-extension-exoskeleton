@@ -17,4 +17,10 @@ TabRegistry.register({
         return Number.MAX_SAFE_INTEGER;
     },
     enablementToggle: true,
+    primaryAction: async (tabId) => {
+        const response = await chrome.tabs.sendMessage(tabId, {
+            type: 'GITHUB_AUTOSCROLL_TOGGLE',
+        });
+        return !!response;
+    },
 });
