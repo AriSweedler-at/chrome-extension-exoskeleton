@@ -7,6 +7,7 @@ import {
     extractPodNames,
 } from '../library/spinnaker/actions';
 import { keybindings } from '../library/keybindings';
+import { theme } from '../theme/default';
 
 /**
  * Spinnaker tab component
@@ -76,7 +77,7 @@ export function SpinnakerContent() {
                     style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        border: '1px solid #ccc',
+                        border: `1px solid ${theme.border.light}`,
                         borderRadius: '4px',
                         cursor: 'pointer',
                         backgroundColor: 'white',
@@ -91,8 +92,8 @@ export function SpinnakerContent() {
                         style={{
                             padding: '2px 6px',
                             fontSize: '12px',
-                            backgroundColor: '#f0f0f0',
-                            border: '1px solid #ccc',
+                            backgroundColor: theme.bg.cardSubtle,
+                            border: `1px solid ${theme.border.light}`,
                             borderRadius: '3px',
                         }}
                     >
@@ -105,7 +106,7 @@ export function SpinnakerContent() {
                     style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        border: '1px solid #ccc',
+                        border: `1px solid ${theme.border.light}`,
                         borderRadius: '4px',
                         cursor: 'pointer',
                         backgroundColor: 'white',
@@ -120,8 +121,8 @@ export function SpinnakerContent() {
                         style={{
                             padding: '2px 6px',
                             fontSize: '12px',
-                            backgroundColor: '#f0f0f0',
-                            border: '1px solid #ccc',
+                            backgroundColor: theme.bg.cardSubtle,
+                            border: `1px solid ${theme.border.light}`,
                             borderRadius: '3px',
                         }}
                     >
@@ -134,7 +135,7 @@ export function SpinnakerContent() {
                     style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        border: '1px solid #ccc',
+                        border: `1px solid ${theme.border.light}`,
                         borderRadius: '4px',
                         cursor: 'pointer',
                         backgroundColor: 'white',
@@ -149,8 +150,8 @@ export function SpinnakerContent() {
                         style={{
                             padding: '2px 6px',
                             fontSize: '12px',
-                            backgroundColor: '#f0f0f0',
-                            border: '1px solid #ccc',
+                            backgroundColor: theme.bg.cardSubtle,
+                            border: `1px solid ${theme.border.light}`,
                             borderRadius: '3px',
                         }}
                     >
@@ -163,7 +164,7 @@ export function SpinnakerContent() {
                     style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        border: '1px solid #ccc',
+                        border: `1px solid ${theme.border.light}`,
                         borderRadius: '4px',
                         cursor: 'pointer',
                         backgroundColor: 'white',
@@ -178,8 +179,8 @@ export function SpinnakerContent() {
                         style={{
                             padding: '2px 6px',
                             fontSize: '12px',
-                            backgroundColor: '#f0f0f0',
-                            border: '1px solid #ccc',
+                            backgroundColor: theme.bg.cardSubtle,
+                            border: `1px solid ${theme.border.light}`,
                             borderRadius: '3px',
                         }}
                     >
@@ -192,7 +193,7 @@ export function SpinnakerContent() {
                     style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        border: '1px solid #ccc',
+                        border: `1px solid ${theme.border.light}`,
                         borderRadius: '4px',
                         cursor: 'pointer',
                         backgroundColor: 'white',
@@ -207,8 +208,8 @@ export function SpinnakerContent() {
                         style={{
                             padding: '2px 6px',
                             fontSize: '12px',
-                            backgroundColor: '#f0f0f0',
-                            border: '1px solid #ccc',
+                            backgroundColor: theme.bg.cardSubtle,
+                            border: `1px solid ${theme.border.light}`,
                             borderRadius: '3px',
                         }}
                     >

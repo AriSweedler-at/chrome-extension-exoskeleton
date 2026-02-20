@@ -1,8 +1,9 @@
 import {Action} from '@library/actions/base-action';
+import type {NotificationType} from '@library/notifications';
 
 export interface ShowToastPayload {
     message: string;
-    type: 'success' | 'error' | 'default';
+    type?: NotificationType;
     duration?: number;
     detail?: string;
 }

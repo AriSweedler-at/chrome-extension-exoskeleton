@@ -1,5 +1,5 @@
 import {Clipboard} from '@library/clipboard';
-import {Notifications} from '@library/notifications';
+import {Notifications, NotificationType} from '@library/notifications';
 import type {ExtractLogCommandResult} from '../actions/extract-log-command.action';
 
 function getFieldValue(fieldName: string): string | null {
@@ -42,21 +42,19 @@ export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult
         document.querySelector('[data-test-subj="osdDocTableDetailsParent"]') ||
         document.querySelector('[data-test-subj="documentDetailFlyOut"]');
     if (!flyout) {
-        Notifications.showRichNotification('No open log', 'error');
+        Notifications.show({message: 'No open log', type: NotificationType.Error});
         return {success: false, error: 'No open log'};
     }
 
     const cmd = buildCommand();
     if (!cmd) {
-        Notifications.showRichNotification(
-            'Missing hostname or msg fields',
-            'error',
-        );
+        Notifications.show({message: 'Missing hostname or msg fields', type: NotificationType.Error});
         return {success: false, error: 'Missing hostname or msg fields'};
     }
 
     await Clipboard.write(cmd.flat);
-    Notifications.showRichNotification('Copied log fetch command', 'success', 5000, {
+    Notifications.show({
+        message: 'Copied log fetch command',
         detail: cmd.display,
     });
     return {success: true, command: cmd.flat};

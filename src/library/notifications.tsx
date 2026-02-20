@@ -1,29 +1,46 @@
+import {theme} from '../theme/default';
+
+const DEFAULT_DURATION_MS = 5000;
+
+export enum NotificationType {
+    Success = 'success',
+    Error = 'error',
+    Default = 'default',
+}
+
+export interface NotificationOptions {
+    message: string;
+    type?: NotificationType;
+    duration?: number;
+    replace?: boolean;
+    opacity?: number;
+    preview?: string;
+    detail?: string;
+}
+
 export class Notifications {
     private static container: HTMLElement | null = null;
     private static currentNotification: HTMLElement | null = null;
     private static pendingRemoval: number | null = null;
 
     /**
-     * Show a toast notification
+     * Show a toast notification.
+     * Accepts an options object or a plain string (treated as message with defaults).
      */
-    static show(message: string, duration: number = 3000): void {
-        this.showRichNotification(message, 'default', duration);
-    }
+    static show(options: NotificationOptions | string): void {
+        const opts: NotificationOptions =
+            typeof options === 'string' ? {message: options} : options;
 
-    /**
-     * Show a rich notification with color and structure
-     */
-    static showRichNotification(
-        message: string,
-        type: 'success' | 'error' | 'default' = 'default',
-        duration: number = 3000,
-        options?: {
-            replace?: boolean;
-            opacity?: number;
-            preview?: string;
-            detail?: string;
-        },
-    ): void {
+        const {
+            message,
+            type = NotificationType.Success,
+            duration = DEFAULT_DURATION_MS,
+            replace,
+            opacity,
+            preview,
+            detail,
+        } = opts;
+
         // Use existing container if present (for testing)
         if (!this.container) {
             this.container = document.getElementById('notification-container');
@@ -33,7 +50,7 @@ export class Notifications {
         }
 
         // If replace is true, remove current notification immediately
-        if (options?.replace && this.currentNotification) {
+        if (replace && this.currentNotification) {
             // Cancel pending fade-out animation
             if (this.pendingRemoval) {
                 clearTimeout(this.pendingRemoval);
@@ -53,17 +70,20 @@ export class Notifications {
         // Determine background color based on type
         let backgroundColor: string;
         if (type === 'success') {
-            backgroundColor = 'rgba(34, 197, 94, 0.9)'; // green
+            backgroundColor = theme.toast.successBg; // green
         } else if (type === 'error') {
-            backgroundColor = 'rgba(239, 68, 68, 0.9)'; // red
+            backgroundColor = theme.toast.errorBg; // red
         } else {
-            backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            backgroundColor = theme.toast.defaultBg;
         }
 
         // Apply opacity if specified (for fallback handlers)
-        const opacity = options?.opacity ?? 1;
-        if (opacity !== 1) {
-            backgroundColor = backgroundColor.replace(/[\d.]+\)$/, `${0.8 * opacity})`);
+        const effectiveOpacity = opacity ?? 1;
+        if (effectiveOpacity !== 1) {
+            backgroundColor = backgroundColor.replace(
+                /[\d.]+\)$/,
+                `${0.8 * effectiveOpacity})`,
+            );
         }
 
         notification.style.cssText = `
@@ -73,7 +93,7 @@ export class Notifications {
             color: white;
             border-radius: 4px;
             font-size: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: ${theme.shadow.sm};
             line-height: 1.4;
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
             opacity: 1;
@@ -87,14 +107,14 @@ export class Notifications {
         notification.appendChild(mainText);
 
         // Add detail block if provided (pre-formatted)
-        if (options?.detail) {
+        if (detail) {
             const detailBlock = document.createElement('pre');
-            detailBlock.textContent = options.detail;
+            detailBlock.textContent = detail;
             detailBlock.style.cssText = `
                 font-size: 11px;
                 margin: 8px 0 0 0;
                 padding: 8px;
-                background: rgba(0, 0, 0, 0.3);
+                background: ${theme.toast.detailBg};
                 border-radius: 3px;
                 white-space: pre;
                 font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
@@ -104,9 +124,9 @@ export class Notifications {
         }
 
         // Add preview text if provided (for cycle preview)
-        if (options?.preview) {
+        if (preview) {
             const previewText = document.createElement('div');
-            previewText.textContent = options.preview;
+            previewText.textContent = preview;
             previewText.style.cssText = `
                 font-size: 11px;
                 margin-top: 4px;
@@ -134,6 +154,23 @@ export class Notifications {
                 this.pendingRemoval = null;
             }, 300);
         }, duration);
+    }
+
+    /**
+     * @deprecated Use show() with options object instead
+     */
+    static showRichNotification(
+        message: string,
+        type: NotificationType = NotificationType.Default,
+        duration: number = DEFAULT_DURATION_MS,
+        options?: {
+            replace?: boolean;
+            opacity?: number;
+            preview?: string;
+            detail?: string;
+        },
+    ): void {
+        this.show({message, type, duration, ...options});
     }
 
     private static createContainer(): void {

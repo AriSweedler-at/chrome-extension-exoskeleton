@@ -1,21 +1,16 @@
 import {useState} from 'react';
+import {Card} from './Card';
+import {theme} from '../theme/default';
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
 } from '../actions/extract-log-command.action';
-import {ShowToastAction} from '../actions/show-toast.action';
-
-const MOCK_COMMAND_DISPLAY = `grunt admin:log_fetch:fetchMatchingLogMessageFromHost
-  --hostname=ip-172-30-183-104
-  --cluster=production-use1-asyncServing-shard02-002
-  --pod=workflow-execution-service-stable-shardgroup-14-5899d6ffc4dqspw
-  --search='Post processing result for job'`;
 
 const buttonStyle = {
     width: '100%',
     padding: '12px 16px',
     fontSize: '14px',
-    border: '1px solid #ccc',
+    border: `1px solid ${theme.border.light}`,
     borderRadius: '4px',
     cursor: 'pointer',
     backgroundColor: 'white',
@@ -59,20 +54,6 @@ export function OpenSearchComponent() {
         }, 2000);
     };
 
-    const handleTestToast = async () => {
-        try {
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-            if (!tab.id) return;
-            await ShowToastAction.sendToTab(tab.id, {
-                message: 'Copied log fetch command',
-                type: 'success',
-                duration: 5000,
-                detail: MOCK_COMMAND_DISPLAY,
-            });
-        } catch (err) {
-            console.error('Test toast failed:', err);
-        }
-    };
 
     return (
         <div style={{padding: '16px'}}>
@@ -86,9 +67,9 @@ export function OpenSearchComponent() {
                         ...buttonStyle,
                         backgroundColor:
                             status === 'success'
-                                ? '#22c55e'
+                                ? theme.status.success
                                 : status === 'error'
-                                  ? '#ef4444'
+                                  ? theme.status.error
                                   : 'white',
                         color: status === 'idle' || status === 'loading' ? 'black' : 'white',
                     }}
@@ -99,26 +80,19 @@ export function OpenSearchComponent() {
                           ? 'Copy Log Fetch Command'
                           : message}
                 </button>
-
-                <button onClick={handleTestToast} style={buttonStyle}>
-                    Test Toast Notification
-                </button>
             </div>
 
-            <a
-                href="https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus/edit?tab=t.0#heading=h.hwsgb8j58zq6"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                    display: 'block',
-                    marginTop: '12px',
-                    fontSize: '12px',
-                    color: '#2563eb',
-                    textDecoration: 'underline',
-                }}
-            >
-                How to access _debug logs
-            </a>
+            <Card style={{marginTop: '12px', textAlign: 'center', fontSize: '12px'}}>
+                <span style={{color: theme.text.secondary}}>gdoc: </span>
+                <a
+                    href="https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{color: theme.text.link, textDecoration: 'none'}}
+                >
+                    How to access _debug logs
+                </a>
+            </Card>
         </div>
     );
 }

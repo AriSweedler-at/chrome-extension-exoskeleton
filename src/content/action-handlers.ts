@@ -60,7 +60,9 @@ export function initializeActionHandlers(): void {
     // Register ShowToastAction handler
     ShowToastAction.handle(async (payload: ShowToastPayload) => {
         const {Notifications} = await import('@library/notifications');
-        Notifications.showRichNotification(payload.message, payload.type, payload.duration ?? 5000, {
+        Notifications.show({
+            message: payload.message,
+            type: payload.type,
             detail: payload.detail,
         });
     });

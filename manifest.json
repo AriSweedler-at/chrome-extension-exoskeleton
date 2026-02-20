@@ -27,13 +27,6 @@
         }
     ],
     "commands": {
-        "toggle-github-autoscroll": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+T",
-                "mac": "Ctrl+Shift+T"
-            },
-            "description": "Toggle GitHub PR autoscroll"
-        },
         "copy-rich-link": {
             "suggested_key": {
                 "default": "Ctrl+Shift+C",
@@ -41,12 +34,12 @@
             },
             "description": "Copy rich link to clipboard"
         },
-        "copy-raw-url": {
+        "primary-action": {
             "suggested_key": {
-                "default": "Ctrl+Shift+K",
-                "mac": "Command+Shift+K"
+                "default": "Ctrl+Shift+X",
+                "mac": "Command+Shift+X"
             },
-            "description": "Copy raw URL to clipboard"
+            "description": "Primary action for current page"
         }
     },
     "permissions": ["activeTab", "storage", "tabs", "notifications", "scripting"],
