@@ -40,12 +40,12 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     });
 
     it('registers message listener on load', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
         expect(chrome.runtime.onMessage.addListener).toHaveBeenCalled();
     });
 
     it('responds to GITHUB_AUTOSCROLL_GET_STATUS when inactive', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
 
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
@@ -57,7 +57,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     });
 
     it('responds to GITHUB_AUTOSCROLL_GET_STATUS when active', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
 
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
@@ -72,7 +72,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     });
 
     it('starts autoscroll on GITHUB_AUTOSCROLL_TOGGLE when inactive', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
 
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
@@ -104,7 +104,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     });
 
     it('stops autoscroll on GITHUB_AUTOSCROLL_TOGGLE when active', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
 
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
@@ -121,7 +121,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
     });
 
     it('returns false for unknown message types', async () => {
-        await import('@exo/content/index');
+        await import('@exo/content');
 
         // Find the GitHub autoscroll listener (the last one registered)
         const githubListener = messageListeners[messageListeners.length - 1];
@@ -156,7 +156,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
                 callback({});
             });
 
-            await import('@exo/content/index');
+            await import('@exo/content');
 
             // Wait for auto-run (500ms delay + buffer)
             await new Promise((resolve) => setTimeout(resolve, 600));
@@ -186,7 +186,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
                 callback({'exorun-github-autoscroll': false});
             });
 
-            await import('@exo/content/index');
+            await import('@exo/content');
 
             // Trigger the load event
             const loadEvent = new Event('load');
@@ -209,7 +209,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
                 callback({'exorun-github-autoscroll': true});
             });
 
-            await import('@exo/content/index');
+            await import('@exo/content');
 
             // Trigger the load event
             const loadEvent = new Event('load');
@@ -247,7 +247,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
                 callback({});
             });
 
-            await import('@exo/content/index');
+            await import('@exo/content');
 
             // Trigger the load event
             const loadEvent = new Event('load');
