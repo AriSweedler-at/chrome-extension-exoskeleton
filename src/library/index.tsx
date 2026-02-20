@@ -7,6 +7,6 @@ export {TabEnablementSection} from '@exo/library/popup-exo-tabs/TabEnablementSec
 export {Clipboard} from '@exo/library/clipboard';
 export {Storage} from '@exo/library/storage';
 export {Notifications} from '@exo/library/toast-notification';
-export {Commands} from '@exo/library/commands';
-export {Tabs} from '@exo/library/tabs';
+export {Commands} from '@exo/library/service-worker/commands';
+export {Tabs} from '@exo/library/service-worker/tabs';
 export {isSpinnakerSearchPage} from '@exo/library/spinnaker';
