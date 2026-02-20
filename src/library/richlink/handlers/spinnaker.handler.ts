@@ -1,4 +1,4 @@
-import {Handler} from '../base';
+import {Handler} from '@exo/library/richlink/base';
 
 export class SpinnakerHandler extends Handler {
     canHandle(url: string): boolean {

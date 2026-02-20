@@ -66,6 +66,17 @@ export default [
                 {argsIgnorePattern: '^_', varsIgnorePattern: '^_'},
             ],
             'react/react-in-jsx-scope': 'off',
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            group: ['./*', '../*'],
+                            message: 'Use @exo/ alias instead of relative imports.',
+                        },
+                    ],
+                },
+            ],
         },
         settings: {
             react: {

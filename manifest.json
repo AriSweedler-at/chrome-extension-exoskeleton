@@ -17,7 +17,7 @@
         }
     },
     "background": {
-        "service_worker": "src/background/index.tsx",
+        "service_worker": "src/service-worker.tsx",
         "type": "module"
     },
     "content_scripts": [

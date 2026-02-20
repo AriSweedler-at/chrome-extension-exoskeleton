@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {Popup} from './Popup';
+import {Popup} from '@exo/popup/Popup';
 
 // Import tabs to register them
-import '../exo-tabs';
+import '@exo/exo-tabs';
 
 const root = document.getElementById('root');
 if (root) {

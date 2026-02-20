@@ -1,4 +1,4 @@
-import {Handler, LinkFormat} from './base';
+import {Handler, LinkFormat} from '@exo/library/richlink/base';
 
 export class HandlerRegistry {
     private static baseHandlers: Handler[] = [];

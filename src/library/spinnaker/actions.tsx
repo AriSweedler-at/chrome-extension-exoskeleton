@@ -15,8 +15,8 @@ import {
     isExecutionOpen,
     getActiveStageFromUrl,
     findErrorContainer,
-} from './dom-utils';
-import {extractPodNames as extractPodNamesFromHtml} from './pod-extractor';
+} from '@exo/library/spinnaker/dom-utils';
+import {extractPodNames as extractPodNamesFromHtml} from '@exo/library/spinnaker/pod-extractor';
 
 /**
  * Show a Chrome notification

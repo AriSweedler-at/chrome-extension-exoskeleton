@@ -1,7 +1,7 @@
 import {TabRegistry} from '@exo/library/popup-exo-tabs/tab-registry';
 import {RichLinkComponent} from '@exo/library/richlink/RichLinkComponent';
 // Must import handlers to trigger auto-registration
-import '../library/richlink/handlers';
+import '@exo/library/richlink/handlers';
 
 TabRegistry.register({
     id: 'richlink',
