@@ -92,6 +92,7 @@ export class Notifications {
             opacity: ${effectiveOpacity};
             transform: translateX(0);
             overflow: hidden;
+            box-sizing: border-box;
             ${onClick ? 'cursor: pointer;' : ''}
         `;
 
@@ -145,14 +146,16 @@ export class Notifications {
         notification.appendChild(timerBar);
 
         // When the timer bar animation completes, dismiss the notification
+        let dismissing = false;
         timerBar.addEventListener('animationend', () => {
+            dismissing = true;
             this.dismiss(notification);
         });
 
         // Close button (only when onClick is provided)
         if (onClick) {
             const closeBtn = document.createElement('span');
-            closeBtn.textContent = '\u00d7';
+            closeBtn.textContent = '⏸︎';
             closeBtn.style.cssText = `
                 position: absolute;
                 top: 4px;
@@ -195,7 +198,8 @@ export class Notifications {
             }
             notification.style.position = 'relative';
             notification.style.top = '';
-            notification.style.width = '';
+            notification.style.left = '';
+            notification.style.right = '';
         };
         this.pinCleanups.set(notification, cleanupPin);
 
@@ -205,6 +209,8 @@ export class Notifications {
             paused = !paused;
             if (paused) {
                 timerBar.style.animationPlayState = 'paused';
+                notification.style.opacity = '1';
+                notification.style.background = hoverBg;
                 pausedLabel = document.createElement('span');
                 pausedLabel.textContent = '\u23F8';
                 pausedLabel.style.cssText = `
@@ -212,12 +218,14 @@ export class Notifications {
                     bottom: 4px;
                     right: 8px;
                     font-size: 10px;
-                    color: hsla(0, 0%, 100%, 0.5);
+                    color: hsla(0, 0%, 100%, 1);
                     pointer-events: none;
                 `;
                 notification.appendChild(pausedLabel);
             } else {
                 timerBar.style.animationPlayState = 'running';
+                notification.style.opacity = String(effectiveOpacity);
+                notification.style.background = backgroundColor;
                 if (pausedLabel) {
                     pausedLabel.remove();
                     pausedLabel = null;
@@ -241,21 +249,25 @@ export class Notifications {
 
         // Hover: pin position, pause animation, pop visually
         notification.addEventListener('mouseenter', () => {
+            if (dismissing) return;
+
             // Pin notification to prevent layout shift from sibling removal
             if (!spacer && this.container) {
                 pinnedTop = notification.offsetTop;
                 pinnedHeight = notification.offsetHeight;
-                const pinnedWidth = notification.offsetWidth;
+                const rect = notification.getBoundingClientRect();
                 spacer = document.createElement('div');
                 spacer.className = 'exo-toast-spacer';
                 spacer.style.cssText = `
                     height: ${pinnedHeight}px;
+                    min-width: ${rect.width}px;
                     margin-bottom: ${theme.toast.marginBottom};
                 `;
                 notification.parentNode!.insertBefore(spacer, notification);
                 notification.style.position = 'absolute';
                 notification.style.top = `${pinnedTop}px`;
-                notification.style.width = `${pinnedWidth}px`;
+                notification.style.left = '0';
+                notification.style.right = '0';
 
                 layoutObserver = new MutationObserver(() => {
                     if (!spacer) return;
@@ -289,10 +301,8 @@ export class Notifications {
 
             if (paused) return;
 
-            // Reset timer bar animation from the beginning
-            timerBar.style.animation = 'none';
-            void timerBar.offsetWidth;
-            timerBar.style.animation = `exo-toast-timer ${duration}ms linear forwards`;
+            // Resume timer bar animation from where it was paused
+            timerBar.style.animationPlayState = 'running';
         });
 
         this.container!.appendChild(notification);

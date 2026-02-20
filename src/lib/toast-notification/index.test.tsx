@@ -117,7 +117,7 @@ describe('Notifications', () => {
             vi.useRealTimers();
         });
 
-        it('should pause auto-dismiss on hover', () => {
+        it('should pause auto-dismiss on hover and resume on leave', () => {
             vi.useFakeTimers();
 
             Notifications.show({message: 'Hover me', duration: 1000});
@@ -128,11 +128,11 @@ describe('Notifications', () => {
             notification.dispatchEvent(new Event('mouseenter'));
             expect(timerBar.style.animationPlayState).toBe('paused');
 
-            // Unhover resets animation to full duration
+            // Unhover resumes animation from where it was
             notification.dispatchEvent(new Event('mouseleave'));
-            expect(timerBar.style.animation).toContain('1000ms');
+            expect(timerBar.style.animationPlayState).toBe('running');
 
-            // Animation ends after reset
+            // Animation ends after resume
             finishTimerBar(notification);
             vi.advanceTimersByTime(300);
             expect(notification.parentNode).toBeFalsy();
@@ -149,7 +149,7 @@ describe('Notifications', () => {
 
             const closeBtn = notification.querySelector('span');
             expect(closeBtn).toBeTruthy();
-            expect(closeBtn?.textContent).toBe('\u00d7');
+            expect(closeBtn?.textContent).toBe('\u23F8\uFE0E');
 
             notification.click();
             expect(onClick).toHaveBeenCalledWith(notification);
