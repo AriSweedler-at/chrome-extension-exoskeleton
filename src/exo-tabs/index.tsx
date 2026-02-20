@@ -1,6 +1,2 @@
-// Auto-import all tab files
-import '@exo/exo-tabs/github-autoscroll.tab';
-import '@exo/exo-tabs/opensearch.tab';
-import '@exo/exo-tabs/so-sprint.tab';
-import '@exo/exo-tabs/spinnaker.tab';
-import '@exo/exo-tabs/richlink.tab';
+// Auto-discover and import all *.tab.tsx files (side-effect: triggers TabRegistry.register)
+import.meta.glob('./*.tab.tsx', {eager: true});
