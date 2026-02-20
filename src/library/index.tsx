@@ -1,9 +1,9 @@
 export {Action} from './actions/base-action';
 export {Component} from './components/base-component';
-export {TabRegistry} from './tabs/tab-registry';
-export type {TabRegistration} from './tabs/tab-registry';
-export {useTabEnablement} from './tabs/use-tab-enablement';
-export {TabEnablementSection} from './tabs/TabEnablementSection';
+export {TabRegistry} from './popup-exo-tabs/tab-registry';
+export type {TabRegistration} from './popup-exo-tabs/tab-registry';
+export {useTabEnablement} from './popup-exo-tabs/use-tab-enablement';
+export {TabEnablementSection} from './popup-exo-tabs/TabEnablementSection';
 export {Clipboard} from './clipboard';
 export {Storage} from './storage';
 export {Notifications} from './notifications';

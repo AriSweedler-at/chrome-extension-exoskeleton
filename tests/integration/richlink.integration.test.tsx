@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {HandlerRegistry} from '../../src/library/richlink/handlers';
+import {HandlerRegistry} from '@library/richlink/handlers';
 
 describe('Rich Link Integration', () => {
     beforeEach(() => {
@@ -17,12 +17,16 @@ describe('Rich Link Integration', () => {
 
     it('should load all handlers', () => {
         // GitHub handler matches PR URLs specifically
-        expect(HandlerRegistry.hasSpecializedHandler('https://github.com/user/repo/pull/123')).toBe(true);
+        expect(HandlerRegistry.hasSpecializedHandler('https://github.com/user/repo/pull/123')).toBe(
+            true,
+        );
         expect(HandlerRegistry.hasSpecializedHandler('https://example.com')).toBe(false);
     });
 
     it('should return formats in priority order', async () => {
-        const formats = await HandlerRegistry.getAllFormats('https://github.com/user/repo/pull/123');
+        const formats = await HandlerRegistry.getAllFormats(
+            'https://github.com/user/repo/pull/123',
+        );
         expect(formats.length).toBeGreaterThan(0);
 
         // GitHub should be first (priority 10)

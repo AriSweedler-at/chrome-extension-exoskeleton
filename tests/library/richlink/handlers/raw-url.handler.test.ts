@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {RawUrlHandler} from '../../../../src/library/richlink/handlers/raw-url.handler';
+import {RawUrlHandler} from '@library/richlink/handlers/raw-url.handler';
 
 describe('RawUrlHandler', () => {
     let handler: RawUrlHandler;

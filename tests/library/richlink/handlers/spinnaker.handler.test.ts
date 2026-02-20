@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {SpinnakerHandler} from '../../../../src/library/richlink/handlers/spinnaker.handler';
+import {SpinnakerHandler} from '@library/richlink/handlers/spinnaker.handler';
 
 describe('SpinnakerHandler', () => {
     let handler: SpinnakerHandler;
@@ -9,7 +9,9 @@ describe('SpinnakerHandler', () => {
     });
 
     it('should handle Spinnaker URLs', () => {
-        expect(handler.canHandle('https://spinnaker.company.com/applications/myapp/executions')).toBe(true);
+        expect(
+            handler.canHandle('https://spinnaker.company.com/applications/myapp/executions'),
+        ).toBe(true);
         expect(handler.canHandle('https://company-spinnaker.io/pipelines/abc123')).toBe(true);
         expect(handler.canHandle('https://spin.example.com')).toBe(false);
         expect(handler.canHandle('https://example.com')).toBe(false);
@@ -41,10 +43,14 @@ describe('SpinnakerHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>');
+        expect(html).toBe(
+            '<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)');
+        expect(text).toBe(
+            'Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)',
+        );
 
         document.body.removeChild(mockPipelineName);
     });
@@ -57,7 +63,9 @@ describe('SpinnakerHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>');
+        expect(html).toBe(
+            '<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>',
+        );
     });
 
     it('should extract application name if pipeline name not found', async () => {
@@ -73,7 +81,9 @@ describe('SpinnakerHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://spinnaker.company.com/applications/myapp">my-service</a>');
+        expect(html).toBe(
+            '<a href="https://spinnaker.company.com/applications/myapp">my-service</a>',
+        );
 
         document.body.removeChild(mockAppName);
     });
@@ -91,7 +101,9 @@ describe('SpinnakerHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>');
+        expect(html).toBe(
+            '<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>',
+        );
 
         document.body.removeChild(mockExecution);
     });
@@ -109,7 +121,9 @@ describe('SpinnakerHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>');
+        expect(html).toBe(
+            '<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>',
+        );
 
         document.body.removeChild(mockConfig);
     });

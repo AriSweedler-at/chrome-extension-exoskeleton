@@ -1,8 +1,8 @@
-import {CopyRichLinkPayload} from '../actions/copy-rich-link.action';
-import {HandlerRegistry} from '../library/richlink/handlers';
-import {Clipboard} from '../library/clipboard';
-import {Notifications} from '../library/notifications';
-import {CopyCounter} from '../library/richlink/copy-counter';
+import {CopyRichLinkPayload} from '@actions/copy-rich-link.action';
+import {HandlerRegistry} from '@library/richlink/handlers';
+import {Clipboard} from '@library/clipboard';
+import {Notifications} from '@library/notifications';
+import {CopyCounter} from '@library/richlink/copy-counter';
 
 const CACHE_KEY = 'richlink-last-copy';
 const CACHE_EXPIRY_MS = 3000;

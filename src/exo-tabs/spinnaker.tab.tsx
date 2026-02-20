@@ -1,5 +1,5 @@
-import { TabRegistry } from '../library/tabs/tab-registry';
-import { SpinnakerContent } from '../components/SpinnakerComponent';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
+import {SpinnakerContent} from '@library/spinnaker/SpinnakerComponent';
 
 const SpinnakerComponent = () => {
     return <SpinnakerContent />;

@@ -1,19 +1,22 @@
-import { describe, it, expect } from 'vitest';
-import { TabRegistry } from '../../src/library/tabs/tab-registry';
+import {describe, it, expect} from 'vitest';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
-import '../../src/tabs/spinnaker.tab';
+import '../../src/exo-tabs/spinnaker.tab';
 
 describe('Spinnaker Tab', () => {
     it('registers tab with correct id and label', () => {
-        const tabs = TabRegistry.getVisibleTabs('https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions');
+        const tabs = TabRegistry.getVisibleTabs(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
+        );
         const spinnakerTab = tabs.find((t) => t.id === 'spinnaker');
         expect(spinnakerTab).toBeDefined();
         expect(spinnakerTab?.label).toBe('Spinnaker');
     });
 
     it('shows tab on Spinnaker pages', () => {
-        const url = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions';
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions';
         const tabs = TabRegistry.getVisibleTabs(url);
         const spinnakerTab = tabs.find((t) => t.id === 'spinnaker');
         expect(spinnakerTab).toBeDefined();
@@ -21,7 +24,8 @@ describe('Spinnaker Tab', () => {
     });
 
     it('shows tab on Spinnaker execution detail pages', () => {
-        const url = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig';
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig';
         const tabs = TabRegistry.getVisibleTabs(url);
         const spinnakerTab = tabs.find((t) => t.id === 'spinnaker');
         expect(spinnakerTab).toBeDefined();

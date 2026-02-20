@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {isGitHubPRChangesPage, initializeAutoScroll} from '../../src/library/github-autoscroll';
+import {isGitHubPRChangesPage, initializeAutoScroll} from '@library/github-autoscroll';
 
 describe('isGitHubPRChangesPage', () => {
     it('returns true for valid GitHub PR changes URL', () => {
@@ -139,11 +139,11 @@ describe('initializeAutoScroll', () => {
 
             // Click the button, then update aria-pressed (simulating GitHub's async update)
             button1.click();
-            await new Promise(resolve => setTimeout(resolve, 50)); // Small delay before setting
+            await new Promise((resolve) => setTimeout(resolve, 50)); // Small delay before setting
             button1.setAttribute('aria-pressed', 'true');
 
             // Wait for the setTimeout in onButtonClick to execute (100ms total + buffer)
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Verify window.scrollBy was called (scrolling happened)
             expect(scrollSpy).toHaveBeenCalled();
@@ -162,13 +162,13 @@ describe('initializeAutoScroll', () => {
             button1.setAttribute('aria-pressed', 'true');
             button1.click();
 
-            await new Promise(resolve => setTimeout(resolve, 150));
+            await new Promise((resolve) => setTimeout(resolve, 150));
 
             // Check that flash class was added to file2
             expect(file2.classList.contains('gh-autoscroll-flash')).toBe(true);
 
             // Wait for flash to be removed (1500ms + buffer)
-            await new Promise(resolve => setTimeout(resolve, 1600));
+            await new Promise((resolve) => setTimeout(resolve, 1600));
             expect(file2.classList.contains('gh-autoscroll-flash')).toBe(false);
 
             stopFn();
@@ -179,7 +179,7 @@ describe('initializeAutoScroll', () => {
 
             // Mark all files as viewed
             const buttons = document.querySelectorAll('button[aria-pressed]');
-            buttons.forEach(btn => btn.setAttribute('aria-pressed', 'true'));
+            buttons.forEach((btn) => btn.setAttribute('aria-pressed', 'true'));
 
             const file3 = document.getElementById('file3') as HTMLElement;
             const scrollSpy = vi.fn();
@@ -188,7 +188,7 @@ describe('initializeAutoScroll', () => {
             const button3 = file3.querySelector('button') as HTMLButtonElement;
             button3.click();
 
-            await new Promise(resolve => setTimeout(resolve, 150));
+            await new Promise((resolve) => setTimeout(resolve, 150));
 
             // Should not scroll when no unviewed files remain
             expect(scrollSpy).not.toHaveBeenCalled();
@@ -213,7 +213,7 @@ describe('initializeAutoScroll', () => {
             button1.setAttribute('aria-pressed', 'true');
             button1.click();
 
-            await new Promise(resolve => setTimeout(resolve, 150));
+            await new Promise((resolve) => setTimeout(resolve, 150));
 
             // Should scroll to file3, skipping already-viewed file2
             expect(scrollSpy).toHaveBeenCalled();

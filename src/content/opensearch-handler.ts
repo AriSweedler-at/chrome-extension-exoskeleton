@@ -1,7 +1,7 @@
 import {Clipboard} from '@library/clipboard';
 import {Notifications, NotificationType} from '@library/notifications';
 import {findOpenFlyout, buildCommand} from '@library/opensearch';
-import type {ExtractLogCommandResult} from '../actions/extract-log-command.action';
+import type {ExtractLogCommandResult} from '@actions/extract-log-command.action';
 
 export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult> {
     if (!findOpenFlyout()) {
@@ -11,7 +11,10 @@ export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult
 
     const cmd = buildCommand();
     if (!cmd) {
-        Notifications.show({message: 'Missing hostname or msg fields', type: NotificationType.Error});
+        Notifications.show({
+            message: 'Missing hostname or msg fields',
+            type: NotificationType.Error,
+        });
         return {success: false, error: 'Missing hostname or msg fields'};
     }
 

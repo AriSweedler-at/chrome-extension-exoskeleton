@@ -1,9 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {HandlerRegistry} from '../library/richlink/handlers';
-import {LinkFormat} from '../library/richlink/base';
-import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
-import {CopyCounter} from '../library/richlink/copy-counter';
-import {theme} from '../theme/default';
+import {HandlerRegistry} from '@library/richlink/handlers';
+import {LinkFormat} from '@library/richlink/base';
+import {CopyRichLinkAction} from '@actions/copy-rich-link.action';
+import {CopyCounter} from '@library/richlink/copy-counter';
+import {theme} from '@theme';
 
 export const RichLinkComponent: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ export const RichLinkComponent: React.FC = () => {
             await chrome.tabs.update(tab.id, {active: true});
 
             // Small delay to ensure focus has transferred
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             await CopyRichLinkAction.sendToTab(tab.id, {
                 url: currentUrl,
@@ -140,7 +140,9 @@ export const RichLinkComponent: React.FC = () => {
                                     whiteSpace: 'nowrap',
                                 }}
                             >
-                                {format.text.length > 60 ? format.text.substring(0, 60) + '...' : format.text}
+                                {format.text.length > 60
+                                    ? format.text.substring(0, 60) + '...'
+                                    : format.text}
                             </div>
                         </button>
                     );

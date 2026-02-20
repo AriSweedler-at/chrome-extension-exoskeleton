@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {Action} from '../../src/library/actions/base-action';
+import {Action} from '@library/actions/base-action';
 import chrome from 'sinon-chrome';
 
 // Test action classes
@@ -62,11 +62,7 @@ describe('Action', () => {
             // Wait for async handler
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(handler).toHaveBeenCalledWith(
-                {value: 5},
-                {tab: {id: 1}},
-                undefined,
-            );
+            expect(handler).toHaveBeenCalledWith({value: 5}, {tab: {id: 1}}, undefined);
             expect(sendResponse).toHaveBeenCalledWith({
                 success: true,
                 data: {result: 10},
@@ -101,11 +97,7 @@ describe('Action', () => {
             const sendResponse = vi.fn();
 
             // Send message with unknown type
-            const result = listener(
-                {type: 'UNKNOWN_ACTION', payload: {}},
-                {},
-                sendResponse,
-            );
+            const result = listener({type: 'UNKNOWN_ACTION', payload: {}}, {}, sendResponse);
 
             expect(result).toBe(false);
             expect(sendResponse).not.toHaveBeenCalled();
@@ -194,9 +186,7 @@ describe('Action', () => {
             const result = await AnotherAction.sendToActiveTab('test');
 
             expect(chrome.tabs.query.calledOnce).toBe(true);
-            expect(chrome.tabs.query.calledWith({active: true, currentWindow: true})).toBe(
-                true,
-            );
+            expect(chrome.tabs.query.calledWith({active: true, currentWindow: true})).toBe(true);
             expect(chrome.tabs.sendMessage.calledWith(123)).toBe(true);
             expect(result).toBe(true);
         });
@@ -232,9 +222,7 @@ describe('Action', () => {
             chrome.runtime.lastError = {message: 'Tab not found'};
             chrome.tabs.sendMessage.yields(undefined);
 
-            await expect(AnotherAction.sendToTab(456, 'test')).rejects.toThrow(
-                'Tab not found',
-            );
+            await expect(AnotherAction.sendToTab(456, 'test')).rejects.toThrow('Tab not found');
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (chrome.runtime as any).lastError;
@@ -245,9 +233,7 @@ describe('Action', () => {
             delete (chrome.runtime as any).lastError;
             chrome.tabs.sendMessage.yields({success: false, error: 'Action failed'});
 
-            await expect(AnotherAction.sendToTab(456, 'test')).rejects.toThrow(
-                'Action failed',
-            );
+            await expect(AnotherAction.sendToTab(456, 'test')).rejects.toThrow('Action failed');
         });
     });
 });

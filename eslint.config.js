@@ -45,6 +45,9 @@ export default [
                 global: 'readonly',
                 URL: 'readonly',
                 URLSearchParams: 'readonly',
+                ClipboardEvent: 'readonly',
+                localStorage: 'readonly',
+                process: 'readonly',
             },
         },
         plugins: {

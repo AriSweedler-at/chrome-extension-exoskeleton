@@ -1,8 +1,8 @@
-import {IncrementAction} from '../actions/increment.action';
-import {GetCountAction} from '../actions/get-count.action';
-import {CopyRichLinkAction} from '../actions/copy-rich-link.action';
-import {ExtractLogCommandAction} from '../actions/extract-log-command.action';
-import {ShowToastAction, type ShowToastPayload} from '../actions/show-toast.action';
+import {IncrementAction} from '@actions/increment.action';
+import {GetCountAction} from '@actions/get-count.action';
+import {CopyRichLinkAction} from '@actions/copy-rich-link.action';
+import {ExtractLogCommandAction} from '@actions/extract-log-command.action';
+import {ShowToastAction, type ShowToastPayload} from '@actions/show-toast.action';
 import {handleCopyRichLink} from './richlink-handler';
 import {handleExtractLogCommand} from './opensearch-handler';
 
@@ -28,12 +28,14 @@ export function initializeActionHandlers(): void {
             ctx.count += payload.amount;
 
             // Broadcast count change to popup (if open)
-            chrome.runtime.sendMessage({
-                type: 'COUNT_UPDATED',
-                count: ctx.count,
-            }).catch(() => {
-                // Popup might not be open, ignore error
-            });
+            chrome.runtime
+                .sendMessage({
+                    type: 'COUNT_UPDATED',
+                    count: ctx.count,
+                })
+                .catch(() => {
+                    // Popup might not be open, ignore error
+                });
 
             return {count: ctx.count};
         },
@@ -42,11 +44,7 @@ export function initializeActionHandlers(): void {
     // Register GetCountAction handler
     GetCountAction.setContext(context);
     GetCountAction.handle(
-        async (
-            _payload: void,
-            _sender: chrome.runtime.MessageSender,
-            ctx: {count: number},
-        ) => {
+        async (_payload: void, _sender: chrome.runtime.MessageSender, ctx: {count: number}) => {
             return {count: ctx.count};
         },
     );

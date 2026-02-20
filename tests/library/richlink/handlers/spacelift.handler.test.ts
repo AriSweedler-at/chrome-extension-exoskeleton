@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {SpaceliftHandler} from '../../../../src/library/richlink/handlers/spacelift.handler';
+import {SpaceliftHandler} from '@library/richlink/handlers/spacelift.handler';
 
 describe('SpaceliftHandler', () => {
     let handler: SpaceliftHandler;
@@ -41,10 +41,14 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/stack/prod-infra">production-infrastructure</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/stack/prod-infra">production-infrastructure</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('production-infrastructure (https://company.app.spacelift.io/stack/prod-infra)');
+        expect(text).toBe(
+            'production-infrastructure (https://company.app.spacelift.io/stack/prod-infra)',
+        );
 
         document.body.removeChild(mockStackName);
     });
@@ -57,7 +61,9 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/stack/my-stack">Spacelift Stack</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/stack/my-stack">Spacelift Stack</a>',
+        );
     });
 
     it('should extract run details', async () => {
@@ -73,7 +79,9 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/stack/my-stack/run/123">Run #123: Update VPC</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/stack/my-stack/run/123">Run #123: Update VPC</a>',
+        );
 
         document.body.removeChild(mockRunName);
     });
@@ -91,7 +99,9 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/module/terraform-aws-vpc">terraform-aws-vpc</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/module/terraform-aws-vpc">terraform-aws-vpc</a>',
+        );
 
         document.body.removeChild(mockModuleName);
     });
@@ -109,7 +119,9 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/policies/approval-policy">Require Approval Policy</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/policies/approval-policy">Require Approval Policy</a>',
+        );
 
         document.body.removeChild(mockPolicyName);
     });
@@ -126,7 +138,9 @@ describe('SpaceliftHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.app.spacelift.io/dashboard">Dashboard Overview</a>');
+        expect(html).toBe(
+            '<a href="https://company.app.spacelift.io/dashboard">Dashboard Overview</a>',
+        );
 
         document.body.removeChild(mockTitle);
     });

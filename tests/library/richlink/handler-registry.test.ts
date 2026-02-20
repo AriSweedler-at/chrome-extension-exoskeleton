@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {HandlerRegistry} from '../../../src/library/richlink/handler-registry';
-import {Handler} from '../../../src/library/richlink/base';
+import {HandlerRegistry} from '@library/richlink/handler-registry';
+import {Handler} from '@library/richlink/base';
 
 class SpecializedHandler extends Handler {
     canHandle(url: string): boolean {

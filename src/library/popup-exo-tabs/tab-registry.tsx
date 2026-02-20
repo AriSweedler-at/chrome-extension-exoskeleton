@@ -1,5 +1,5 @@
 import {ComponentType} from 'react';
-import {ShowToastAction} from '../../actions/show-toast.action';
+import {ShowToastAction} from '@actions/show-toast.action';
 import {NotificationType} from '../notifications';
 
 export interface TabRegistration {
@@ -46,9 +46,7 @@ export class TabRegistry {
         await ShowToastAction.sendToTab(tabId, {
             message: 'No primary action available',
             type: NotificationType.Error,
-            detail: tried.length > 0
-                ? `Tried: ${tried.join(', ')}`
-                : 'No tabs matched this page',
+            detail: tried.length > 0 ? `Tried: ${tried.join(', ')}` : 'No tabs matched this page',
         });
     }
 

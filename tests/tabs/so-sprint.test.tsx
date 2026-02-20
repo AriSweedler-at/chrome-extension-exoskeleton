@@ -1,9 +1,9 @@
 import {describe, it, expect} from 'vitest';
 import {render, screen} from '@testing-library/react';
-import {TabRegistry} from '../../src/library/tabs/tab-registry';
+import {TabRegistry} from '@library/popup-exo-tabs/tab-registry';
 
 // Import the tab - it will auto-register
-import '../../src/tabs/so-sprint.tab';
+import '../../src/exo-tabs/so-sprint.tab';
 
 describe('SO SPRINT Tab', () => {
     const AIRTABLE_URL = 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6';

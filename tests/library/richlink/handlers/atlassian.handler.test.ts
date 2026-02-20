@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {AtlassianHandler} from '../../../../src/library/richlink/handlers/atlassian.handler';
+import {AtlassianHandler} from '@library/richlink/handlers/atlassian.handler';
 
 describe('AtlassianHandler', () => {
     let handler: AtlassianHandler;
@@ -9,7 +9,9 @@ describe('AtlassianHandler', () => {
     });
 
     it('should handle Atlassian URLs', () => {
-        expect(handler.canHandle('https://company.atlassian.net/wiki/spaces/ENG/pages/123')).toBe(true);
+        expect(handler.canHandle('https://company.atlassian.net/wiki/spaces/ENG/pages/123')).toBe(
+            true,
+        );
         expect(handler.canHandle('https://company.atlassian.net/browse/PROJ-123')).toBe(true);
         expect(handler.canHandle('https://example.com')).toBe(false);
     });
@@ -62,17 +64,24 @@ describe('AtlassianHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Engineering Guidelines</a>');
+        expect(html).toBe(
+            '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Engineering Guidelines</a>',
+        );
 
         const text = await handler.getText();
-        expect(text).toBe('Engineering Guidelines (https://company.atlassian.net/wiki/spaces/ENG/pages/123)');
+        expect(text).toBe(
+            'Engineering Guidelines (https://company.atlassian.net/wiki/spaces/ENG/pages/123)',
+        );
 
         document.body.removeChild(mockTitle);
     });
 
     it('should extract Jira issue title', async () => {
         const mockSummary = document.createElement('h1');
-        mockSummary.setAttribute('data-test-id', 'issue.views.issue-base.foundation.summary.heading');
+        mockSummary.setAttribute(
+            'data-test-id',
+            'issue.views.issue-base.foundation.summary.heading',
+        );
         mockSummary.textContent = 'Fix login bug';
         document.body.appendChild(mockSummary);
 
@@ -83,7 +92,9 @@ describe('AtlassianHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.atlassian.net/browse/PROJ-123">Fix login bug</a>');
+        expect(html).toBe(
+            '<a href="https://company.atlassian.net/browse/PROJ-123">Fix login bug</a>',
+        );
 
         const text = await handler.getText();
         expect(text).toBe('Fix login bug (https://company.atlassian.net/browse/PROJ-123)');
@@ -99,7 +110,9 @@ describe('AtlassianHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Confluence Page</a>');
+        expect(html).toBe(
+            '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Confluence Page</a>',
+        );
     });
 
     it('should handle missing Jira title', async () => {
@@ -126,7 +139,9 @@ describe('AtlassianHandler', () => {
         });
 
         const html = await handler.getHtml();
-        expect(html).toBe('<a href="https://company.atlassian.net/browse/PROJ-456">Update documentation</a>');
+        expect(html).toBe(
+            '<a href="https://company.atlassian.net/browse/PROJ-456">Update documentation</a>',
+        );
 
         document.body.removeChild(mockSummary);
     });

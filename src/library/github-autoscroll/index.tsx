@@ -1,6 +1,6 @@
 import {scrollElementCenter, scrollElementTop} from '../scroll-utils';
 import {keybindings} from '../keybindings';
-import {theme} from '../../theme/default';
+import {theme} from '@theme';
 
 /**
  * Check if URL is a GitHub PR changes page
@@ -16,7 +16,7 @@ export function isGitHubPRChangesPage(url: string): boolean {
         }
 
         // Parse pathname (ignoring query params and fragments)
-        const pathParts = urlObj.pathname.split('/').filter(part => part !== '');
+        const pathParts = urlObj.pathname.split('/').filter((part) => part !== '');
 
         // Expected format: owner/repo/pull/{number}/changes
         if (pathParts.length < 5) {
@@ -44,7 +44,7 @@ export function isGitHubPRChangesPage(url: string): boolean {
 function getFiles(): HTMLElement[] {
     // New GitHub UI: Look for DiffFileHeader-module__diff-file-header class (current 2025+ design)
     const diffFileHeaders = Array.from(
-        document.querySelectorAll('[class*="DiffFileHeader-module__diff-file-header__"]')
+        document.querySelectorAll('[class*="DiffFileHeader-module__diff-file-header__"]'),
     );
     if (diffFileHeaders.length > 0) {
         return diffFileHeaders as HTMLElement[];
@@ -56,25 +56,25 @@ function getFiles(): HTMLElement[] {
 
     if (container) {
         const diffHeaderWrappers = Array.from(
-            container.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
+            container.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]'),
         );
         if (diffHeaderWrappers.length > 0) {
             // Extract the actual file header (first child) from each wrapper
             return diffHeaderWrappers
-                .map(wrapper => wrapper.firstElementChild as HTMLElement)
-                .filter(el => el !== null);
+                .map((wrapper) => wrapper.firstElementChild as HTMLElement)
+                .filter((el) => el !== null);
         }
     }
 
     // Fallback: search globally for the diff header wrapper pattern
     const globalDiffHeaderWrappers = Array.from(
-        document.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]')
+        document.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]'),
     );
     if (globalDiffHeaderWrappers.length > 0) {
         // Extract the actual file header (first child) from each wrapper
         return globalDiffHeaderWrappers
-            .map(wrapper => wrapper.firstElementChild as HTMLElement)
-            .filter(el => el !== null);
+            .map((wrapper) => wrapper.firstElementChild as HTMLElement)
+            .filter((el) => el !== null);
     }
 
     // Final fallback selectors
@@ -90,14 +90,15 @@ function getFiles(): HTMLElement[] {
         const files = Array.from(document.querySelectorAll(selector));
         if (files.length > 0) {
             // Filter out UI control elements that aren't actual files
-            const filtered = files.filter(el => {
+            const filtered = files.filter((el) => {
                 const testId = el.getAttribute('data-testid');
                 // Exclude file tree buttons and controls
-                if (testId && (
-                    testId.includes('expand-file-tree') ||
-                    testId.includes('collapse-file-tree') ||
-                    testId.includes('file-controls-divider')
-                )) {
+                if (
+                    testId &&
+                    (testId.includes('expand-file-tree') ||
+                        testId.includes('collapse-file-tree') ||
+                        testId.includes('file-controls-divider'))
+                ) {
                     return false;
                 }
                 return true;
@@ -128,7 +129,9 @@ function isViewed(fileElement: HTMLElement): boolean {
     // Check for the CSS class pattern that indicates viewed state
     const viewedByClass =
         fileElement.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
-        fileElement.closest('div')?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
+        fileElement
+            .closest('div')
+            ?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
         fileElement.parentElement?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]');
 
     if (viewedByClass) return true;
@@ -162,13 +165,13 @@ function findNextUnviewedAfter(currentFile: HTMLElement | null): HTMLElement | n
 
     // If no current file, return first unviewed
     if (!currentFile) {
-        return files.find(file => !isViewed(file)) || null;
+        return files.find((file) => !isViewed(file)) || null;
     }
 
     // Find index of current file
     const currentIndex = files.indexOf(currentFile);
     if (currentIndex === -1) {
-        return files.find(file => !isViewed(file)) || null;
+        return files.find((file) => !isViewed(file)) || null;
     }
 
     // Find next unviewed file after current
@@ -294,7 +297,9 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
     let fileElement: HTMLElement | null = null;
 
     // Try new GitHub UI (2025+): DiffFileHeader-module__diff-file-header
-    fileElement = button.closest('[class*="DiffFileHeader-module__diff-file-header__"]') as HTMLElement;
+    fileElement = button.closest(
+        '[class*="DiffFileHeader-module__diff-file-header__"]',
+    ) as HTMLElement;
 
     // Try old GitHub UI: Diff-module__diffHeaderWrapper
     if (!fileElement) {
@@ -323,7 +328,10 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         if (!isViewed(fileElement)) {
             // File was unmarked as viewed
             if (debug) {
-                console.log('[GitHub AutoScroll] File unmarked as viewed:', getFileName(fileElement));
+                console.log(
+                    '[GitHub AutoScroll] File unmarked as viewed:',
+                    getFileName(fileElement),
+                );
             }
             return;
         }
@@ -420,7 +428,10 @@ function markCurrentFileAsViewed(debug: boolean): void {
         (button as HTMLButtonElement).click();
     } else {
         if (debug) {
-            console.log('[GitHub AutoScroll] Could not find Viewed button for:', getFileName(currentFile));
+            console.log(
+                '[GitHub AutoScroll] Could not find Viewed button for:',
+                getFileName(currentFile),
+            );
         }
     }
 }
@@ -465,7 +476,6 @@ function goToPreviousUnviewed(timers: number[], debug: boolean): void {
         }
     }
 }
-
 
 /**
  * Initialize autoscroll functionality
@@ -516,20 +526,20 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
             key: 'v',
             description: 'Mark current file as viewed',
             handler: () => markCurrentFileAsViewed(debug),
-            context: 'GitHub PR'
+            context: 'GitHub PR',
         },
         {
             key: 'n',
             description: 'Navigate to next unviewed file',
             handler: () => goToNextUnviewed(timers, debug),
-            context: 'GitHub PR'
+            context: 'GitHub PR',
         },
         {
             key: 'p',
             description: 'Navigate to previous unviewed file',
             handler: () => goToPreviousUnviewed(timers, debug),
-            context: 'GitHub PR'
-        }
+            context: 'GitHub PR',
+        },
     ]);
     keybindings.listen();
 
@@ -547,7 +557,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
     }
 
     // Scroll to first unviewed file
-    const firstUnviewed = files.find(file => !isViewed(file));
+    const firstUnviewed = files.find((file) => !isViewed(file));
     if (firstUnviewed) {
         const fileName = getFileName(firstUnviewed);
         if (debug) {
@@ -564,7 +574,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
         }
 
         // Clear all pending timers
-        timers.forEach(timerId => {
+        timers.forEach((timerId) => {
             clearTimeout(timerId);
         });
         timers.length = 0;
