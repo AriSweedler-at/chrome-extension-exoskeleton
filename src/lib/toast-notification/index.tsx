@@ -71,8 +71,8 @@ export class Notifications {
             backgroundColor = theme.toast.defaultBg;
         }
 
-        // Apply opacity if specified (for fallback handlers)
-        const effectiveOpacity = opacity ?? 1;
+        // Apply opacity if specified (for fallback handlers), default to 0.95
+        const effectiveOpacity = opacity ?? 0.95;
         if (effectiveOpacity !== 1) {
             backgroundColor = backgroundColor.replace(/[\d.]+\)$/, `${0.8 * effectiveOpacity})`);
         }
@@ -87,7 +87,7 @@ export class Notifications {
             font-size: ${theme.toast.fontSize};
             box-shadow: ${theme.shadow.sm};
             line-height: ${theme.toast.lineHeight};
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;
             opacity: 1;
             transform: translateX(0);
             ${onClick ? 'cursor: pointer;' : ''}
@@ -163,15 +163,20 @@ export class Notifications {
             }
         });
 
-        // Hover pauses auto-dismiss
+        // Hover pauses auto-dismiss and pops the notification
         notification.addEventListener('mouseenter', () => {
             if (this.pendingRemoval) {
                 this.pendingRemovalRemaining -= Date.now() - this.pendingRemovalStart;
                 clearTimeout(this.pendingRemoval);
                 this.pendingRemoval = null;
             }
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0) scale(1.03)';
+            notification.style.boxShadow = theme.shadow.overlay;
         });
         notification.addEventListener('mouseleave', () => {
+            notification.style.transform = 'translateX(0) scale(1)';
+            notification.style.boxShadow = theme.shadow.sm;
             if (this.currentNotification === notification && !this.pendingRemoval) {
                 this.startFadeOut(notification, this.pendingRemovalRemaining);
             }
