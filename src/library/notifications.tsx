@@ -1,6 +1,7 @@
 export class Notifications {
     private static container: HTMLElement | null = null;
     private static currentNotification: HTMLElement | null = null;
+    private static pendingRemoval: number | null = null;
 
     /**
      * Show a toast notification
@@ -20,6 +21,7 @@ export class Notifications {
             replace?: boolean;
             opacity?: number;
             preview?: string;
+            detail?: string;
         },
     ): void {
         // Use existing container if present (for testing)
@@ -32,6 +34,13 @@ export class Notifications {
 
         // If replace is true, remove current notification immediately
         if (options?.replace && this.currentNotification) {
+            // Cancel pending fade-out animation
+            if (this.pendingRemoval) {
+                clearTimeout(this.pendingRemoval);
+                this.pendingRemoval = null;
+            }
+
+            // Remove immediately without animation
             if (this.currentNotification.parentNode) {
                 this.currentNotification.parentNode.removeChild(this.currentNotification);
             }
@@ -66,6 +75,9 @@ export class Notifications {
             font-size: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             line-height: 1.4;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            opacity: 1;
+            transform: translateX(0);
         `;
 
         // Create main message
@@ -73,6 +85,23 @@ export class Notifications {
         mainText.textContent = message;
         mainText.style.cssText = 'font-weight: 500;';
         notification.appendChild(mainText);
+
+        // Add detail block if provided (pre-formatted)
+        if (options?.detail) {
+            const detailBlock = document.createElement('pre');
+            detailBlock.textContent = options.detail;
+            detailBlock.style.cssText = `
+                font-size: 11px;
+                margin: 8px 0 0 0;
+                padding: 8px;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 3px;
+                white-space: pre;
+                font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+                line-height: 1.5;
+            `;
+            notification.appendChild(detailBlock);
+        }
 
         // Add preview text if provided (for cycle preview)
         if (options?.preview) {
@@ -89,13 +118,21 @@ export class Notifications {
         this.container!.appendChild(notification);
         this.currentNotification = notification;
 
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-                if (this.currentNotification === notification) {
-                    this.currentNotification = null;
+        this.pendingRemoval = window.setTimeout(() => {
+            // Start fade-out animation
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(20px)';
+
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                    if (this.currentNotification === notification) {
+                        this.currentNotification = null;
+                    }
                 }
-            }
+                this.pendingRemoval = null;
+            }, 300);
         }, duration);
     }
 
@@ -108,7 +145,7 @@ export class Notifications {
             right: 16px;
             z-index: 10000;
             min-width: 200px;
-            max-width: 400px;
+            max-width: max-content;
         `;
         document.body.appendChild(this.container);
     }

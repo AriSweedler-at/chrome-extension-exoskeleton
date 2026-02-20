@@ -50,6 +50,12 @@ export const RichLinkComponent: React.FC = () => {
                 throw new Error('No active tab');
             }
 
+            // Focus the tab first so the content script can write to clipboard
+            await chrome.tabs.update(tab.id, {active: true});
+
+            // Small delay to ensure focus has transferred
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             await CopyRichLinkAction.sendToTab(tab.id, {
                 url: currentUrl,
                 formatIndex,
@@ -57,8 +63,12 @@ export const RichLinkComponent: React.FC = () => {
 
             // Reload copy count
             await loadCopyCount();
+
+            // Close the popup after successful copy
+            window.close();
         } catch (err) {
             console.error('Failed to copy format:', err);
+            setError(`Failed to copy: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
     }
 
@@ -80,9 +90,9 @@ export const RichLinkComponent: React.FC = () => {
                 {formats.map((format, index) => {
                     // Detect fallback handlers (Page Title, Raw URL)
                     const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
-                    const opacity = isFallback ? 0.5 : 1;
+                    const opacity = isFallback ? 0.75 : 1;
                     const backgroundColor = isFallback
-                        ? 'rgba(22, 101, 52, 0.4)' // Darker, paler green for fallbacks
+                        ? 'rgba(22, 163, 74, 0.5)' // Same green hue as specialized, just lighter
                         : 'rgba(22, 163, 74, 0.8)'; // Vibrant dark green for specialized
 
                     return (
@@ -101,7 +111,7 @@ export const RichLinkComponent: React.FC = () => {
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = isFallback
-                                    ? 'rgba(22, 101, 52, 0.6)'
+                                    ? 'rgba(22, 163, 74, 0.7)'
                                     : 'rgba(34, 197, 94, 0.9)';
                                 e.currentTarget.style.transform = 'translateY(-1px)';
                             }}

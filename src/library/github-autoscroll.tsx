@@ -41,6 +41,14 @@ export function isGitHubPRChangesPage(url: string): boolean {
  * Get all file elements in the PR changes view
  */
 function getFiles(): HTMLElement[] {
+    // New GitHub UI: Look for DiffFileHeader-module__diff-file-header class (current 2025+ design)
+    const diffFileHeaders = Array.from(
+        document.querySelectorAll('[class*="DiffFileHeader-module__diff-file-header__"]')
+    );
+    if (diffFileHeaders.length > 0) {
+        return diffFileHeaders as HTMLElement[];
+    }
+
     // Look for GitHub's CSS module classes with dynamic suffixes
     // Target: class starting with 'Diff-module__diffHeaderWrapper--'
     const container = document.querySelector('[data-hpc="true"] .d-flex.flex-column.gap-3');
@@ -70,7 +78,6 @@ function getFiles(): HTMLElement[] {
 
     // Final fallback selectors
     const fallbackSelectors = [
-        '[data-testid*="file"]',
         '[data-tagsearch-path]',
         '[data-path]',
         '.file-header',
@@ -81,7 +88,22 @@ function getFiles(): HTMLElement[] {
     for (const selector of fallbackSelectors) {
         const files = Array.from(document.querySelectorAll(selector));
         if (files.length > 0) {
-            return files as HTMLElement[];
+            // Filter out UI control elements that aren't actual files
+            const filtered = files.filter(el => {
+                const testId = el.getAttribute('data-testid');
+                // Exclude file tree buttons and controls
+                if (testId && (
+                    testId.includes('expand-file-tree') ||
+                    testId.includes('collapse-file-tree') ||
+                    testId.includes('file-controls-divider')
+                )) {
+                    return false;
+                }
+                return true;
+            });
+            if (filtered.length > 0) {
+                return filtered as HTMLElement[];
+            }
         }
     }
 
@@ -267,15 +289,26 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         return;
     }
 
-    // Find the wrapper first, then get its first child (the actual file header)
-    const wrapper = button.closest('[class*="Diff-module__diffHeaderWrapper--"]');
-    const fileElement = wrapper
-        ? (wrapper.firstElementChild as HTMLElement)
-        : (button.closest(
-              '[data-tagsearch-path], [data-path], .file-header, .Box-row, .file, .js-file',
-          ) as HTMLElement);
+    // Find the file element - try new GitHub UI first, then fall back to old structure
+    let fileElement: HTMLElement | null = null;
+
+    // Try new GitHub UI (2025+): DiffFileHeader-module__diff-file-header
+    fileElement = button.closest('[class*="DiffFileHeader-module__diff-file-header__"]') as HTMLElement;
+
+    // Try old GitHub UI: Diff-module__diffHeaderWrapper
+    if (!fileElement) {
+        const wrapper = button.closest('[class*="Diff-module__diffHeaderWrapper--"]');
+        fileElement = wrapper
+            ? (wrapper.firstElementChild as HTMLElement)
+            : (button.closest(
+                  '[data-tagsearch-path], [data-path], .file-header, .Box-row, .file, .js-file',
+              ) as HTMLElement);
+    }
 
     if (!fileElement) {
+        if (debug) {
+            console.log('[GitHub AutoScroll] Could not find file element for button');
+        }
         return;
     }
 
