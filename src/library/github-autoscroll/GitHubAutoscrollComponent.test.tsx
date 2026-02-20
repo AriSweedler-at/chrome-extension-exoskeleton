@@ -16,7 +16,7 @@ describe('GitHubAutoscrollContent', () => {
             },
             storage: {
                 local: {
-                    get: vi.fn((key, callback) => {
+                    get: vi.fn((_key, callback) => {
                         // Default: return undefined (which means "use default value")
                         callback({});
                     }),

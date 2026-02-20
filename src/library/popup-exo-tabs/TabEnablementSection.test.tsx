@@ -8,7 +8,7 @@ describe('TabEnablementSection', () => {
         vi.stubGlobal('chrome', {
             storage: {
                 local: {
-                    get: vi.fn((key, callback) => {
+                    get: vi.fn((_key, callback) => {
                         callback({});
                     }),
                     set: vi.fn((_, callback) => {
@@ -32,7 +32,7 @@ describe('TabEnablementSection', () => {
     });
 
     it('renders checkbox with disabled label when storage is false', async () => {
-        chrome.storage.local.get = vi.fn((key, callback) => {
+        chrome.storage.local.get = vi.fn((_key, callback) => {
             callback({'exorun-test-tab': false});
         });
 

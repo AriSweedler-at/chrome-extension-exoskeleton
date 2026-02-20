@@ -7,7 +7,7 @@ describe('useTabEnablement', () => {
         vi.stubGlobal('chrome', {
             storage: {
                 local: {
-                    get: vi.fn((key, callback) => {
+                    get: vi.fn((_key, callback) => {
                         callback({});
                     }),
                     set: vi.fn((_, callback) => {
@@ -31,7 +31,7 @@ describe('useTabEnablement', () => {
     });
 
     it('loads enabled state from storage', async () => {
-        chrome.storage.local.get = vi.fn((key, callback) => {
+        chrome.storage.local.get = vi.fn((_key, callback) => {
             callback({'exorun-test-tab': false});
         });
 

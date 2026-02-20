@@ -16,7 +16,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             },
             storage: {
                 local: {
-                    get: vi.fn((key, callback) => {
+                    get: vi.fn((_key, callback) => {
                         callback({});
                     }),
                 },
@@ -152,7 +152,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             `;
 
             // Mock storage to return undefined (default behavior)
-            chrome.storage.local.get = vi.fn((key, callback) => {
+            chrome.storage.local.get = vi.fn((_key, callback) => {
                 callback({});
             });
 
@@ -182,7 +182,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             `;
 
             // Mock storage to return false
-            chrome.storage.local.get = vi.fn((key, callback) => {
+            chrome.storage.local.get = vi.fn((_key, callback) => {
                 callback({'exorun-github-autoscroll': false});
             });
 
@@ -205,7 +205,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             });
 
             // Mock storage to return true (auto-run enabled)
-            chrome.storage.local.get = vi.fn((key, callback) => {
+            chrome.storage.local.get = vi.fn((_key, callback) => {
                 callback({'exorun-github-autoscroll': true});
             });
 
@@ -243,7 +243,7 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             (window as any).__ghAutoScrollStop = existingStopFn;
 
             // Mock storage to return undefined (default behavior)
-            chrome.storage.local.get = vi.fn((key, callback) => {
+            chrome.storage.local.get = vi.fn((_key, callback) => {
                 callback({});
             });
 
