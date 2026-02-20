@@ -10,7 +10,7 @@ import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import * as podExtractor from '@exo/exo-tabs/spinnaker/pod-extractor';
 
 // Mock chrome.notifications and runtime APIs
-(global as Record<string, unknown>).chrome = {
+(globalThis as Record<string, unknown>).chrome = {
     notifications: {
         create: vi.fn((_id: string, _options: unknown, callback?: (id: string) => void) => {
             if (callback) callback('notification-id');

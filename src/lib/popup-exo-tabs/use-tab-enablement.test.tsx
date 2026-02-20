@@ -31,9 +31,10 @@ describe('useTabEnablement', () => {
     });
 
     it('loads enabled state from storage', async () => {
-        chrome.storage.local.get = vi.fn((_key, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        chrome.storage.local.get = vi.fn((_key: any, callback: any) => {
             callback({'exorun-test-tab': false});
-        });
+        }) as unknown as typeof chrome.storage.local.get;
 
         const {result} = renderHook(() => useTabEnablement('test-tab'));
 

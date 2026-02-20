@@ -97,7 +97,6 @@ describe('handleExtractLogCommand', () => {
         expect(Notifications.show).toHaveBeenCalledWith(
             expect.objectContaining({
                 message: 'Copied log fetch command',
-                detail: expect.stringContaining('--hostname='),
             }),
         );
     });

@@ -49,10 +49,11 @@ export const theme = {
 
     // --- Notification toast ---
     toast: {
-        successBg: 'hsla(142, 71%, 45%, 0.9)',
-        errorBg: 'hsla(0, 84%, 60%, 0.9)',
-        defaultBg: 'hsla(0, 0%, 0%, 0.8)',
-        detailBg: 'hsla(0, 0%, 0%, 0.3)',
+        bg: {
+            success: 'hsla(142, 71%, 45%, 0.9)',
+            error: 'hsla(0, 84%, 60%, 0.9)',
+            default: 'hsla(0, 0%, 0%, 0.8)',
+        },
         closeBtnDefault: 'hsla(0, 0%, 100%, 0.4)',
         closeBtnHover: 'hsla(0, 0%, 100%, 1)',
         padding: '12px 16px',
@@ -61,12 +62,17 @@ export const theme = {
         fontSize: '14px',
         lineHeight: '1.4',
         fadeMs: 300,
-        detailFontSize: '11px',
-        detailPadding: '8px',
-        detailBorderRadius: '3px',
-        detailFontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
-        previewFontSize: '11px',
-        previewOpacity: '0.7',
+        detail: {
+            background: 'hsla(0, 0%, 0%, 0.3)',
+            fontSize: '11px',
+            padding: '8px',
+            borderRadius: '3px',
+            fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
+        },
+        preview: {
+            fontSize: '11px',
+            opacity: '0.7',
+        },
         closeBtnFontSize: '16px',
         containerTop: '16px',
         containerRight: '16px',

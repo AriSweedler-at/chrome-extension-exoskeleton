@@ -1,3 +1,5 @@
+import type {ReactNode} from 'react';
+import {createRoot, type Root} from 'react-dom/client';
 import {theme} from '@exo/theme/default';
 
 const DEFAULT_DURATION_MS = 5000;
@@ -14,9 +16,113 @@ export interface NotificationOptions {
     duration?: number;
     replace?: boolean;
     opacity?: number;
-    preview?: string;
-    detail?: string;
+    children?: ReactNode;
     onClick?: (notification: HTMLElement) => void;
+}
+
+/**
+ * Create a layout pin for a notification element.
+ * Prevents layout shift when sibling notifications are removed by pinning
+ * the notification in place and inserting a spacer element.
+ */
+function createLayoutPin(notification: HTMLElement, container: HTMLElement) {
+    let spacer: HTMLElement | null = null;
+    let layoutObserver: MutationObserver | null = null;
+    let pinnedTop = 0;
+    let pinnedHeight = 0;
+
+    const cleanup = () => {
+        if (layoutObserver) {
+            layoutObserver.disconnect();
+            layoutObserver = null;
+        }
+        if (spacer) {
+            spacer.remove();
+            spacer = null;
+        }
+        notification.style.position = 'relative';
+        notification.style.top = '';
+        notification.style.left = '';
+        notification.style.right = '';
+    };
+
+    const pin = () => {
+        if (spacer) return;
+
+        pinnedTop = notification.offsetTop;
+        pinnedHeight = notification.offsetHeight;
+        const rect = notification.getBoundingClientRect();
+
+        spacer = document.createElement('div');
+        spacer.className = 'exo-toast-spacer';
+        spacer.style.cssText = `
+            height: ${pinnedHeight}px;
+            min-width: ${rect.width}px;
+            margin-bottom: ${theme.toast.marginBottom};
+        `;
+        notification.parentNode!.insertBefore(spacer, notification);
+        notification.style.position = 'absolute';
+        notification.style.top = `${pinnedTop}px`;
+        notification.style.left = '0';
+        notification.style.right = '0';
+
+        layoutObserver = new MutationObserver(() => {
+            if (!spacer) return;
+            const spacerTop = spacer.offsetTop;
+            if (spacerTop > pinnedTop) {
+                pinnedTop = spacerTop;
+                notification.style.top = `${spacerTop}px`;
+            }
+            spacer.style.height = `${pinnedTop + pinnedHeight - spacerTop}px`;
+        });
+        layoutObserver.observe(container, {childList: true});
+    };
+
+    return {pin, cleanup};
+}
+
+/**
+ * Attach a right-click pause toggle to a notification.
+ * Right-clicking pauses/resumes the timer bar animation and shows a pause indicator.
+ */
+function createPauseToggle(
+    notification: HTMLElement,
+    timerBar: HTMLElement,
+    colors: {base: string; hover: string; opacity: number},
+) {
+    let paused = false;
+    let label: HTMLElement | null = null;
+
+    notification.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        paused = !paused;
+        if (paused) {
+            timerBar.style.animationPlayState = 'paused';
+            notification.style.opacity = '1';
+            notification.style.background = colors.hover;
+            label = document.createElement('span');
+            label.textContent = '\u23F8';
+            label.style.cssText = `
+                position: absolute;
+                bottom: 4px;
+                right: 8px;
+                font-size: 10px;
+                color: hsla(0, 0%, 100%, 1);
+                pointer-events: none;
+            `;
+            notification.appendChild(label);
+        } else {
+            timerBar.style.animationPlayState = 'running';
+            notification.style.opacity = String(colors.opacity);
+            notification.style.background = colors.base;
+            if (label) {
+                label.remove();
+                label = null;
+            }
+        }
+    });
+
+    return {isPaused: () => paused};
 }
 
 export class Notifications {
@@ -24,25 +130,21 @@ export class Notifications {
     private static currentNotification: HTMLElement | null = null;
     private static keyframesInjected = false;
     private static pinCleanups = new WeakMap<HTMLElement, () => void>();
+    private static reactRoots = new WeakMap<HTMLElement, Root>();
 
     /**
      * Show a toast notification.
-     * Accepts an options object or a plain string (treated as message with defaults).
      */
-    static show(options: NotificationOptions | string): void {
-        const opts: NotificationOptions =
-            typeof options === 'string' ? {message: options} : options;
-
+    static show(options: NotificationOptions): void {
         const {
             message,
             type = NotificationType.Success,
             duration = DEFAULT_DURATION_MS,
             replace,
-            opacity,
-            preview,
-            detail,
+            opacity = 0.95,
+            children,
             onClick,
-        } = opts;
+        } = options;
 
         this.injectKeyframes();
 
@@ -62,268 +164,42 @@ export class Notifications {
         const notification = document.createElement('div');
         notification.className = 'chrome-ext-notification';
 
-        // Determine background color based on type
-        let backgroundColor: string;
-        if (type === 'success') {
-            backgroundColor = theme.toast.successBg;
-        } else if (type === 'error') {
-            backgroundColor = theme.toast.errorBg;
-        } else {
-            backgroundColor = theme.toast.defaultBg;
-        }
+        const {cssText, backgroundColor} = this.buildNotificationStyle(type, opacity);
+        notification.style.cssText = cssText;
 
-        // Apply opacity if specified (for fallback handlers), default to 0.95
-        const effectiveOpacity = opacity ?? 0.95;
-        if (effectiveOpacity !== 1) {
-            backgroundColor = backgroundColor.replace(/[\d.]+\)$/, `${0.8 * effectiveOpacity})`);
-        }
+        notification.appendChild(this.createMessageElement(message));
 
-        notification.style.cssText = `
-            position: relative;
-            padding: ${theme.toast.padding};
-            margin-bottom: ${theme.toast.marginBottom};
-            background: ${backgroundColor};
-            color: ${theme.text.white};
-            border-radius: ${theme.toast.borderRadius};
-            font-size: ${theme.toast.fontSize};
-            box-shadow: ${theme.shadow.sm};
-            line-height: ${theme.toast.lineHeight};
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;
-            opacity: ${effectiveOpacity};
-            transform: translateX(0);
-            overflow: hidden;
-            box-sizing: border-box;
-            ${onClick ? 'cursor: pointer;' : ''}
-        `;
-
-        // Create main message
-        const mainText = document.createElement('div');
-        mainText.textContent = message;
-        mainText.style.cssText = 'font-weight: 500;';
-        notification.appendChild(mainText);
-
-        // Add detail block if provided (pre-formatted)
-        if (detail) {
-            const detailBlock = document.createElement('pre');
-            detailBlock.textContent = detail;
-            detailBlock.style.cssText = `
-                font-size: ${theme.toast.detailFontSize};
-                margin: 8px 0 0 0;
-                padding: ${theme.toast.detailPadding};
-                background: ${theme.toast.detailBg};
-                border-radius: ${theme.toast.detailBorderRadius};
-                white-space: pre;
-                font-family: ${theme.toast.detailFontFamily};
-                line-height: 1.5;
-            `;
-            notification.appendChild(detailBlock);
-        }
-
-        // Add preview text if provided (for cycle preview)
-        if (preview) {
-            const previewText = document.createElement('div');
-            previewText.textContent = preview;
-            previewText.style.cssText = `
-                font-size: ${theme.toast.previewFontSize};
-                margin-top: 4px;
-                opacity: ${theme.toast.previewOpacity};
-            `;
-            notification.appendChild(previewText);
+        if (children) {
+            this.renderChildren(notification, children);
         }
 
         // Timer bar — CSS animation is the single source of truth for auto-dismiss
-        const timerBar = document.createElement('div');
-        timerBar.className = 'exo-toast-timer-bar';
-        timerBar.style.cssText = `
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: ${theme.toast.timerBarHeight};
-            background: ${theme.toast.timerBarColor};
-            border-radius: 0 0 ${theme.toast.borderRadius} ${theme.toast.borderRadius};
-            animation: exo-toast-timer ${duration}ms linear forwards;
-        `;
+        const timerBar = this.createTimerBar(duration);
         notification.appendChild(timerBar);
 
-        // When the timer bar animation completes, dismiss the notification
-        let dismissing = false;
-        timerBar.addEventListener('animationend', () => {
-            dismissing = true;
-            this.dismiss(notification);
-        });
+        const {isDismissing} = this.attachAutoDismiss(notification, timerBar);
 
-        // Close button (only when onClick is provided)
-        if (onClick) {
-            const closeBtn = document.createElement('span');
-            closeBtn.textContent = '⏸︎';
-            closeBtn.style.cssText = `
-                position: absolute;
-                top: 4px;
-                right: 8px;
-                font-size: ${theme.toast.closeBtnFontSize};
-                color: ${theme.toast.closeBtnDefault};
-                cursor: pointer;
-                line-height: 1;
-            `;
-            closeBtn.addEventListener('mouseenter', () => {
-                closeBtn.style.color = theme.toast.closeBtnHover;
-            });
-            closeBtn.addEventListener('mouseleave', () => {
-                closeBtn.style.color = theme.toast.closeBtnDefault;
-            });
-            closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                cleanupPin();
-                this.dismiss(notification);
-            });
-            notification.appendChild(closeBtn);
-        }
-
-        // --- Per-notification hover/pause state (closure) ---
-        let paused = false;
-        let pausedLabel: HTMLElement | null = null;
-        let spacer: HTMLElement | null = null;
-        let layoutObserver: MutationObserver | null = null;
-        let pinnedTop = 0;
-        let pinnedHeight = 0;
-
-        const cleanupPin = () => {
-            if (layoutObserver) {
-                layoutObserver.disconnect();
-                layoutObserver = null;
-            }
-            if (spacer) {
-                spacer.remove();
-                spacer = null;
-            }
-            notification.style.position = 'relative';
-            notification.style.top = '';
-            notification.style.left = '';
-            notification.style.right = '';
-        };
+        const {pin, cleanup: cleanupPin} = createLayoutPin(notification, this.container!);
         this.pinCleanups.set(notification, cleanupPin);
 
-        // Right-click pause toggle
-        notification.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            paused = !paused;
-            if (paused) {
-                timerBar.style.animationPlayState = 'paused';
-                notification.style.opacity = '1';
-                notification.style.background = hoverBg;
-                pausedLabel = document.createElement('span');
-                pausedLabel.textContent = '\u23F8';
-                pausedLabel.style.cssText = `
-                    position: absolute;
-                    bottom: 4px;
-                    right: 8px;
-                    font-size: 10px;
-                    color: hsla(0, 0%, 100%, 1);
-                    pointer-events: none;
-                `;
-                notification.appendChild(pausedLabel);
-            } else {
-                timerBar.style.animationPlayState = 'running';
-                notification.style.opacity = String(effectiveOpacity);
-                notification.style.background = backgroundColor;
-                if (pausedLabel) {
-                    pausedLabel.remove();
-                    pausedLabel = null;
-                }
-            }
-        });
-
-        // Click behavior (left-click only)
-        notification.addEventListener('click', (e) => {
-            if (e.button !== 0) return;
-            cleanupPin();
-            if (onClick) {
-                onClick(notification);
-            } else {
-                this.dismiss(notification);
-            }
-        });
-
-        // Fully opaque background for hover state
         const hoverBg = backgroundColor.replace(/[\d.]+\)$/, '1)');
-
-        // Hover: pin position, pause animation, pop visually
-        notification.addEventListener('mouseenter', () => {
-            if (dismissing) return;
-
-            // Pin notification to prevent layout shift from sibling removal
-            if (!spacer && this.container) {
-                pinnedTop = notification.offsetTop;
-                pinnedHeight = notification.offsetHeight;
-                const rect = notification.getBoundingClientRect();
-                spacer = document.createElement('div');
-                spacer.className = 'exo-toast-spacer';
-                spacer.style.cssText = `
-                    height: ${pinnedHeight}px;
-                    min-width: ${rect.width}px;
-                    margin-bottom: ${theme.toast.marginBottom};
-                `;
-                notification.parentNode!.insertBefore(spacer, notification);
-                notification.style.position = 'absolute';
-                notification.style.top = `${pinnedTop}px`;
-                notification.style.left = '0';
-                notification.style.right = '0';
-
-                layoutObserver = new MutationObserver(() => {
-                    if (!spacer) return;
-                    const spacerTop = spacer.offsetTop;
-                    if (spacerTop > pinnedTop) {
-                        pinnedTop = spacerTop;
-                        notification.style.top = `${spacerTop}px`;
-                    }
-                    spacer.style.height = `${pinnedTop + pinnedHeight - spacerTop}px`;
-                });
-                layoutObserver.observe(this.container, {childList: true});
-            }
-
-            // Visual pop
-            notification.style.opacity = '1';
-            notification.style.background = hoverBg;
-            notification.style.transform = 'translateX(0)';
-            notification.style.boxShadow = theme.shadow.overlay;
-
-            if (paused) return;
-            timerBar.style.animationPlayState = 'paused';
+        const {isPaused} = createPauseToggle(notification, timerBar, {
+            base: backgroundColor,
+            hover: hoverBg,
+            opacity,
         });
 
-        notification.addEventListener('mouseleave', () => {
-            cleanupPin();
-
-            notification.style.opacity = String(effectiveOpacity);
-            notification.style.background = backgroundColor;
-            notification.style.transform = 'translateX(0)';
-            notification.style.boxShadow = theme.shadow.sm;
-
-            if (paused) return;
-
-            // Resume timer bar animation from where it was paused
-            timerBar.style.animationPlayState = 'running';
+        this.attachClickHandler(notification, cleanupPin, onClick);
+        this.attachHoverHandlers(notification, timerBar, {
+            pin,
+            cleanupPin,
+            isPaused,
+            isDismissing,
+            colors: {base: backgroundColor, hover: hoverBg, opacity},
         });
 
         this.container!.appendChild(notification);
         this.currentNotification = notification;
-    }
-
-    /**
-     * @deprecated Use show() with options object instead
-     */
-    static showRichNotification(
-        message: string,
-        type: NotificationType = NotificationType.Default,
-        duration: number = DEFAULT_DURATION_MS,
-        options?: {
-            replace?: boolean;
-            opacity?: number;
-            preview?: string;
-            detail?: string;
-        },
-    ): void {
-        this.show({message, type, duration, ...options});
     }
 
     private static dismiss(notification: HTMLElement, immediate?: boolean): void {
@@ -334,6 +210,10 @@ export class Notifications {
         // Clean up pin spacer if present
         const cleanupPin = this.pinCleanups.get(notification);
         if (cleanupPin) cleanupPin();
+
+        // Clean up React root if present
+        const root = this.reactRoots.get(notification);
+        if (root) root.unmount();
 
         if (immediate) {
             if (notification.parentNode) {
@@ -356,6 +236,165 @@ export class Notifications {
                 this.currentNotification = null;
             }
         }, theme.toast.fadeMs);
+    }
+
+    private static attachClickHandler(
+        notification: HTMLElement,
+        cleanupPin: () => void,
+        onClick?: (notification: HTMLElement) => void,
+    ): void {
+        if (onClick) {
+            notification.appendChild(this.createCloseButton(notification, cleanupPin));
+        }
+        notification.addEventListener('click', (e) => {
+            if (e.button !== 0) return;
+            cleanupPin();
+            if (onClick) {
+                onClick(notification);
+            } else {
+                this.dismiss(notification);
+            }
+        });
+    }
+
+    private static attachHoverHandlers(
+        notification: HTMLElement,
+        timerBar: HTMLElement,
+        opts: {
+            pin: () => void;
+            cleanupPin: () => void;
+            isPaused: () => boolean;
+            isDismissing: () => boolean;
+            colors: {base: string; hover: string; opacity: number};
+        },
+    ): void {
+        const {pin, cleanupPin, isPaused, isDismissing, colors} = opts;
+
+        notification.addEventListener('mouseenter', () => {
+            if (isDismissing()) return;
+            pin();
+
+            notification.style.opacity = '1';
+            notification.style.background = colors.hover;
+            notification.style.transform = 'translateX(0)';
+            notification.style.boxShadow = theme.shadow.overlay;
+
+            if (isPaused()) return;
+            timerBar.style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            cleanupPin();
+
+            notification.style.opacity = String(colors.opacity);
+            notification.style.background = colors.base;
+            notification.style.transform = 'translateX(0)';
+            notification.style.boxShadow = theme.shadow.sm;
+
+            if (isPaused()) return;
+            timerBar.style.animationPlayState = 'running';
+        });
+    }
+
+    private static buildNotificationStyle(
+        type: NotificationType,
+        opacity: number,
+    ): {cssText: string; backgroundColor: string} {
+        let backgroundColor = theme.toast.bg[type] as string;
+        if (opacity !== 1) {
+            backgroundColor = backgroundColor.replace(/[\d.]+\)$/, `${0.8 * opacity})`);
+        }
+        return {
+            backgroundColor,
+            cssText: `
+                position: relative;
+                padding: ${theme.toast.padding};
+                margin-bottom: ${theme.toast.marginBottom};
+                background: ${backgroundColor};
+                color: ${theme.text.white};
+                border-radius: ${theme.toast.borderRadius};
+                font-size: ${theme.toast.fontSize};
+                box-shadow: ${theme.shadow.sm};
+                line-height: ${theme.toast.lineHeight};
+                transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;
+                opacity: ${opacity};
+                transform: translateX(0);
+                overflow: hidden;
+                box-sizing: border-box;
+                cursor: pointer;
+            `,
+        };
+    }
+
+    private static attachAutoDismiss(
+        notification: HTMLElement,
+        timerBar: HTMLElement,
+    ): {isDismissing: () => boolean} {
+        let dismissing = false;
+        timerBar.addEventListener('animationend', () => {
+            dismissing = true;
+            this.dismiss(notification);
+        });
+        return {isDismissing: () => dismissing};
+    }
+
+    private static renderChildren(notification: HTMLElement, children: ReactNode): void {
+        const container = document.createElement('div');
+        notification.appendChild(container);
+        const root = createRoot(container);
+        root.render(children);
+        this.reactRoots.set(notification, root);
+    }
+
+    private static createMessageElement(message: string): HTMLElement {
+        const el = document.createElement('div');
+        el.textContent = message;
+        el.style.cssText = 'font-weight: 500;';
+        return el;
+    }
+
+    private static createTimerBar(duration: number): HTMLElement {
+        const timerBar = document.createElement('div');
+        timerBar.className = 'exo-toast-timer-bar';
+        timerBar.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: ${theme.toast.timerBarHeight};
+            background: ${theme.toast.timerBarColor};
+            border-radius: 0 0 ${theme.toast.borderRadius} ${theme.toast.borderRadius};
+            animation: exo-toast-timer ${duration}ms linear forwards;
+        `;
+        return timerBar;
+    }
+
+    private static createCloseButton(
+        notification: HTMLElement,
+        cleanupPin: () => void,
+    ): HTMLElement {
+        const closeBtn = document.createElement('span');
+        closeBtn.textContent = '\u23F8\uFE0E';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: ${theme.toast.closeBtnFontSize};
+            color: ${theme.toast.closeBtnDefault};
+            cursor: pointer;
+            line-height: 1;
+        `;
+        closeBtn.addEventListener('mouseenter', () => {
+            closeBtn.style.color = theme.toast.closeBtnHover;
+        });
+        closeBtn.addEventListener('mouseleave', () => {
+            closeBtn.style.color = theme.toast.closeBtnDefault;
+        });
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cleanupPin();
+            this.dismiss(notification);
+        });
+        return closeBtn;
     }
 
     private static injectKeyframes(): void {

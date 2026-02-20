@@ -29,7 +29,7 @@ describe('Notifications', () => {
 
     describe('show', () => {
         it('should create a notification element', () => {
-            Notifications.show('Test message');
+            Notifications.show({message: 'Test message'});
 
             const notification = container.querySelector('.chrome-ext-notification');
             expect(notification).toBeTruthy();
@@ -46,7 +46,7 @@ describe('Notifications', () => {
         });
 
         it('should use default duration for timer bar animation', () => {
-            Notifications.show('Test');
+            Notifications.show({message: 'Test'});
             const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
             const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement;
 
@@ -74,7 +74,7 @@ describe('Notifications', () => {
             const existingContainer = document.getElementById('notification-container');
             if (existingContainer) existingContainer.remove();
 
-            Notifications.show('Test message');
+            Notifications.show({message: 'Test message'});
 
             const createdContainer = document.getElementById('notification-container');
             expect(createdContainer).toBeTruthy();
@@ -84,11 +84,11 @@ describe('Notifications', () => {
         });
 
         it('should reuse cached container', () => {
-            Notifications.show('First message');
+            Notifications.show({message: 'First message'});
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             expect((Notifications as any).container).toBe(container);
 
-            Notifications.show('Second message');
+            Notifications.show({message: 'Second message'});
             expect(container.children.length).toBe(2);
         });
 
