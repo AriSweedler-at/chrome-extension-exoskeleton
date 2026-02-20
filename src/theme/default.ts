@@ -16,8 +16,8 @@ export const theme = {
     // --- Backgrounds ---
     bg: {
         page: '#000',
-        card: '#f5f5f7',
-        cardSubtle: '#f5f5f5',
+        card: '#646464',
+        cardSubtle: '#848484',
         white: 'white',
     },
 
@@ -27,6 +27,7 @@ export const theme = {
         subtle: '#f0f0f4',
         separator: '#f0f0f0',
         medium: '#d0d0d0',
+        card: '#525252',
     },
 
     // --- Shadows ---
@@ -52,6 +53,8 @@ export const theme = {
         errorBg: 'rgba(239, 68, 68, 0.9)',
         defaultBg: 'rgba(0, 0, 0, 0.8)',
         detailBg: 'rgba(0, 0, 0, 0.3)',
+        closeBtnDefault: 'rgba(255, 255, 255, 0.4)',
+        closeBtnHover: 'rgba(255, 255, 255, 1)',
     },
 
     // --- Rich link ---

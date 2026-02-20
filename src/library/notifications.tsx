@@ -16,12 +16,15 @@ export interface NotificationOptions {
     opacity?: number;
     preview?: string;
     detail?: string;
+    onClick?: (notification: HTMLElement) => void;
 }
 
 export class Notifications {
     private static container: HTMLElement | null = null;
     private static currentNotification: HTMLElement | null = null;
     private static pendingRemoval: number | null = null;
+    private static pendingRemovalStart: number = 0;
+    private static pendingRemovalRemaining: number = 0;
 
     /**
      * Show a toast notification.
@@ -39,6 +42,7 @@ export class Notifications {
             opacity,
             preview,
             detail,
+            onClick,
         } = opts;
 
         // Use existing container if present (for testing)
@@ -51,17 +55,7 @@ export class Notifications {
 
         // If replace is true, remove current notification immediately
         if (replace && this.currentNotification) {
-            // Cancel pending fade-out animation
-            if (this.pendingRemoval) {
-                clearTimeout(this.pendingRemoval);
-                this.pendingRemoval = null;
-            }
-
-            // Remove immediately without animation
-            if (this.currentNotification.parentNode) {
-                this.currentNotification.parentNode.removeChild(this.currentNotification);
-            }
-            this.currentNotification = null;
+            this.dismiss(this.currentNotification, true);
         }
 
         const notification = document.createElement('div');
@@ -87,6 +81,7 @@ export class Notifications {
         }
 
         notification.style.cssText = `
+            position: relative;
             padding: 12px 16px;
             margin-bottom: 8px;
             background: ${backgroundColor};
@@ -98,6 +93,7 @@ export class Notifications {
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
             opacity: 1;
             transform: translateX(0);
+            ${onClick ? 'cursor: pointer;' : ''}
         `;
 
         // Create main message
@@ -135,25 +131,59 @@ export class Notifications {
             notification.appendChild(previewText);
         }
 
+        // Close button (only when onClick is provided)
+        if (onClick) {
+            const closeBtn = document.createElement('span');
+            closeBtn.textContent = '\u00d7';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 4px;
+                right: 8px;
+                font-size: 16px;
+                color: ${theme.toast.closeBtnDefault};
+                cursor: pointer;
+                line-height: 1;
+            `;
+            closeBtn.addEventListener('mouseenter', () => {
+                closeBtn.style.color = theme.toast.closeBtnHover;
+            });
+            closeBtn.addEventListener('mouseleave', () => {
+                closeBtn.style.color = theme.toast.closeBtnDefault;
+            });
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.dismiss(notification);
+            });
+            notification.appendChild(closeBtn);
+        }
+
+        // Click behavior
+        notification.addEventListener('click', () => {
+            if (onClick) {
+                onClick(notification);
+            } else {
+                this.dismiss(notification);
+            }
+        });
+
+        // Hover pauses auto-dismiss
+        notification.addEventListener('mouseenter', () => {
+            if (this.pendingRemoval) {
+                this.pendingRemovalRemaining -= Date.now() - this.pendingRemovalStart;
+                clearTimeout(this.pendingRemoval);
+                this.pendingRemoval = null;
+            }
+        });
+        notification.addEventListener('mouseleave', () => {
+            if (this.currentNotification === notification && !this.pendingRemoval) {
+                this.startFadeOut(notification, this.pendingRemovalRemaining);
+            }
+        });
+
         this.container!.appendChild(notification);
         this.currentNotification = notification;
 
-        this.pendingRemoval = window.setTimeout(() => {
-            // Start fade-out animation
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(20px)';
-
-            // Remove from DOM after animation completes
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                    if (this.currentNotification === notification) {
-                        this.currentNotification = null;
-                    }
-                }
-                this.pendingRemoval = null;
-            }, 300);
-        }, duration);
+        this.startFadeOut(notification, duration);
     }
 
     /**
@@ -171,6 +201,54 @@ export class Notifications {
         },
     ): void {
         this.show({message, type, duration, ...options});
+    }
+
+    private static startFadeOut(notification: HTMLElement, delay: number): void {
+        this.pendingRemovalStart = Date.now();
+        this.pendingRemovalRemaining = delay;
+        this.pendingRemoval = window.setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(20px)';
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                    if (this.currentNotification === notification) {
+                        this.currentNotification = null;
+                    }
+                }
+                this.pendingRemoval = null;
+            }, 300);
+        }, delay);
+    }
+
+    private static dismiss(notification: HTMLElement, immediate?: boolean): void {
+        if (this.pendingRemoval) {
+            clearTimeout(this.pendingRemoval);
+            this.pendingRemoval = null;
+        }
+
+        if (immediate) {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+            if (this.currentNotification === notification) {
+                this.currentNotification = null;
+            }
+            return;
+        }
+
+        // Animated dismiss
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(20px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+            if (this.currentNotification === notification) {
+                this.currentNotification = null;
+            }
+        }, 300);
     }
 
     private static createContainer(): void {
