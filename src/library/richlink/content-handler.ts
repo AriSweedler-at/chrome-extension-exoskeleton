@@ -1,4 +1,4 @@
-import {CopyRichLinkPayload} from '@exo/actions/copy-rich-link.action';
+import {CopyRichLinkPayload} from '@exo/library/actions/copy-rich-link.action';
 import {HandlerRegistry} from '@exo/library/richlink/handlers';
 import {Clipboard} from '@exo/library/clipboard';
 import {Notifications} from '@exo/library/notifications';

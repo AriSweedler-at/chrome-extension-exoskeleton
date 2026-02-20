@@ -3,7 +3,7 @@ import {theme} from '@exo/theme/default';
 import {
     ExtractLogCommandAction,
     type ExtractLogCommandResult,
-} from '@exo/actions/extract-log-command.action';
+} from '@exo/library/actions/extract-log-command.action';
 
 const GDOC_HOW_TO_ACCESS_DEBUG_LOGS =
     'https://docs.google.com/document/d/1KYPqzgn-oA3pXTtN4PU6jhXm_RiH4R150zIQ9SAKXus';
