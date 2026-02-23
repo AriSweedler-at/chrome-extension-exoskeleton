@@ -7,6 +7,7 @@ import {AtlassianHandler} from '@exo/exo-tabs/richlink/handlers/atlassian.handle
 import {AirtableHandler} from '@exo/exo-tabs/richlink/handlers/airtable.handler';
 import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 import {SpaceliftHandler} from '@exo/exo-tabs/richlink/handlers/spacelift.handler';
+import {BuildkiteHandler} from '@exo/exo-tabs/richlink/handlers/buildkite.handler';
 
 // Export everything
 export {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
@@ -19,6 +20,7 @@ export * from '@exo/exo-tabs/richlink/handlers/atlassian.handler';
 export * from '@exo/exo-tabs/richlink/handlers/airtable.handler';
 export * from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 export * from '@exo/exo-tabs/richlink/handlers/spacelift.handler';
+export * from '@exo/exo-tabs/richlink/handlers/buildkite.handler';
 
 // Auto-register handlers on module load
 HandlerRegistry.registerSpecialized(new GitHubHandler());
@@ -27,6 +29,7 @@ HandlerRegistry.registerSpecialized(new AtlassianHandler());
 HandlerRegistry.registerSpecialized(new AirtableHandler());
 HandlerRegistry.registerSpecialized(new SpinnakerHandler());
 HandlerRegistry.registerSpecialized(new SpaceliftHandler());
+HandlerRegistry.registerSpecialized(new BuildkiteHandler());
 
 HandlerRegistry.registerBase(new PageTitleHandler());
 HandlerRegistry.registerBase(new RawUrlHandler());
