@@ -50,7 +50,7 @@ describe('HandlerRegistry', () => {
 
     it('should register specialized handlers', () => {
         const handler = new SpecializedHandler();
-        HandlerRegistry.registerSpecialized(handler);
+        HandlerRegistry.register(handler);
 
         const handlers = HandlerRegistry.getHandlersForUrl('https://github.com/repo');
         expect(handlers).toHaveLength(1);
@@ -59,7 +59,7 @@ describe('HandlerRegistry', () => {
 
     it('should register base handlers', () => {
         const handler = new FallbackHandler();
-        HandlerRegistry.registerBase(handler);
+        HandlerRegistry.register(handler);
 
         const handlers = HandlerRegistry.getHandlersForUrl('https://example.com');
         expect(handlers).toHaveLength(1);
@@ -70,8 +70,8 @@ describe('HandlerRegistry', () => {
         const specialized = new SpecializedHandler();
         const fallback = new FallbackHandler();
 
-        HandlerRegistry.registerSpecialized(specialized);
-        HandlerRegistry.registerBase(fallback);
+        HandlerRegistry.register(specialized);
+        HandlerRegistry.register(fallback);
 
         const handlers = HandlerRegistry.getHandlersForUrl('https://github.com/repo');
         expect(handlers).toHaveLength(2);
@@ -83,8 +83,8 @@ describe('HandlerRegistry', () => {
         const specialized = new SpecializedHandler();
         const fallback = new FallbackHandler();
 
-        HandlerRegistry.registerSpecialized(specialized);
-        HandlerRegistry.registerBase(fallback);
+        HandlerRegistry.register(specialized);
+        HandlerRegistry.register(fallback);
 
         expect(HandlerRegistry.hasSpecializedHandler('https://github.com/repo')).toBe(true);
         expect(HandlerRegistry.hasSpecializedHandler('https://example.com')).toBe(false);
@@ -94,8 +94,8 @@ describe('HandlerRegistry', () => {
         const specialized = new SpecializedHandler();
         const fallback = new FallbackHandler();
 
-        HandlerRegistry.registerSpecialized(specialized);
-        HandlerRegistry.registerBase(fallback);
+        HandlerRegistry.register(specialized);
+        HandlerRegistry.register(fallback);
 
         const formats = await HandlerRegistry.getAllFormats('https://github.com/repo');
         expect(formats).toHaveLength(2);
