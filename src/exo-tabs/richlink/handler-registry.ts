@@ -4,6 +4,16 @@ export class HandlerRegistry {
     private static baseHandlers: Handler[] = [];
     private static specializedHandlers: Handler[] = [];
 
+    static register(handler: Handler): void {
+        if (handler.isFallback()) {
+            this.baseHandlers.push(handler);
+            this.baseHandlers.sort((a, b) => a.getPriority() - b.getPriority());
+        } else {
+            this.specializedHandlers.push(handler);
+            this.specializedHandlers.sort((a, b) => a.getPriority() - b.getPriority());
+        }
+    }
+
     static registerBase(handler: Handler): void {
         this.baseHandlers.push(handler);
         this.baseHandlers.sort((a, b) => a.getPriority() - b.getPriority());
