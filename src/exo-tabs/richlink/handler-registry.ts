@@ -14,16 +14,6 @@ export class HandlerRegistry {
         }
     }
 
-    static registerBase(handler: Handler): void {
-        this.baseHandlers.push(handler);
-        this.baseHandlers.sort((a, b) => a.getPriority() - b.getPriority());
-    }
-
-    static registerSpecialized(handler: Handler): void {
-        this.specializedHandlers.push(handler);
-        this.specializedHandlers.sort((a, b) => a.getPriority() - b.getPriority());
-    }
-
     static getHandlersForUrl(url: string): Handler[] {
         const specialized = this.specializedHandlers.filter((h) => h.canHandle(url));
         const combined = [...specialized, ...this.baseHandlers];
