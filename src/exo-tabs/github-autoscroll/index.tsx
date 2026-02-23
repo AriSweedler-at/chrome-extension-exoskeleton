@@ -1,4 +1,4 @@
-import {scrollElementCenter, scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
+import {scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {theme} from '@exo/theme/default';
 
@@ -343,7 +343,7 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         // Find and scroll to next unviewed file
         const nextFile = findNextUnviewedAfter(fileElement);
         if (nextFile) {
-            scrollElementCenter(nextFile);
+            scrollElementTop(nextFile, {offsetTop: 0});
             flashFile(nextFile, timers);
             if (debug) {
                 console.log('[GitHub AutoScroll] Scrolled to:', getFileName(nextFile));
@@ -444,7 +444,7 @@ function goToNextUnviewed(timers: number[], debug: boolean): void {
     const nextFile = findNextUnviewedAfter(currentFile);
 
     if (nextFile) {
-        scrollElementCenter(nextFile);
+        scrollElementTop(nextFile, {offsetTop: 0});
         flashFile(nextFile, timers);
         if (debug) {
             console.log('[GitHub AutoScroll] Next unviewed:', getFileName(nextFile));
@@ -563,7 +563,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
         if (debug) {
             console.log('[GitHub AutoScroll] Scrolling to first unviewed file:', fileName);
         }
-        scrollElementCenter(firstUnviewed);
+        scrollElementTop(firstUnviewed, {offsetTop: 0});
         flashFile(firstUnviewed, timers);
     }
 
