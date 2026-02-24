@@ -15,9 +15,9 @@ class TestHandler extends Handler {
 }
 
 describe('Handler', () => {
-    it('getFormat should return LinkFormat', async () => {
+    it('getFormat should return LinkFormat', () => {
         const handler = new TestHandler();
-        const format = await handler.getFormat();
+        const format = handler.getFormat();
 
         const url = window.location.href;
         expect(format).toEqual({
@@ -29,7 +29,7 @@ describe('Handler', () => {
 
     it('isFallback should default to false', () => {
         const handler = new TestHandler();
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('canHandle should check URL', () => {

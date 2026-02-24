@@ -16,7 +16,7 @@ export async function handleCopyRichLink(
     _sender: chrome.runtime.MessageSender,
     _context: void,
 ) {
-    const formats = await HandlerRegistry.getAllFormats(payload.url);
+    const formats = HandlerRegistry.getAllFormats(payload.url);
     const cycling = isCycling();
 
     // Get format index

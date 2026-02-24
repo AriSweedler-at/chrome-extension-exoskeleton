@@ -12,7 +12,5 @@ export class PageTitleHandler extends Handler {
         return document.title || 'Untitled';
     }
 
-    isFallback(): boolean {
-        return true;
-    }
+    override readonly isFallback = true;
 }

@@ -5,7 +5,7 @@ export class SpaceliftHandler extends Handler {
     readonly priority = 60;
 
     canHandle(url: string): boolean {
-        return url.includes('spacelift');
+        return url.includes('spacelift.shadowbox.cloud');
     }
 
     extractTitle(): string {

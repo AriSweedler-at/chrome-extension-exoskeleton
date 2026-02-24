@@ -24,7 +24,7 @@ describe('PageTitleHandler', () => {
     });
 
     it('should be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(true);
+        expect(handler.isFallback).toBe(true);
     });
 
     it('should have priority 100', () => {
@@ -36,17 +36,17 @@ describe('PageTitleHandler', () => {
     });
 
     it('should extract page title from document', async () => {
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://example.com/page">Test Page Title</a>');
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe('Test Page Title (https://example.com/page)');
     });
 
     it('should handle missing title', async () => {
         vi.stubGlobal('document', {title: ''});
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://example.com/page">Untitled</a>');
     });
 });

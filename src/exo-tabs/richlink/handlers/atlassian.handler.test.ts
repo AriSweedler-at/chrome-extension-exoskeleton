@@ -17,7 +17,7 @@ describe('AtlassianHandler', () => {
     });
 
     it('should not be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('should have priority 30', () => {
@@ -63,12 +63,12 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Engineering Guidelines</a>',
         );
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe(
             'Engineering Guidelines (https://company.atlassian.net/wiki/spaces/ENG/pages/123)',
         );
@@ -91,12 +91,12 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-123">Fix login bug</a>',
         );
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe('Fix login bug (https://company.atlassian.net/browse/PROJ-123)');
 
         document.body.removeChild(mockSummary);
@@ -109,7 +109,7 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Confluence Page</a>',
         );
@@ -122,7 +122,7 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://company.atlassian.net/browse/PROJ-123">Jira Issue</a>');
     });
 
@@ -138,7 +138,7 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-456">Update documentation</a>',
         );

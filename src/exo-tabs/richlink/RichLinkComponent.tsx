@@ -30,7 +30,7 @@ export const RichLinkComponent: React.FC = () => {
             }
 
             setCurrentUrl(tab.url);
-            const formats = await HandlerRegistry.getAllFormats(tab.url);
+            const formats = HandlerRegistry.getAllFormats(tab.url);
             setFormats(formats);
             setLoading(false);
         } catch (err) {
