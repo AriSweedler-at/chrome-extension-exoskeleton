@@ -2,22 +2,14 @@ const STORAGE_KEY = 'richlink-copy-count';
 
 export class CopyCounter {
     static async getCount(): Promise<number> {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) {
-            return 0;
-        }
-        try {
-            const data = JSON.parse(stored);
-            return data.count || 0;
-        } catch {
-            return 0;
-        }
+        const result = await chrome.storage.local.get(STORAGE_KEY);
+        return result[STORAGE_KEY] ?? 0;
     }
 
     static async increment(): Promise<number> {
         const count = await this.getCount();
         const newCount = count + 1;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({count: newCount}));
+        await chrome.storage.local.set({[STORAGE_KEY]: newCount});
         return newCount;
     }
 }

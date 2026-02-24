@@ -2,8 +2,17 @@ import {describe, it, expect, beforeEach} from 'vitest';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 
 describe('CopyCounter', () => {
+    let storage: Record<string, unknown>;
+
     beforeEach(() => {
-        localStorage.clear();
+        storage = {};
+        chrome.storage.local.get.callsFake((key: string) => {
+            return Promise.resolve({[key]: storage[key]});
+        });
+        chrome.storage.local.set.callsFake((obj: Record<string, unknown>) => {
+            Object.assign(storage, obj);
+            return Promise.resolve();
+        });
     });
 
     it('should start at 0', async () => {
