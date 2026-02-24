@@ -1,8 +1,131 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
 import {LinkFormat} from '@exo/exo-tabs/richlink/base';
 import {CopyRichLinkAction, GetFormatsAction} from '@exo/exo-tabs/richlink/action';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 import {theme} from '@exo/theme/default';
+
+// Inject scroll keyframes once, matching the toast notification pattern
+let scrollKeyframesInjected = false;
+function injectScrollKeyframes() {
+    if (scrollKeyframesInjected) return;
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes exo-scroll-text {
+            0%, 15% { transform: translateX(0); }
+            85%, 100% { transform: translateX(var(--scroll-dist)); }
+        }
+    `;
+    document.head.appendChild(style);
+    scrollKeyframesInjected = true;
+}
+
+function FormatButton({
+    format,
+    index,
+    onCopy,
+}: {
+    format: LinkFormat;
+    index: number;
+    onCopy: (i: number) => void;
+}) {
+    const textContainerRef = useRef<HTMLDivElement>(null); // eslint-disable-line no-undef
+    const [hovering, setHovering] = useState(false);
+    const [paused, setPaused] = useState(false);
+    const [overflow, setOverflow] = useState(0);
+
+    const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
+    const opacity = isFallback ? 0.75 : 1;
+    const backgroundColor = isFallback ? theme.richlink.fallbackBg : theme.richlink.specializedBg;
+    const hoverBg = isFallback ? theme.richlink.fallbackHoverBg : theme.richlink.specializedHoverBg;
+
+    const needsScroll = overflow > 0;
+    // ~30px/sec scroll speed, min 2s so short overflows don't feel jarring
+    const scrollDuration = Math.max(2, overflow / 30);
+
+    useEffect(() => {
+        injectScrollKeyframes();
+    }, []);
+
+    useLayoutEffect(() => {
+        if (textContainerRef.current) {
+            setOverflow(
+                Math.max(
+                    0,
+                    textContainerRef.current.scrollWidth - textContainerRef.current.clientWidth,
+                ),
+            );
+        }
+    }, [format.text]);
+
+    return (
+        <button
+            onClick={() => onCopy(index)}
+            onMouseEnter={(e) => {
+                setHovering(true);
+                setPaused(false);
+                e.currentTarget.style.backgroundColor = hoverBg;
+                e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+                setHovering(false);
+                setPaused(false);
+                e.currentTarget.style.backgroundColor = backgroundColor;
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}
+            onContextMenu={(e) => {
+                if (!needsScroll || !hovering) return;
+                e.preventDefault();
+                setPaused((p) => !p);
+            }}
+            style={{
+                padding: '12px',
+                border: `1px solid ${theme.richlink.border}`,
+                borderRadius: '4px',
+                backgroundColor,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease',
+                opacity,
+            }}
+        >
+            <div
+                style={{
+                    fontWeight: 'bold',
+                    marginBottom: '4px',
+                    color: theme.text.white,
+                    fontSize: '14px',
+                }}
+            >
+                {format.label}
+            </div>
+            <div
+                ref={textContainerRef}
+                style={{
+                    fontSize: '11px',
+                    color: theme.text.whiteTranslucent,
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: hovering ? 'clip' : 'ellipsis',
+                }}
+            >
+                <span
+                    style={
+                        hovering && needsScroll
+                            ? ({
+                                  display: 'inline-block',
+                                  '--scroll-dist': `-${overflow}px`,
+                                  animation: `exo-scroll-text ${scrollDuration}s linear infinite alternate`,
+                                  animationPlayState: paused ? 'paused' : 'running',
+                              } as React.CSSProperties)
+                            : {display: 'inline'}
+                    }
+                >
+                    {format.text}
+                </span>
+            </div>
+        </button>
+    );
+}
 
 export const RichLinkComponent: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -89,65 +212,14 @@ export const RichLinkComponent: React.FC = () => {
             </div>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                {formats.map((format, index) => {
-                    // Detect fallback handlers (Page Title, Raw URL)
-                    const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
-                    const opacity = isFallback ? 0.75 : 1;
-                    const backgroundColor = isFallback
-                        ? theme.richlink.fallbackBg
-                        : theme.richlink.specializedBg;
-
-                    return (
-                        <button
-                            key={index}
-                            onClick={() => handleCopyFormat(index)}
-                            style={{
-                                padding: '12px',
-                                border: `1px solid ${theme.richlink.border}`,
-                                borderRadius: '4px',
-                                backgroundColor: backgroundColor,
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'all 0.15s ease',
-                                opacity: opacity,
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = isFallback
-                                    ? theme.richlink.fallbackHoverBg
-                                    : theme.richlink.specializedHoverBg;
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = backgroundColor;
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontWeight: 'bold',
-                                    marginBottom: '4px',
-                                    color: theme.text.white,
-                                    fontSize: '14px',
-                                }}
-                            >
-                                {format.label}
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: '11px',
-                                    color: theme.text.whiteTranslucent,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                }}
-                            >
-                                {format.text.length > 60
-                                    ? format.text.substring(0, 60) + '...'
-                                    : format.text}
-                            </div>
-                        </button>
-                    );
-                })}
+                {formats.map((format, index) => (
+                    <FormatButton
+                        key={index}
+                        format={format}
+                        index={index}
+                        onCopy={handleCopyFormat}
+                    />
+                ))}
             </div>
         </div>
     );

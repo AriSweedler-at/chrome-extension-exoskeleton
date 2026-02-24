@@ -8,12 +8,17 @@ export class BuildkiteHandler extends Handler {
         return url.includes('buildkite.com');
     }
 
-    extractLinkText(_ctx: FormatContext): string {
-        // Extract pipeline name from URL path: buildkite.com/{org}/{pipeline}
-        const match = window.location.pathname.match(/^\/[^/]+\/([^/]+)/);
+    extractLinkText({url}: FormatContext): string {
+        // Extract pipeline name and optional build number from URL path:
+        // buildkite.com/{org}/{pipeline}[/builds/{number}]
+        const path = new URL(url).pathname;
+        const match = path.match(/^\/[^/]+\/([^/]+)(?:\/builds\/(\d+))?/);
         if (match) {
             const pipeline = match[1].replace(/\.airtable$/, '');
-            return `BuildKite: ${pipeline}`;
+            const buildNumber = match[2];
+            return buildNumber
+                ? `BuildKite: ${pipeline} (#${buildNumber})`
+                : `BuildKite: ${pipeline}`;
         }
         return 'BuildKite';
     }
