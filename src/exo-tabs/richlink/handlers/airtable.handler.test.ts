@@ -19,11 +19,11 @@ describe('AirtableHandler', () => {
     });
 
     it('should have priority 40', () => {
-        expect(handler.getPriority()).toBe(40);
+        expect(handler.priority).toBe(40);
     });
 
     it('should return "Airtable Record" as label', () => {
-        expect(handler.getLabel()).toBe('Airtable Record');
+        expect(handler.label).toBe('Airtable Record');
     });
 
     it('should extract base name from Airtable page', async () => {

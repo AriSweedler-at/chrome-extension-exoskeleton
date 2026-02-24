@@ -1,16 +1,11 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class BuildkiteHandler extends Handler {
+    readonly label = 'BuildKite Pipeline';
+    readonly priority = 65;
+
     canHandle(url: string): boolean {
         return url.includes('buildkite.com');
-    }
-
-    getLabel(): string {
-        return 'BuildKite Pipeline';
-    }
-
-    getPriority(): number {
-        return 65;
     }
 
     extractTitle(): string {

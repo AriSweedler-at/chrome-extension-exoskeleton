@@ -28,11 +28,11 @@ describe('PageTitleHandler', () => {
     });
 
     it('should have priority 100', () => {
-        expect(handler.getPriority()).toBe(100);
+        expect(handler.priority).toBe(100);
     });
 
     it('should return "Page Title" as label', () => {
-        expect(handler.getLabel()).toBe('Page Title');
+        expect(handler.label).toBe('Page Title');
     });
 
     it('should extract page title from document', async () => {

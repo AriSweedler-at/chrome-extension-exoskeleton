@@ -20,11 +20,11 @@ describe('GoogleDocsHandler', () => {
     });
 
     it('should have priority 20', () => {
-        expect(handler.getPriority()).toBe(20);
+        expect(handler.priority).toBe(20);
     });
 
     it('should return "Google Doc" as label', () => {
-        expect(handler.getLabel()).toBe('Google Doc');
+        expect(handler.label).toBe('Google Doc');
     });
 
     it('should extract document title from Google Docs page', async () => {

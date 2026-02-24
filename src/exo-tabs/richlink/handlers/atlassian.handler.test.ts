@@ -21,7 +21,7 @@ describe('AtlassianHandler', () => {
     });
 
     it('should have priority 30', () => {
-        expect(handler.getPriority()).toBe(30);
+        expect(handler.priority).toBe(30);
     });
 
     it('should return "Confluence Page" label for wiki URLs', () => {
@@ -30,7 +30,7 @@ describe('AtlassianHandler', () => {
                 href: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
             },
         });
-        expect(handler.getLabel()).toBe('Confluence Page');
+        expect(handler.label).toBe('Confluence Page');
     });
 
     it('should return "Jira Issue" label for browse URLs', () => {
@@ -39,7 +39,7 @@ describe('AtlassianHandler', () => {
                 href: 'https://company.atlassian.net/browse/PROJ-123',
             },
         });
-        expect(handler.getLabel()).toBe('Jira Issue');
+        expect(handler.label).toBe('Jira Issue');
     });
 
     it('should return "Atlassian Page" label for other URLs', () => {
@@ -48,7 +48,7 @@ describe('AtlassianHandler', () => {
                 href: 'https://company.atlassian.net/jira/dashboard',
             },
         });
-        expect(handler.getLabel()).toBe('Atlassian Page');
+        expect(handler.label).toBe('Atlassian Page');
     });
 
     it('should extract Confluence page title', async () => {

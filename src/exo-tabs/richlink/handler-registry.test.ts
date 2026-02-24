@@ -3,32 +3,24 @@ import {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 class SpecializedHandler extends Handler {
+    readonly label = 'GitHub';
+    readonly priority = 10;
     canHandle(url: string): boolean {
         return url.includes('github.com');
     }
-    getLabel(): string {
-        return 'GitHub';
-    }
     extractTitle(): string {
         return 'GitHub';
-    }
-    getPriority(): number {
-        return 10;
     }
 }
 
 class FallbackHandler extends Handler {
+    readonly label = 'Fallback';
+    readonly priority = 100;
     canHandle(_url: string): boolean {
         return true;
     }
-    getLabel(): string {
-        return 'Fallback';
-    }
     extractTitle(): string {
         return 'Fallback';
-    }
-    getPriority(): number {
-        return 100;
     }
     isFallback(): boolean {
         return true;

@@ -16,13 +16,13 @@ export abstract class Handler {
     abstract canHandle(url: string): boolean;
 
     /** Short display name shown in the format picker (e.g. "GitHub PR", "Spacelift Stack"). */
-    abstract getLabel(): string;
+    abstract readonly label: string;
+
+    /** Lower numbers appear first in the format picker. */
+    abstract readonly priority: number;
 
     /** Extract a human-readable title from the current page's DOM or URL. */
     abstract extractTitle(): string;
-
-    /** Lower numbers appear first in the format picker. */
-    abstract getPriority(): number;
 
     /** HTML format for rich-text paste: `<a href="...">title</a>`. Override for bespoke output. */
     async getHtml(): Promise<string> {
@@ -41,7 +41,7 @@ export abstract class Handler {
     /** Bundle label + html + text into a single LinkFormat object. */
     async getFormat(): Promise<LinkFormat> {
         return {
-            label: this.getLabel(),
+            label: this.label,
             html: await this.getHtml(),
             text: await this.getText(),
         };
