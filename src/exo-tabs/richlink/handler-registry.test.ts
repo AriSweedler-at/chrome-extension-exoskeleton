@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeEach} from 'vitest';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 class SpecializedHandler extends Handler {
     readonly label = 'GitHub';
@@ -8,7 +8,7 @@ class SpecializedHandler extends Handler {
     canHandle(url: string): boolean {
         return url.includes('github.com');
     }
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         return 'GitHub';
     }
 }
@@ -19,7 +19,7 @@ class FallbackHandler extends Handler {
     canHandle(_url: string): boolean {
         return true;
     }
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         return 'Fallback';
     }
     override readonly isFallback = true;

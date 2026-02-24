@@ -1,4 +1,4 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class SpinnakerHandler extends Handler {
     readonly label = 'Spinnaker Pipeline';
@@ -8,7 +8,7 @@ export class SpinnakerHandler extends Handler {
         return url.includes('spinnaker');
     }
 
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         // Try to extract pipeline name from execution group
         // TODO: Verify these selectors work across different Spinnaker deployments
         const pipelineName = document.querySelector('.execution-group-title');

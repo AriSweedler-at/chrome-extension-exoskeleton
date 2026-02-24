@@ -45,12 +45,12 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://github.com/user/repo/pull/123'}).html;
         expect(html).toBe(
             '<a href="https://github.com/user/repo/pull/123">Fix bug in authentication (#123)</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({url: 'https://github.com/user/repo/pull/123'}).text;
         expect(text).toBe(
             'Fix bug in authentication (#123) (https://github.com/user/repo/pull/123)',
         );
@@ -65,7 +65,7 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://github.com/user/repo/pull/456'}).html;
         expect(html).toBe('<a href="https://github.com/user/repo/pull/456">GitHub PR</a>');
     });
 
@@ -82,12 +82,16 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://github.com/anthropics/escalation/pull/200045/files',
+        }).html;
         expect(html).toBe(
             '<a href="https://github.com/anthropics/escalation/pull/200045/files">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({
+            url: 'https://github.com/anthropics/escalation/pull/200045/files',
+        }).text;
         expect(text).toBe(
             'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045/files)',
         );

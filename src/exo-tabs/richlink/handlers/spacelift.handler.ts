@@ -1,4 +1,4 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class SpaceliftHandler extends Handler {
     readonly label = 'Spacelift Stack';
@@ -8,7 +8,7 @@ export class SpaceliftHandler extends Handler {
         return url.includes('spacelift.shadowbox.cloud');
     }
 
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         // Try to extract stack name
         // TODO: Verify these selectors work across different Spacelift UI versions
         const stackName = document.querySelector('.stack-name');

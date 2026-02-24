@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
+import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {AirtableHandler} from '@exo/exo-tabs/richlink/handlers/airtable.handler';
 
 describe('AirtableHandler', () => {
@@ -6,6 +6,10 @@ describe('AirtableHandler', () => {
 
     beforeEach(() => {
         handler = new AirtableHandler();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
     });
 
     it('should handle Airtable URLs', () => {
@@ -26,75 +30,86 @@ describe('AirtableHandler', () => {
         expect(handler.label).toBe('Airtable Record');
     });
 
-    it('should extract base name from Airtable page', async () => {
-        // Mock Airtable page DOM with base name
+    it('should extract Listable record title from formula cell', () => {
+        // Mock Listable DOM: cell-editor formula field with "LTT#/Title"
+        const cellEditor = document.createElement('div');
+        cellEditor.setAttribute('data-testid', 'cell-editor');
+        cellEditor.setAttribute('data-columntype', 'formula');
+        const heading = document.createElement('div');
+        heading.className = 'heading-size-default';
+        heading.textContent = 'LTT69717/Validate the existence of new images';
+        cellEditor.appendChild(heading);
+        document.body.appendChild(cellEditor);
+
+        vi.stubGlobal('window', {
+            location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
+        });
+
+        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        expect(format.html).toBe(
+            '<a href="https://airtable.com/appABC123/tblXYZ789">LTT69717: Validate the existence of new images</a>',
+        );
+        expect(format.text).toBe(
+            'LTT69717: Validate the existence of new images (https://airtable.com/appABC123/tblXYZ789)',
+        );
+    });
+
+    it('should extract base name from Airtable page', () => {
         const mockBaseName = document.createElement('h1');
         mockBaseName.className = 'basename';
         mockBaseName.textContent = 'Product Roadmap';
         document.body.appendChild(mockBaseName);
 
         vi.stubGlobal('window', {
-            location: {
-                href: 'https://airtable.com/appABC123/tblXYZ789',
-            },
+            location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const html = handler.getFormat().html;
-        expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Product Roadmap</a>');
-
-        const text = handler.getFormat().text;
-        expect(text).toBe('Product Roadmap (https://airtable.com/appABC123/tblXYZ789)');
-
-        document.body.removeChild(mockBaseName);
+        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        expect(format.html).toBe(
+            '<a href="https://airtable.com/appABC123/tblXYZ789">Product Roadmap</a>',
+        );
     });
 
-    it('should handle missing base name', async () => {
+    it('should fall back to "Airtable Record" when no selectors match', () => {
         vi.stubGlobal('window', {
-            location: {
-                href: 'https://airtable.com/appABC123/tblXYZ789',
-            },
+            location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const html = handler.getFormat().html;
-        expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Airtable Record</a>');
+        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        expect(format.html).toBe(
+            '<a href="https://airtable.com/appABC123/tblXYZ789">Airtable Record</a>',
+        );
     });
 
-    it('should extract table name if base name not found', async () => {
-        // Mock Airtable page with table name selector
+    it('should extract table name if base name not found', () => {
         const mockTableName = document.createElement('div');
         mockTableName.setAttribute('data-tutorial-selector-id', 'tableHeaderName');
         mockTableName.textContent = 'Features';
         document.body.appendChild(mockTableName);
 
         vi.stubGlobal('window', {
-            location: {
-                href: 'https://airtable.com/appABC123/tblXYZ789',
-            },
+            location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const html = handler.getFormat().html;
-        expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Features</a>');
-
-        document.body.removeChild(mockTableName);
+        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        expect(format.html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Features</a>');
     });
 
-    it('should handle view title selector', async () => {
+    it('should handle view title selector', () => {
         const mockViewTitle = document.createElement('h2');
         mockViewTitle.className = 'viewMenuButton';
         mockViewTitle.textContent = 'Q1 2026 View';
         document.body.appendChild(mockViewTitle);
 
         vi.stubGlobal('window', {
-            location: {
-                href: 'https://airtable.com/appABC123/tblXYZ789/viwDEF456',
-            },
+            location: {href: 'https://airtable.com/appABC123/tblXYZ789/viwDEF456'},
         });
 
-        const html = handler.getFormat().html;
-        expect(html).toBe(
+        const format = handler.getFormat({
+            url: 'https://airtable.com/appABC123/tblXYZ789/viwDEF456',
+        });
+        expect(format.html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>',
         );
-
-        document.body.removeChild(mockViewTitle);
     });
 });

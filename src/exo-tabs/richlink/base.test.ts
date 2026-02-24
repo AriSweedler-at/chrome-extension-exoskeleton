@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 class TestHandler extends Handler {
     readonly label = 'Test Handler';
@@ -9,7 +9,7 @@ class TestHandler extends Handler {
         return url.includes('test.com');
     }
 
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         return 'Test';
     }
 }
@@ -17,7 +17,7 @@ class TestHandler extends Handler {
 describe('Handler', () => {
     it('getFormat should return LinkFormat', () => {
         const handler = new TestHandler();
-        const format = handler.getFormat();
+        const format = handler.getFormat({url: window.location.href});
 
         const url = window.location.href;
         expect(format).toEqual({

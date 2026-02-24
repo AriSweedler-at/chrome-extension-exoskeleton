@@ -621,13 +621,13 @@ export class GitHubHandler extends Handler {
     }
 
     async getHtml(): Promise<string> {
-        const title = this.extractTitle();
+        const title = this.extractLinkText();
         const url = window.location.href;
         return `<a href="${url}">${title}</a>`;
     }
 
     async getText(): Promise<string> {
-        const title = this.extractTitle();
+        const title = this.extractLinkText();
         const url = window.location.href;
         return `${title} (${url})`;
     }
@@ -636,7 +636,7 @@ export class GitHubHandler extends Handler {
         return 10;
     }
 
-    private extractTitle(): string {
+    private extractLinkText(): string {
         const titleElement = document.querySelector('.js-issue-title');
         if (titleElement?.textContent) {
             return titleElement.textContent.trim();

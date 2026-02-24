@@ -63,12 +63,16 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Engineering Guidelines</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({
+            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
+        }).text;
         expect(text).toBe(
             'Engineering Guidelines (https://company.atlassian.net/wiki/spaces/ENG/pages/123)',
         );
@@ -91,12 +95,12 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-123">Fix login bug</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).text;
         expect(text).toBe('Fix login bug (https://company.atlassian.net/browse/PROJ-123)');
 
         document.body.removeChild(mockSummary);
@@ -109,7 +113,9 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Confluence Page</a>',
         );
@@ -122,7 +128,7 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).html;
         expect(html).toBe('<a href="https://company.atlassian.net/browse/PROJ-123">Jira Issue</a>');
     });
 
@@ -138,7 +144,7 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-456'}).html;
         expect(html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-456">Update documentation</a>',
         );

@@ -36,17 +36,17 @@ describe('PageTitleHandler', () => {
     });
 
     it('should extract page title from document', async () => {
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://example.com/page'}).html;
         expect(html).toBe('<a href="https://example.com/page">Test Page Title</a>');
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({url: 'https://example.com/page'}).text;
         expect(text).toBe('Test Page Title (https://example.com/page)');
     });
 
     it('should handle missing title', async () => {
         vi.stubGlobal('document', {title: ''});
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://example.com/page'}).html;
         expect(html).toBe('<a href="https://example.com/page">Untitled</a>');
     });
 });

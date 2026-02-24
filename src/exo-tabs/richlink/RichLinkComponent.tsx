@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
 import {LinkFormat} from '@exo/exo-tabs/richlink/base';
-import {CopyRichLinkAction} from '@exo/exo-tabs/richlink/action';
+import {CopyRichLinkAction, GetFormatsAction} from '@exo/exo-tabs/richlink/action';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 import {theme} from '@exo/theme/default';
 
@@ -30,7 +29,9 @@ export const RichLinkComponent: React.FC = () => {
             }
 
             setCurrentUrl(tab.url);
-            const formats = HandlerRegistry.getAllFormats(tab.url);
+            const formats = await GetFormatsAction.sendToTab<{url: string}, LinkFormat[]>(tab.id!, {
+                url: tab.url,
+            });
             setFormats(formats);
             setLoading(false);
         } catch (err) {

@@ -1,4 +1,4 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
     get label(): string {
@@ -14,9 +14,7 @@ export class AtlassianHandler extends Handler {
         return url.includes('atlassian.net');
     }
 
-    extractTitle(): string {
-        const url = window.location.href;
-
+    extractLinkText({url}: FormatContext): string {
         // Confluence page title
         // TODO: Verify this selector works across different Confluence versions
         if (url.includes('/wiki/')) {

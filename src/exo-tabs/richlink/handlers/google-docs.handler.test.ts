@@ -40,12 +40,16 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://docs.google.com/document/d/abc123/edit',
+        }).html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/abc123/edit">Project Requirements Document</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({
+            url: 'https://docs.google.com/document/d/abc123/edit',
+        }).text;
         expect(text).toBe(
             'Project Requirements Document (https://docs.google.com/document/d/abc123/edit)',
         );
@@ -60,7 +64,9 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://docs.google.com/document/d/abc123/edit',
+        }).html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/abc123/edit">Google Doc</a>',
         );
@@ -79,7 +85,9 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://docs.google.com/document/d/xyz789/edit',
+        }).html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/xyz789/edit">Meeting Notes</a>',
         );

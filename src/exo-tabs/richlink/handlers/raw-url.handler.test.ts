@@ -31,10 +31,10 @@ describe('RawUrlHandler', () => {
     });
 
     it('should return raw URL for both html and text', async () => {
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://example.com/page?query=test#anchor'}).html;
         expect(html).toBe('https://example.com/page?query=test#anchor');
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({url: 'https://example.com/page?query=test#anchor'}).text;
         expect(text).toBe('https://example.com/page?query=test#anchor');
     });
 });

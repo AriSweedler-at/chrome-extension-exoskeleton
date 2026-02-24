@@ -17,23 +17,13 @@ import {
     findErrorContainer,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {extractPodNames as extractPodNamesFromHtml} from '@exo/exo-tabs/spinnaker/pod-extractor';
+import {Notifications} from '@exo/lib/toast-notification';
 
 /**
- * Show a Chrome notification
+ * Show a toast notification
  */
 function showNotification(message: string): void {
-    chrome.notifications.create(
-        `spinnaker-${Date.now()}`,
-        {
-            type: 'basic',
-            iconUrl: chrome.runtime.getURL('icon.png'),
-            title: 'Spinnaker',
-            message,
-        },
-        () => {
-            // Optional callback
-        },
-    );
+    Notifications.show({message});
 }
 
 /**

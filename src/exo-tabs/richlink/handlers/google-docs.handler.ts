@@ -1,4 +1,4 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class GoogleDocsHandler extends Handler {
     readonly label = 'Google Doc';
@@ -8,7 +8,7 @@ export class GoogleDocsHandler extends Handler {
         return url.includes('docs.google.com');
     }
 
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         // Google Docs uses an input element for the document title
         // TODO: Verify this selector works across all Google Docs pages (Docs, Sheets, Slides)
         const titleInput = document.querySelector('.docs-title-input') as HTMLInputElement;

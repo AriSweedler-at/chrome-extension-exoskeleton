@@ -42,12 +42,16 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp/executions',
+        }).html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp/executions',
+        }).text;
         expect(text).toBe(
             'Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)',
         );
@@ -62,7 +66,9 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp',
+        }).html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>',
         );
@@ -80,7 +86,9 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp',
+        }).html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">my-service</a>',
         );
@@ -100,7 +108,9 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp/executions/details/exec123',
+        }).html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>',
         );
@@ -120,7 +130,9 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://spinnaker.company.com/applications/myapp/pipelineConfig/edit',
+        }).html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>',
         );

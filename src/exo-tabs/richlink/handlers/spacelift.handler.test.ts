@@ -40,12 +40,16 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.app.spacelift.io/stack/prod-infra',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/prod-infra">production-infrastructure</a>',
         );
 
-        const text = handler.getFormat().text;
+        const text = handler.getFormat({
+            url: 'https://company.app.spacelift.io/stack/prod-infra',
+        }).text;
         expect(text).toBe(
             'production-infrastructure (https://company.app.spacelift.io/stack/prod-infra)',
         );
@@ -60,7 +64,9 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.app.spacelift.io/stack/my-stack',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/my-stack">Spacelift Stack</a>',
         );
@@ -78,7 +84,9 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.app.spacelift.io/stack/my-stack/run/123',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/my-stack/run/123">Run #123: Update VPC</a>',
         );
@@ -98,7 +106,9 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.app.spacelift.io/module/terraform-aws-vpc',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/module/terraform-aws-vpc">terraform-aws-vpc</a>',
         );
@@ -118,7 +128,9 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({
+            url: 'https://company.app.spacelift.io/policies/approval-policy',
+        }).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/policies/approval-policy">Require Approval Policy</a>',
         );
@@ -137,7 +149,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = handler.getFormat().html;
+        const html = handler.getFormat({url: 'https://company.app.spacelift.io/dashboard'}).html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/dashboard">Dashboard Overview</a>',
         );
