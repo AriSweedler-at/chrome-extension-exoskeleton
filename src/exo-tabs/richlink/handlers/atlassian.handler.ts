@@ -16,23 +16,11 @@ export class AtlassianHandler extends Handler {
         return 'Atlassian Page';
     }
 
-    async getHtml(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
     getPriority(): number {
         return 30;
     }
 
-    private extractTitle(): string {
+    extractTitle(): string {
         const url = window.location.href;
 
         // Confluence page title

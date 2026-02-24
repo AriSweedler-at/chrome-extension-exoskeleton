@@ -9,23 +9,11 @@ export class GoogleDocsHandler extends Handler {
         return 'Google Doc';
     }
 
-    async getHtml(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
     getPriority(): number {
         return 20;
     }
 
-    private extractTitle(): string {
+    extractTitle(): string {
         // Google Docs uses an input element for the document title
         // TODO: Verify this selector works across all Google Docs pages (Docs, Sheets, Slides)
         const titleInput = document.querySelector('.docs-title-input') as HTMLInputElement;

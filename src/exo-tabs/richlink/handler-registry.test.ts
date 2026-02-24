@@ -9,11 +9,8 @@ class SpecializedHandler extends Handler {
     getLabel(): string {
         return 'GitHub';
     }
-    async getHtml(): Promise<string> {
-        return '<a href="url">GitHub</a>';
-    }
-    async getText(): Promise<string> {
-        return 'GitHub (url)';
+    extractTitle(): string {
+        return 'GitHub';
     }
     getPriority(): number {
         return 10;
@@ -27,11 +24,8 @@ class FallbackHandler extends Handler {
     getLabel(): string {
         return 'Fallback';
     }
-    async getHtml(): Promise<string> {
-        return '<a href="url">Fallback</a>';
-    }
-    async getText(): Promise<string> {
-        return 'Fallback (url)';
+    extractTitle(): string {
+        return 'Fallback';
     }
     getPriority(): number {
         return 100;

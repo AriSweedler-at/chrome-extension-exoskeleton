@@ -9,23 +9,11 @@ export class SpinnakerHandler extends Handler {
         return 'Spinnaker Pipeline';
     }
 
-    async getHtml(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
     getPriority(): number {
         return 50;
     }
 
-    private extractTitle(): string {
+    extractTitle(): string {
         // Try to extract pipeline name from execution group
         // TODO: Verify these selectors work across different Spinnaker deployments
         const pipelineName = document.querySelector('.execution-group-title');

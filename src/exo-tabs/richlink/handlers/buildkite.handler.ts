@@ -9,23 +9,11 @@ export class BuildkiteHandler extends Handler {
         return 'BuildKite Pipeline';
     }
 
-    async getHtml(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
     getPriority(): number {
         return 65;
     }
 
-    private extractTitle(): string {
+    extractTitle(): string {
         // Extract pipeline name from URL path: buildkite.com/{org}/{pipeline}
         const match = window.location.pathname.match(/^\/[^/]+\/([^/]+)/);
         if (match) {

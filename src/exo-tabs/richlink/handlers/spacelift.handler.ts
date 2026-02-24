@@ -9,23 +9,11 @@ export class SpaceliftHandler extends Handler {
         return 'Spacelift Stack';
     }
 
-    async getHtml(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
     getPriority(): number {
         return 60;
     }
 
-    private extractTitle(): string {
+    extractTitle(): string {
         // Try to extract stack name
         // TODO: Verify these selectors work across different Spacelift UI versions
         const stackName = document.querySelector('.stack-name');
