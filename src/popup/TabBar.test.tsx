@@ -14,6 +14,9 @@ describe('TabBar', () => {
                 url: 'http://example.com',
             },
         ]);
+        // CopyCounter uses chrome.storage.local
+        chrome.storage.local.get.returns(Promise.resolve({}));
+        chrome.storage.local.set.returns(Promise.resolve());
     });
 
     it('should render visible tabs', async () => {
