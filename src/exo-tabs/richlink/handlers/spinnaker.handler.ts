@@ -1,16 +1,11 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class SpinnakerHandler extends Handler {
+    readonly label = 'Spinnaker Pipeline';
+    readonly priority = 50;
+
     canHandle(url: string): boolean {
         return url.includes('spinnaker');
-    }
-
-    getLabel(): string {
-        return 'Spinnaker Pipeline';
-    }
-
-    getPriority(): number {
-        return 50;
     }
 
     extractTitle(): string {

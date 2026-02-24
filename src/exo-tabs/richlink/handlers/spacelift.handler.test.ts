@@ -20,11 +20,11 @@ describe('SpaceliftHandler', () => {
     });
 
     it('should have priority 60', () => {
-        expect(handler.getPriority()).toBe(60);
+        expect(handler.priority).toBe(60);
     });
 
     it('should return "Spacelift Stack" as label', () => {
-        expect(handler.getLabel()).toBe('Spacelift Stack');
+        expect(handler.label).toBe('Spacelift Stack');
     });
 
     it('should extract stack name from Spacelift page', async () => {

@@ -2,20 +2,15 @@ import {describe, it, expect} from 'vitest';
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 class TestHandler extends Handler {
+    readonly label = 'Test Handler';
+    readonly priority = 10;
+
     canHandle(url: string): boolean {
         return url.includes('test.com');
     }
 
-    getLabel(): string {
-        return 'Test Handler';
-    }
-
     extractTitle(): string {
         return 'Test';
-    }
-
-    getPriority(): number {
-        return 10;
     }
 }
 

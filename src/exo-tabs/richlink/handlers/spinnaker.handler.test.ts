@@ -22,11 +22,11 @@ describe('SpinnakerHandler', () => {
     });
 
     it('should have priority 50', () => {
-        expect(handler.getPriority()).toBe(50);
+        expect(handler.priority).toBe(50);
     });
 
     it('should return "Spinnaker Pipeline" as label', () => {
-        expect(handler.getLabel()).toBe('Spinnaker Pipeline');
+        expect(handler.label).toBe('Spinnaker Pipeline');
     });
 
     it('should extract pipeline name from Spinnaker page', async () => {

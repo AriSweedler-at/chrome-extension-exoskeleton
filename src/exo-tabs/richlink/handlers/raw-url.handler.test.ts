@@ -23,11 +23,11 @@ describe('RawUrlHandler', () => {
     });
 
     it('should have priority 200', () => {
-        expect(handler.getPriority()).toBe(200);
+        expect(handler.priority).toBe(200);
     });
 
     it('should return "Raw URL" as label', () => {
-        expect(handler.getLabel()).toBe('Raw URL');
+        expect(handler.label).toBe('Raw URL');
     });
 
     it('should return raw URL for both html and text', async () => {

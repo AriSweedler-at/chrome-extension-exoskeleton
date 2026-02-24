@@ -7,17 +7,17 @@ export class HandlerRegistry {
     static register(handler: Handler): void {
         if (handler.isFallback()) {
             this.baseHandlers.push(handler);
-            this.baseHandlers.sort((a, b) => a.getPriority() - b.getPriority());
+            this.baseHandlers.sort((a, b) => a.priority - b.priority);
         } else {
             this.specializedHandlers.push(handler);
-            this.specializedHandlers.sort((a, b) => a.getPriority() - b.getPriority());
+            this.specializedHandlers.sort((a, b) => a.priority - b.priority);
         }
     }
 
     static getHandlersForUrl(url: string): Handler[] {
         const specialized = this.specializedHandlers.filter((h) => h.canHandle(url));
         const combined = [...specialized, ...this.baseHandlers];
-        return combined.sort((a, b) => a.getPriority() - b.getPriority());
+        return combined.sort((a, b) => a.priority - b.priority);
     }
 
     static hasSpecializedHandler(url: string): boolean {

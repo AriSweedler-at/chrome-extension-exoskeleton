@@ -1,23 +1,17 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
-    canHandle(url: string): boolean {
-        return url.includes('atlassian.net');
-    }
-
-    getLabel(): string {
+    get label(): string {
         const url = window.location.href;
-        if (url.includes('/wiki/')) {
-            return 'Confluence Page';
-        }
-        if (url.includes('/browse/')) {
-            return 'Jira Issue';
-        }
+        if (url.includes('/wiki/')) return 'Confluence Page';
+        if (url.includes('/browse/')) return 'Jira Issue';
         return 'Atlassian Page';
     }
 
-    getPriority(): number {
-        return 30;
+    readonly priority = 30;
+
+    canHandle(url: string): boolean {
+        return url.includes('atlassian.net');
     }
 
     extractTitle(): string {

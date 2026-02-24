@@ -1,16 +1,11 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class SpaceliftHandler extends Handler {
+    readonly label = 'Spacelift Stack';
+    readonly priority = 60;
+
     canHandle(url: string): boolean {
         return url.includes('spacelift');
-    }
-
-    getLabel(): string {
-        return 'Spacelift Stack';
-    }
-
-    getPriority(): number {
-        return 60;
     }
 
     extractTitle(): string {

@@ -1,16 +1,11 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class AirtableHandler extends Handler {
+    readonly label = 'Airtable Record';
+    readonly priority = 40;
+
     canHandle(url: string): boolean {
         return url.includes('airtable.com');
-    }
-
-    getLabel(): string {
-        return 'Airtable Record';
-    }
-
-    getPriority(): number {
-        return 40;
     }
 
     extractTitle(): string {

@@ -25,11 +25,11 @@ describe('GitHubHandler', () => {
     });
 
     it('should have priority 10', () => {
-        expect(handler.getPriority()).toBe(10);
+        expect(handler.priority).toBe(10);
     });
 
     it('should return "GitHub PR" as label', () => {
-        expect(handler.getLabel()).toBe('GitHub PR');
+        expect(handler.label).toBe('GitHub PR');
     });
 
     it('should extract PR title from GitHub page', async () => {

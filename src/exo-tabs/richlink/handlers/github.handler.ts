@@ -1,6 +1,9 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
+    readonly label = 'GitHub PR';
+    readonly priority = 10;
+
     canHandle(url: string): boolean {
         // Handle GitHub PR URLs including sub-pages:
         // github.com/org/repo/pull/number
@@ -37,14 +40,6 @@ export class GitHubHandler extends Handler {
             !!prNumber &&
             /^\d+$/.test(prNumber)
         );
-    }
-
-    getLabel(): string {
-        return 'GitHub PR';
-    }
-
-    getPriority(): number {
-        return 10;
     }
 
     extractTitle(): string {

@@ -1,16 +1,11 @@
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class GoogleDocsHandler extends Handler {
+    readonly label = 'Google Doc';
+    readonly priority = 20;
+
     canHandle(url: string): boolean {
         return url.includes('docs.google.com');
-    }
-
-    getLabel(): string {
-        return 'Google Doc';
-    }
-
-    getPriority(): number {
-        return 20;
     }
 
     extractTitle(): string {
