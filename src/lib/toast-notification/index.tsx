@@ -146,6 +146,8 @@ export class Notifications {
             onClick,
         } = options;
 
+        console.log(`[exo toast] ${message}`);
+
         this.injectKeyframes();
 
         // Use existing container if present (for testing)

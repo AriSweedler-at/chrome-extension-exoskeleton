@@ -1,4 +1,9 @@
-import {CopyRichLinkAction, type CopyRichLinkPayload} from '@exo/exo-tabs/richlink/action';
+import {
+    CopyRichLinkAction,
+    GetFormatsAction,
+    type CopyRichLinkPayload,
+    type GetFormatsPayload,
+} from '@exo/exo-tabs/richlink/action';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -73,5 +78,10 @@ export async function handleCopyRichLink(
     return {success: true, formatIndex, totalFormats: formats.length};
 }
 
-// Self-register: importing this module wires the handler
+function handleGetFormats(payload: GetFormatsPayload) {
+    return HandlerRegistry.getAllFormats(payload.url);
+}
+
+// Self-register: importing this module wires the handlers
 CopyRichLinkAction.handle(handleCopyRichLink);
+GetFormatsAction.handle(handleGetFormats);

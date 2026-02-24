@@ -1,4 +1,3 @@
-import {useEffect} from 'react';
 import {
     toggleExecution,
     displayActiveExecution,
@@ -6,67 +5,15 @@ import {
     jumpToExecution,
     extractPodNames,
 } from '@exo/exo-tabs/spinnaker/actions';
-import {keybindings} from '@exo/lib/keybindings';
 import {theme} from '@exo/theme/default';
 
 /**
  * Spinnaker tab component
  *
- * Provides UI buttons and keyboard shortcuts for Spinnaker operations:
- * - Toggle execution details (e)
- * - Show active execution (x)
- * - Show active stage (s)
- * - Jump to execution (j)
- * - Extract pod names (p)
+ * Provides UI buttons for Spinnaker operations.
+ * Keyboard shortcuts are registered in page.ts (content script).
  */
 export function SpinnakerContent() {
-    useEffect(() => {
-        // Register Spinnaker keybindings
-        keybindings.registerAll([
-            {
-                key: 'e',
-                description: 'Toggle execution details',
-                handler: toggleExecution,
-                context: 'Spinnaker',
-            },
-            {
-                key: 'x',
-                description: 'Show active execution',
-                handler: displayActiveExecution,
-                context: 'Spinnaker',
-            },
-            {
-                key: 's',
-                description: 'Show active stage',
-                handler: displayActiveStage,
-                context: 'Spinnaker',
-            },
-            {
-                key: 'j',
-                description: 'Jump to execution',
-                handler: jumpToExecution,
-                context: 'Spinnaker',
-            },
-            {
-                key: 'p',
-                description: 'Extract pod names',
-                handler: extractPodNames,
-                context: 'Spinnaker',
-            },
-        ]);
-        keybindings.listen();
-
-        return () => {
-            // Unregister Spinnaker keybindings on unmount
-            keybindings.unregister('e');
-            keybindings.unregister('x');
-            keybindings.unregister('s');
-            keybindings.unregister('j');
-            keybindings.unregister('p');
-            keybindings.unlisten();
-        };
-    }, []);
-
     return (
         <div style={{padding: '16px'}}>
             <h2 style={{marginTop: 0, marginBottom: '16px'}}>Execution Controls</h2>

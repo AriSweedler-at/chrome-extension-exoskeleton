@@ -1,4 +1,4 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class PageTitleHandler extends Handler {
     readonly label = 'Page Title';
@@ -8,7 +8,7 @@ export class PageTitleHandler extends Handler {
         return true; // Handles all URLs as fallback
     }
 
-    extractTitle(): string {
+    extractLinkText(_ctx: FormatContext): string {
         return document.title || 'Untitled';
     }
 

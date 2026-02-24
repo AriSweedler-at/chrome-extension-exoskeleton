@@ -25,6 +25,6 @@ export class HandlerRegistry {
     }
 
     static getAllFormats(url: string): LinkFormat[] {
-        return this.getHandlersForUrl(url).map((h) => h.getFormat());
+        return this.getHandlersForUrl(url).map((h) => h.getFormat({url}));
     }
 }

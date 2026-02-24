@@ -1,4 +1,4 @@
-import {Handler, LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class RawUrlHandler extends Handler {
     readonly label = 'Raw URL';
@@ -9,12 +9,12 @@ export class RawUrlHandler extends Handler {
         return true; // Handles all URLs as fallback
     }
 
-    extractTitle(): string {
-        return window.location.href;
+    extractLinkText({url}: FormatContext): string {
+        return url;
     }
 
-    override getFormat(): LinkFormat {
-        const url = window.location.href;
+    override getFormat(ctx: FormatContext): LinkFormat {
+        const url = ctx.url;
         return {label: this.label, html: url, text: url};
     }
 }

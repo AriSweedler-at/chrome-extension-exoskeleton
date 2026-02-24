@@ -1,8 +1,17 @@
-import {Handler} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
-    readonly label = 'GitHub PR';
-    readonly priority = 10;
+    readonly label: string = 'GitHub PR';
+    readonly priority: number = 10;
+
+    // URL segment index for the PR number in github.com/org/repo/pull/{number}
+    protected static readonly PR_NUMBER_INDEX = 6;
+
+    /** Extract the PR number from a GitHub PR URL, or undefined if not found. */
+    protected parsePrNumber(url: string): string | undefined {
+        const raw = url.split('/')[GitHubHandler.PR_NUMBER_INDEX]?.split('?')[0];
+        return raw && /^\d+$/.test(raw) ? raw : undefined;
+    }
 
     canHandle(url: string): boolean {
         // Handle GitHub PR URLs including sub-pages:
@@ -28,7 +37,6 @@ export class GitHubHandler extends Handler {
         const org = parts[3];
         const repo = parts[4];
         const pullKeyword = parts[5];
-        const prNumber = parts[6]?.split('?')[0]; // Remove query params if present
 
         return (
             domain === 'github.com' &&
@@ -37,12 +45,11 @@ export class GitHubHandler extends Handler {
             !!repo &&
             repo !== '' &&
             pullKeyword === 'pull' &&
-            !!prNumber &&
-            /^\d+$/.test(prNumber)
+            !!this.parsePrNumber(url)
         );
     }
 
-    extractTitle(): string {
+    extractLinkText({url}: FormatContext): string {
         // Extract PR title from page - try multiple selectors for different GitHub layouts
         const titleElement =
             document.querySelector('.markdown-title') ||
@@ -54,20 +61,7 @@ export class GitHubHandler extends Handler {
         }
 
         const title = titleElement.textContent.trim();
-
-        // Extract PR number from URL
-        const url = window.location.href;
-        const parts = url.split('/');
-        const prNumberRaw = parts[6]; // Position of PR number in URL
-
-        if (prNumberRaw) {
-            // Remove query params and extract just the number
-            const prNumber = prNumberRaw.split('?')[0];
-            if (/^\d+$/.test(prNumber)) {
-                return `${title} (#${prNumber})`;
-            }
-        }
-
-        return title;
+        const prNumber = this.parsePrNumber(url);
+        return prNumber ? `${title} (#${prNumber})` : title;
     }
 }

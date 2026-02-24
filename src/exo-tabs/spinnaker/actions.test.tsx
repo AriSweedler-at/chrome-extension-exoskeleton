@@ -8,18 +8,11 @@ import {
 } from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import * as podExtractor from '@exo/exo-tabs/spinnaker/pod-extractor';
+import {Notifications} from '@exo/lib/toast-notification';
 
-// Mock chrome.notifications and runtime APIs
-(globalThis as Record<string, unknown>).chrome = {
-    notifications: {
-        create: vi.fn((_id: string, _options: unknown, callback?: (id: string) => void) => {
-            if (callback) callback('notification-id');
-        }),
-    },
-    runtime: {
-        getURL: vi.fn((path: string) => `chrome-extension://fake-id/${path}`),
-    },
-};
+vi.mock('@exo/lib/toast-notification', () => ({
+    Notifications: {show: vi.fn()},
+}));
 
 // Mock navigator.clipboard
 Object.assign(navigator, {
@@ -47,15 +40,9 @@ describe('spinnaker actions', () => {
 
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
             expect(clickFn).toHaveBeenCalled();
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Toggled execution details',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Toggled execution details',
+            });
         });
 
         it('should show error notification when link not found', () => {
@@ -64,15 +51,9 @@ describe('spinnaker actions', () => {
             toggleExecution();
 
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Execution details link not found',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Execution details link not found',
+            });
         });
     });
 
@@ -85,15 +66,9 @@ describe('spinnaker actions', () => {
 
             displayActiveExecution();
 
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (open)',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (open)',
+            });
         });
 
         it('should display execution ID and closed status', () => {
@@ -104,15 +79,9 @@ describe('spinnaker actions', () => {
 
             displayActiveExecution();
 
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (closed)',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Execution: 01HPN64GE091GK831P0XG2JQQT (closed)',
+            });
         });
 
         it('should show "No execution found" when no execution ID', () => {
@@ -121,15 +90,9 @@ describe('spinnaker actions', () => {
 
             displayActiveExecution();
 
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'No execution found in URL',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No execution found in URL',
+            });
         });
     });
 
@@ -143,15 +106,9 @@ describe('spinnaker actions', () => {
 
             displayActiveStage();
 
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Stage 2: runJobConfig',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Stage 2: runJobConfig',
+            });
         });
 
         it('should show "No stage open" when no stage found', () => {
@@ -159,15 +116,9 @@ describe('spinnaker actions', () => {
 
             displayActiveStage();
 
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'No stage open',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No stage open',
+            });
         });
     });
 
@@ -181,15 +132,9 @@ describe('spinnaker actions', () => {
 
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
             expect(clickFn).toHaveBeenCalled();
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Toggled execution details',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Toggled execution details',
+            });
         });
     });
 
@@ -208,15 +153,9 @@ describe('spinnaker actions', () => {
                 '{"metadata":{"name":"test-pod-123"}}',
             );
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith('test-pod-123');
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Copied pod name: test-pod-123',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Copied pod name: test-pod-123',
+            });
         });
 
         it('should show count when multiple pod names found', async () => {
@@ -229,15 +168,9 @@ describe('spinnaker actions', () => {
             await extractPodNames();
 
             expect(navigator.clipboard.writeText).toHaveBeenCalledWith('pod-1');
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'Copied pod name: pod-1 (3 total found)',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Copied pod name: pod-1 (3 total found)',
+            });
         });
 
         it('should show error when no pod names found', async () => {
@@ -250,15 +183,9 @@ describe('spinnaker actions', () => {
             await extractPodNames();
 
             expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'No pod names found in error',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No pod names found in error',
+            });
         });
 
         it('should show error when no error container found', async () => {
@@ -267,15 +194,9 @@ describe('spinnaker actions', () => {
             await extractPodNames();
 
             expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
-            expect(chrome.notifications.create).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.objectContaining({
-                    type: 'basic',
-                    title: 'Spinnaker',
-                    message: 'No error container found',
-                }),
-                expect.any(Function),
-            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No error container found',
+            });
         });
     });
 });
