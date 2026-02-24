@@ -24,31 +24,17 @@ export abstract class Handler {
     /** Extract a human-readable title from the current page's DOM or URL. */
     abstract extractTitle(): string;
 
-    /** HTML format for rich-text paste: `<a href="...">title</a>`. Override for bespoke output. */
-    async getHtml(): Promise<string> {
+    /** True for fallback handlers (e.g. Page Title, Raw URL) that match all URLs. */
+    readonly isFallback: boolean = false;
+
+    /** Build the LinkFormat for this handler. Override for bespoke output (e.g. RawUrl). */
+    getFormat(): LinkFormat {
         const title = this.extractTitle();
         const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    /** Plain-text format: `title (url)`. Override for bespoke output. */
-    async getText(): Promise<string> {
-        const title = this.extractTitle();
-        const url = window.location.href;
-        return `${title} (${url})`;
-    }
-
-    /** Bundle label + html + text into a single LinkFormat object. */
-    async getFormat(): Promise<LinkFormat> {
         return {
             label: this.label,
-            html: await this.getHtml(),
-            text: await this.getText(),
+            html: `<a href="${url}">${title}</a>`,
+            text: `${title} (${url})`,
         };
-    }
-
-    /** Return true for fallback handlers (e.g. Page Title, Raw URL) that match all URLs. */
-    isFallback(): boolean {
-        return false;
     }
 }

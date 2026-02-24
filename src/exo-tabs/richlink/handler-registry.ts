@@ -5,7 +5,7 @@ export class HandlerRegistry {
     private static specializedHandlers: Handler[] = [];
 
     static register(handler: Handler): void {
-        if (handler.isFallback()) {
+        if (handler.isFallback) {
             this.baseHandlers.push(handler);
             this.baseHandlers.sort((a, b) => a.priority - b.priority);
         } else {
@@ -24,8 +24,7 @@ export class HandlerRegistry {
         return this.specializedHandlers.some((h) => h.canHandle(url));
     }
 
-    static async getAllFormats(url: string): Promise<LinkFormat[]> {
-        const handlers = this.getHandlersForUrl(url);
-        return await Promise.all(handlers.map((h) => h.getFormat()));
+    static getAllFormats(url: string): LinkFormat[] {
+        return this.getHandlersForUrl(url).map((h) => h.getFormat());
     }
 }

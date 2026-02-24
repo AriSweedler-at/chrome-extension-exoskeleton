@@ -19,7 +19,7 @@ describe('RawUrlHandler', () => {
     });
 
     it('should be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(true);
+        expect(handler.isFallback).toBe(true);
     });
 
     it('should have priority 200', () => {
@@ -31,10 +31,10 @@ describe('RawUrlHandler', () => {
     });
 
     it('should return raw URL for both html and text', async () => {
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('https://example.com/page?query=test#anchor');
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe('https://example.com/page?query=test#anchor');
     });
 });

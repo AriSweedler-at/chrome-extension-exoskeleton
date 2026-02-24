@@ -16,7 +16,7 @@ describe('GoogleDocsHandler', () => {
     });
 
     it('should not be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('should have priority 20', () => {
@@ -40,12 +40,12 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/abc123/edit">Project Requirements Document</a>',
         );
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe(
             'Project Requirements Document (https://docs.google.com/document/d/abc123/edit)',
         );
@@ -60,7 +60,7 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/abc123/edit">Google Doc</a>',
         );
@@ -79,7 +79,7 @@ describe('GoogleDocsHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://docs.google.com/document/d/xyz789/edit">Meeting Notes</a>',
         );

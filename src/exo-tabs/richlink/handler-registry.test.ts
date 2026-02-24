@@ -22,9 +22,7 @@ class FallbackHandler extends Handler {
     extractTitle(): string {
         return 'Fallback';
     }
-    isFallback(): boolean {
-        return true;
-    }
+    override readonly isFallback = true;
 }
 
 describe('HandlerRegistry', () => {
@@ -83,7 +81,7 @@ describe('HandlerRegistry', () => {
         HandlerRegistry.register(specialized);
         HandlerRegistry.register(fallback);
 
-        const formats = await HandlerRegistry.getAllFormats('https://github.com/repo');
+        const formats = HandlerRegistry.getAllFormats('https://github.com/repo');
         expect(formats).toHaveLength(2);
         expect(formats[0].label).toBe('GitHub');
         expect(formats[1].label).toBe('Fallback');

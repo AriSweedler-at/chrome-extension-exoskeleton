@@ -15,7 +15,7 @@ describe('AirtableHandler', () => {
     });
 
     it('should not be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('should have priority 40', () => {
@@ -39,10 +39,10 @@ describe('AirtableHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Product Roadmap</a>');
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe('Product Roadmap (https://airtable.com/appABC123/tblXYZ789)');
 
         document.body.removeChild(mockBaseName);
@@ -55,7 +55,7 @@ describe('AirtableHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Airtable Record</a>');
     });
 
@@ -72,7 +72,7 @@ describe('AirtableHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Features</a>');
 
         document.body.removeChild(mockTableName);
@@ -90,7 +90,7 @@ describe('AirtableHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>',
         );

@@ -23,10 +23,8 @@ describe('Rich Link Integration', () => {
         expect(HandlerRegistry.hasSpecializedHandler('https://example.com')).toBe(false);
     });
 
-    it('should return formats in priority order', async () => {
-        const formats = await HandlerRegistry.getAllFormats(
-            'https://github.com/user/repo/pull/123',
-        );
+    it('should return formats in priority order', () => {
+        const formats = HandlerRegistry.getAllFormats('https://github.com/user/repo/pull/123');
         expect(formats.length).toBeGreaterThan(0);
 
         // GitHub should be first (priority 10)
@@ -39,8 +37,8 @@ describe('Rich Link Integration', () => {
         expect(formats[formats.length - 1].label).toBe('Raw URL');
     });
 
-    it('should fallback to base handlers on unsupported sites', async () => {
-        const formats = await HandlerRegistry.getAllFormats('https://example.com');
+    it('should fallback to base handlers on unsupported sites', () => {
+        const formats = HandlerRegistry.getAllFormats('https://example.com');
 
         // Should only have base handlers
         expect(formats).toHaveLength(2);

@@ -9,14 +9,14 @@ describe('SpaceliftHandler', () => {
     });
 
     it('should handle Spacelift URLs', () => {
-        expect(handler.canHandle('https://company.app.spacelift.io/stack/my-stack')).toBe(true);
-        expect(handler.canHandle('https://spacelift.io/dashboard')).toBe(true);
-        expect(handler.canHandle('https://company-spacelift.com')).toBe(true);
+        expect(handler.canHandle('https://spacelift.shadowbox.cloud/stack/my-stack')).toBe(true);
+        expect(handler.canHandle('https://spacelift.shadowbox.cloud/dashboard')).toBe(true);
         expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle('https://spacelift.io/dashboard')).toBe(false);
     });
 
     it('should not be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('should have priority 60', () => {
@@ -40,12 +40,12 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/prod-infra">production-infrastructure</a>',
         );
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe(
             'production-infrastructure (https://company.app.spacelift.io/stack/prod-infra)',
         );
@@ -60,7 +60,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/my-stack">Spacelift Stack</a>',
         );
@@ -78,7 +78,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/stack/my-stack/run/123">Run #123: Update VPC</a>',
         );
@@ -98,7 +98,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/module/terraform-aws-vpc">terraform-aws-vpc</a>',
         );
@@ -118,7 +118,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/policies/approval-policy">Require Approval Policy</a>',
         );
@@ -137,7 +137,7 @@ describe('SpaceliftHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://company.app.spacelift.io/dashboard">Dashboard Overview</a>',
         );

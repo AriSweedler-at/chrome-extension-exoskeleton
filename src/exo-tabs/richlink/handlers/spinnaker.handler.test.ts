@@ -18,7 +18,7 @@ describe('SpinnakerHandler', () => {
     });
 
     it('should not be a fallback handler', () => {
-        expect(handler.isFallback()).toBe(false);
+        expect(handler.isFallback).toBe(false);
     });
 
     it('should have priority 50', () => {
@@ -42,12 +42,12 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>',
         );
 
-        const text = await handler.getText();
+        const text = handler.getFormat().text;
         expect(text).toBe(
             'Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)',
         );
@@ -62,7 +62,7 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>',
         );
@@ -80,7 +80,7 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">my-service</a>',
         );
@@ -100,7 +100,7 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>',
         );
@@ -120,7 +120,7 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = await handler.getHtml();
+        const html = handler.getFormat().html;
         expect(html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>',
         );
