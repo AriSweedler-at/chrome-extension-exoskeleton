@@ -43,23 +43,11 @@ export class GitHubHandler extends Handler {
         return 'GitHub PR';
     }
 
-    async getHtml(): Promise<string> {
-        const formattedTitle = this.extractFormattedTitle();
-        const url = window.location.href;
-        return `<a href="${url}">${formattedTitle}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const formattedTitle = this.extractFormattedTitle();
-        const url = window.location.href;
-        return `${formattedTitle} (${url})`;
-    }
-
     getPriority(): number {
         return 10;
     }
 
-    private extractFormattedTitle(): string {
+    extractTitle(): string {
         // Extract PR title from page - try multiple selectors for different GitHub layouts
         const titleElement =
             document.querySelector('.markdown-title') ||

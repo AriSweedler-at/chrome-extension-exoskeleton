@@ -9,6 +9,10 @@ export class RawUrlHandler extends Handler {
         return 'Raw URL';
     }
 
+    extractTitle(): string {
+        return window.location.href;
+    }
+
     async getHtml(): Promise<string> {
         return window.location.href;
     }

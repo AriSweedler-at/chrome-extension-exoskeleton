@@ -10,12 +10,8 @@ class TestHandler extends Handler {
         return 'Test Handler';
     }
 
-    async getHtml(): Promise<string> {
-        return '<a href="https://test.com">Test</a>';
-    }
-
-    async getText(): Promise<string> {
-        return 'Test (https://test.com)';
+    extractTitle(): string {
+        return 'Test';
     }
 
     getPriority(): number {
@@ -28,10 +24,11 @@ describe('Handler', () => {
         const handler = new TestHandler();
         const format = await handler.getFormat();
 
+        const url = window.location.href;
         expect(format).toEqual({
             label: 'Test Handler',
-            html: '<a href="https://test.com">Test</a>',
-            text: 'Test (https://test.com)',
+            html: `<a href="${url}">Test</a>`,
+            text: `Test (${url})`,
         });
     });
 

@@ -9,16 +9,8 @@ export class PageTitleHandler extends Handler {
         return 'Page Title';
     }
 
-    async getHtml(): Promise<string> {
-        const title = document.title || 'Untitled';
-        const url = window.location.href;
-        return `<a href="${url}">${title}</a>`;
-    }
-
-    async getText(): Promise<string> {
-        const title = document.title || 'Untitled';
-        const url = window.location.href;
-        return `${title} (${url})`;
+    extractTitle(): string {
+        return document.title || 'Untitled';
     }
 
     getPriority(): number {
