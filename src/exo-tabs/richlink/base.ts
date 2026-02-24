@@ -12,14 +12,14 @@ export interface LinkFormat {
  * extends this class — it will be auto-discovered and registered.
  */
 export abstract class Handler {
-    /** Return true if this handler knows how to produce a label for the given URL. */
-    abstract canHandle(url: string): boolean;
-
     /** Short display name shown in the format picker (e.g. "GitHub PR", "Spacelift Stack"). */
     abstract readonly label: string;
 
     /** Lower numbers appear first in the format picker. */
     abstract readonly priority: number;
+
+    /** Return true if this handler knows how to produce a label for the given URL. */
+    abstract canHandle(url: string): boolean;
 
     /** Extract a human-readable title from the current page's DOM or URL. */
     abstract extractTitle(): string;
