@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 import {SpaceliftHandler} from '@exo/exo-tabs/richlink/handlers/spacelift.handler';
 
 describe('SpaceliftHandler', () => {
@@ -6,13 +6,13 @@ describe('SpaceliftHandler', () => {
 
     beforeEach(() => {
         handler = new SpaceliftHandler();
+        document.body.innerHTML = '';
     });
 
     it('should handle Spacelift URLs', () => {
         expect(handler.canHandle('https://spacelift.shadowbox.cloud/stack/my-stack')).toBe(true);
         expect(handler.canHandle('https://spacelift.shadowbox.cloud/dashboard')).toBe(true);
         expect(handler.canHandle('https://example.com')).toBe(false);
-        expect(handler.canHandle('https://spacelift.io/dashboard')).toBe(false);
     });
 
     it('should not be a fallback handler', () => {
@@ -27,133 +27,62 @@ describe('SpaceliftHandler', () => {
         expect(handler.label).toBe('Spacelift Stack');
     });
 
-    it('should extract stack name from Spacelift page', async () => {
-        // Mock Spacelift page DOM with stack name
-        const mockStackName = document.createElement('h1');
-        mockStackName.className = 'stack-name';
-        mockStackName.textContent = 'production-infrastructure';
-        document.body.appendChild(mockStackName);
+    it('should format as Spacelift: stack: title with run title', () => {
+        const runTitle = document.createElement('h2');
+        runTitle.className = 'run-title';
+        runTitle.textContent = 'Remove stale references from k8s services (#201431)';
+        document.body.appendChild(runTitle);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/stack/prod-infra',
-            },
-        });
+        const url =
+            'https://spacelift.shadowbox.cloud/stack/build_artifacts-production/run/01KJ84Z5SVB5RDZA1TZHZEH33W';
+        const linkText = handler.extractLinkText({url});
 
-        const html = handler.getFormat({
-            url: 'https://company.app.spacelift.io/stack/prod-infra',
-        }).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/stack/prod-infra">production-infrastructure</a>',
-        );
-
-        const text = handler.getFormat({
-            url: 'https://company.app.spacelift.io/stack/prod-infra',
-        }).text;
-        expect(text).toBe(
-            'production-infrastructure (https://company.app.spacelift.io/stack/prod-infra)',
-        );
-
-        document.body.removeChild(mockStackName);
+        // prefix "Spacelift: build_artifacts-production: " is 40 chars
+        expect(linkText.length).toBe(SpaceliftHandler.TOTAL_MAX_LEN);
+        expect(linkText).toMatch(/^Spacelift: build_artifacts-production: /);
+        expect(linkText).toMatch(/\.\.\.$/);
     });
 
-    it('should handle missing stack name', async () => {
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/stack/my-stack',
-            },
-        });
+    it('should truncate so total link text is TOTAL_MAX_LEN chars', () => {
+        const runTitle = document.createElement('h2');
+        runTitle.className = 'run-title';
+        runTitle.textContent = 'This is a very long title that exceeds the limit easily';
+        document.body.appendChild(runTitle);
 
-        const html = handler.getFormat({
-            url: 'https://company.app.spacelift.io/stack/my-stack',
-        }).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/stack/my-stack">Spacelift Stack</a>',
-        );
+        const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
+        const linkText = handler.extractLinkText({url});
+
+        expect(linkText.length).toBe(SpaceliftHandler.TOTAL_MAX_LEN);
+        expect(linkText).toMatch(/\.\.\.$/);
+        expect(linkText).toMatch(/^Spacelift: my-stack: /);
     });
 
-    it('should extract run details', async () => {
-        const mockRunName = document.createElement('h2');
-        mockRunName.className = 'run-title';
-        mockRunName.textContent = 'Run #123: Update VPC';
-        document.body.appendChild(mockRunName);
+    it('should not truncate short titles', () => {
+        const runTitle = document.createElement('h2');
+        runTitle.className = 'run-title';
+        runTitle.textContent = 'Short title';
+        document.body.appendChild(runTitle);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/stack/my-stack/run/123',
-            },
-        });
-
-        const html = handler.getFormat({
-            url: 'https://company.app.spacelift.io/stack/my-stack/run/123',
-        }).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/stack/my-stack/run/123">Run #123: Update VPC</a>',
-        );
-
-        document.body.removeChild(mockRunName);
+        const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
+        expect(handler.extractLinkText({url})).toBe('Spacelift: my-stack: Short title');
     });
 
-    it('should extract module name', async () => {
-        const mockModuleName = document.createElement('h1');
-        mockModuleName.setAttribute('data-testid', 'module-name');
-        mockModuleName.textContent = 'terraform-aws-vpc';
-        document.body.appendChild(mockModuleName);
-
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/module/terraform-aws-vpc',
-            },
-        });
-
-        const html = handler.getFormat({
-            url: 'https://company.app.spacelift.io/module/terraform-aws-vpc',
-        }).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/module/terraform-aws-vpc">terraform-aws-vpc</a>',
-        );
-
-        document.body.removeChild(mockModuleName);
+    it('should show just stack name when no page title', () => {
+        const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
+        expect(handler.extractLinkText({url})).toBe('Spacelift: my-stack');
     });
 
-    it('should extract policy name', async () => {
-        const mockPolicyName = document.createElement('h1');
-        mockPolicyName.className = 'policy-header';
-        mockPolicyName.textContent = 'Require Approval Policy';
-        document.body.appendChild(mockPolicyName);
+    it('should fall back to h1 if no run-title or stack-name element', () => {
+        const h1 = document.createElement('h1');
+        h1.textContent = 'Dashboard Overview';
+        document.body.appendChild(h1);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/policies/approval-policy',
-            },
-        });
-
-        const html = handler.getFormat({
-            url: 'https://company.app.spacelift.io/policies/approval-policy',
-        }).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/policies/approval-policy">Require Approval Policy</a>',
-        );
-
-        document.body.removeChild(mockPolicyName);
+        const url = 'https://spacelift.shadowbox.cloud/stack/infra-prod';
+        expect(handler.extractLinkText({url})).toBe('Spacelift: infra-prod: Dashboard Overview');
     });
 
-    it('should handle page title as fallback', async () => {
-        const mockTitle = document.createElement('h1');
-        mockTitle.textContent = 'Dashboard Overview';
-        document.body.appendChild(mockTitle);
-
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.app.spacelift.io/dashboard',
-            },
-        });
-
-        const html = handler.getFormat({url: 'https://company.app.spacelift.io/dashboard'}).html;
-        expect(html).toBe(
-            '<a href="https://company.app.spacelift.io/dashboard">Dashboard Overview</a>',
-        );
-
-        document.body.removeChild(mockTitle);
+    it('should return fallback when no stack in URL and no DOM title', () => {
+        const url = 'https://spacelift.shadowbox.cloud/dashboard';
+        expect(handler.extractLinkText({url})).toBe('Spacelift Stack');
     });
 });

@@ -8,38 +8,37 @@ export class SpaceliftHandler extends Handler {
         return url.includes('spacelift.shadowbox.cloud');
     }
 
-    extractLinkText(_ctx: FormatContext): string {
-        // Try to extract stack name
-        // TODO: Verify these selectors work across different Spacelift UI versions
-        const stackName = document.querySelector('.stack-name');
-        if (stackName?.textContent) {
-            return stackName.textContent.trim();
-        }
+    static readonly TOTAL_MAX_LEN = 60;
 
-        // Try to extract run title
-        const runTitle = document.querySelector('.run-title');
-        if (runTitle?.textContent) {
-            return runTitle.textContent.trim();
-        }
+    private parseStackName(url: string): string | undefined {
+        const match = new URL(url).pathname.match(/^\/stack\/([^/]+)/);
+        return match?.[1];
+    }
 
-        // Try to extract module name
-        const moduleName = document.querySelector('[data-testid="module-name"]');
-        if (moduleName?.textContent) {
-            return moduleName.textContent.trim();
+    private getPageTitle(): string | undefined {
+        for (const selector of ['.run-title', '.stack-name', 'h1']) {
+            const el = document.querySelector(selector);
+            if (el?.textContent) return el.textContent.trim();
         }
+        return undefined;
+    }
 
-        // Try to extract policy name
-        const policyName = document.querySelector('.policy-header');
-        if (policyName?.textContent) {
-            return policyName.textContent.trim();
+    extractLinkText({url}: FormatContext): string {
+        const stackName = this.parseStackName(url);
+        const title = this.getPageTitle();
+
+        if (stackName && title) {
+            const prefix = `Spacelift: ${stackName}: `;
+            const remaining = SpaceliftHandler.TOTAL_MAX_LEN - prefix.length;
+            const truncatedTitle =
+                remaining >= 4 && title.length > remaining
+                    ? title.slice(0, remaining - 3) + '...'
+                    : title;
+            return prefix + truncatedTitle;
         }
-
-        // Fallback to any h1 on the page
-        const h1 = document.querySelector('h1');
-        if (h1?.textContent) {
-            return h1.textContent.trim();
+        if (stackName) {
+            return `Spacelift: ${stackName}`;
         }
-
         return 'Spacelift Stack';
     }
 }
