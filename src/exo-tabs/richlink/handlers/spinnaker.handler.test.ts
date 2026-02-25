@@ -10,11 +10,22 @@ describe('SpinnakerHandler', () => {
 
     it('should handle Spinnaker URLs', () => {
         expect(
-            handler.canHandle('https://spinnaker.company.com/applications/myapp/executions'),
+            handler.canHandle(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions',
+            ),
         ).toBe(true);
-        expect(handler.canHandle('https://company-spinnaker.io/pipelines/abc123')).toBe(true);
-        expect(handler.canHandle('https://spin.example.com')).toBe(false);
+        expect(
+            handler.canHandle(
+                'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/myapp/executions',
+            ),
+        ).toBe(true);
         expect(handler.canHandle('https://example.com')).toBe(false);
+        // Buildkite pipeline with "spinnaker" in its name should NOT match
+        expect(
+            handler.canHandle(
+                'https://buildkite.com/airtable/update-spinnaker-deploy-code-container-sha/builds/69',
+            ),
+        ).toBe(false);
     });
 
     it('should not be a fallback handler', () => {
