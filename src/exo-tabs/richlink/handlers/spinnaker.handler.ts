@@ -5,7 +5,10 @@ export class SpinnakerHandler extends Handler {
     readonly priority = 50;
 
     canHandle(url: string): boolean {
-        return url.includes('spinnaker');
+        return (
+            url.includes('spinnaker.k8s.shadowbox.cloud') ||
+            url.includes('spinnaker.k8s.alpha-shadowbox.cloud')
+        );
     }
 
     extractLinkText(_ctx: FormatContext): string {
