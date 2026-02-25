@@ -1,4 +1,4 @@
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
     readonly label: string = 'GitHub PR';
@@ -47,6 +47,23 @@ export class GitHubHandler extends Handler {
             pullKeyword === 'pull' &&
             !!this.parsePrNumber(url)
         );
+    }
+
+    /** Strip sub-pages (/files, /changes, /commits, /checks, etc.) from GitHub PR URLs. */
+    private canonicalUrl(url: string): string {
+        const parts = url.split('/');
+        // Keep: https://github.com/org/repo/pull/number (indices 0–6)
+        return parts.slice(0, 7).join('/');
+    }
+
+    getFormat(ctx: FormatContext): LinkFormat {
+        const title = this.extractLinkText(ctx);
+        const url = this.canonicalUrl(ctx.url);
+        return {
+            label: this.label,
+            html: `<a href="${url}">${title}</a>`,
+            text: `${title} (${url})`,
+        };
     }
 
     extractLinkText({url}: FormatContext): string {
