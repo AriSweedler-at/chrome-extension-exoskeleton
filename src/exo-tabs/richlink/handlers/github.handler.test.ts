@@ -69,7 +69,7 @@ describe('GitHubHandler', () => {
         expect(html).toBe('<a href="https://github.com/user/repo/pull/456">GitHub PR</a>');
     });
 
-    it('should extract PR title from sub-pages like /files', async () => {
+    it('should strip sub-pages like /files from the link URL', async () => {
         // Mock GitHub PR files page DOM with modern selector
         const mockTitle = document.createElement('span');
         mockTitle.className = 'markdown-title';
@@ -86,14 +86,14 @@ describe('GitHubHandler', () => {
             url: 'https://github.com/anthropics/escalation/pull/200045/files',
         }).html;
         expect(html).toBe(
-            '<a href="https://github.com/anthropics/escalation/pull/200045/files">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>',
+            '<a href="https://github.com/anthropics/escalation/pull/200045">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>',
         );
 
         const text = handler.getFormat({
             url: 'https://github.com/anthropics/escalation/pull/200045/files',
         }).text;
         expect(text).toBe(
-            'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045/files)',
+            'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045)',
         );
 
         document.body.removeChild(mockTitle);
