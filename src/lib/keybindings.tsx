@@ -83,11 +83,16 @@ export class KeybindingRegistry {
                 return;
             }
 
+            // For non-letter keys (like ? ! @ #), shift is implicit in the
+            // character itself — don't include it as a modifier. Only treat
+            // shift as an explicit modifier for letter keys (a-z).
+            const isLetter = /^[a-zA-Z]$/.test(event.key);
+
             const signature = this.getKeySignature({
                 key: event.key,
                 modifiers: {
                     ctrl: event.ctrlKey,
-                    shift: event.shiftKey,
+                    shift: isLetter && event.shiftKey,
                     alt: event.altKey,
                     meta: event.metaKey,
                 },
