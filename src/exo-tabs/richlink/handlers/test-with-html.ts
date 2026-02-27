@@ -43,12 +43,19 @@ const handlers: Record<string, new () => Handler> = {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXAMPLES_DIR = path.join(__dirname, 'examples');
 
-/** Resolve a file path — bare filenames look in examples/ first. */
+/** Resolve a file path — bare filenames look in examples/ dirs. */
 function resolveHtmlPath(input: string): string {
-    // If the input has no directory component, try examples/ first
     if (!input.includes('/') && !input.includes('\\')) {
-        const examplesPath = path.join(EXAMPLES_DIR, input);
-        if (fs.existsSync(examplesPath)) return examplesPath;
+        // Check top-level examples/
+        const topLevel = path.join(EXAMPLES_DIR, input);
+        if (fs.existsSync(topLevel)) return topLevel;
+
+        // Check subdirectory examples/ (e.g., airtable/examples/)
+        for (const entry of fs.readdirSync(__dirname, {withFileTypes: true})) {
+            if (!entry.isDirectory() || entry.name === 'examples') continue;
+            const subExamples = path.join(__dirname, entry.name, 'examples', input);
+            if (fs.existsSync(subExamples)) return subExamples;
+        }
     }
     return path.resolve(input);
 }
@@ -102,19 +109,21 @@ function testHandler(handlerName: string, htmlFilePath: string, url: string) {
     }
 
     // Test format extraction
-    const format = handler.getFormats({url})[0];
+    const formats = handler.getFormats({url});
 
-    console.log('\n=== Rich Link Output ===');
-    console.log(`Label: ${format?.label}`);
-    console.log(`HTML:  ${format.html}`);
-    console.log(`Text:  ${format.text}`);
+    for (let i = 0; i < formats.length; i++) {
+        const format = formats[i];
+        console.log(`\n=== Format ${i + 1}/${formats.length} ===`);
+        console.log(`Label:    ${format.label}`);
+        console.log(`Priority: ${format.priority}`);
+        console.log(`HTML:     ${format.html}`);
+        console.log(`Text:     ${format.text}`);
 
-    // Parse and show formatted output
-    const htmlMatch = format.html.match(/<a href="([^"]+)">([^<]+)<\/a>/);
-    if (htmlMatch) {
-        console.log('\n=== Parsed ===');
-        console.log(`Link Text: ${htmlMatch[2]}`);
-        console.log(`Link URL:  ${htmlMatch[1]}`);
+        const htmlMatch = format.html.match(/<a href="([^"]+)">([^<]+)<\/a>/);
+        if (htmlMatch) {
+            console.log(`Parsed Link Text: ${htmlMatch[2]}`);
+            console.log(`Parsed Link URL:  ${htmlMatch[1]}`);
+        }
     }
     console.log('');
 }

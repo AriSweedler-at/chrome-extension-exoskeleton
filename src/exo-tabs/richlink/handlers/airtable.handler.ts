@@ -1,52 +1,40 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import {listableHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/listable/listable.handler';
+import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
+
+/** Sub-handlers tried in order; each matching handler contributes formats. */
+const subHandlers: AirtableSubHandler[] = [listableHandler];
 
 export class AirtableHandler extends Handler {
     canHandle(url: string): boolean {
         return url.includes('airtable.com');
     }
 
-    /**
-     * When viewing a record via the detail panel (list page with ?detail=base64JSON),
-     * the URL is ugly and long. Extract the record permalink from the detail param.
-     *
-     * Detail param decodes to: { pageId: "pagXXX", rowId: "recXXX", ... }
-     * Canonical URL: https://airtable.com/{appId}/{pageId}/{rowId}
-     */
-    private canonicalUrl(url: string): string {
-        const parsed = new URL(url);
-        const detail = parsed.searchParams.get('detail');
-        if (!detail) return url;
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const formats: LinkFormat[] = [];
 
-        try {
-            const json = JSON.parse(globalThis.atob(detail));
-            const {pageId, rowId} = json;
-            if (!pageId || !rowId) return url;
-
-            // Extract appId from the pathname: /apptivTqaoebkrmV1/pagXXX...
-            const appId = parsed.pathname.split('/')[1];
-            if (!appId?.startsWith('app')) return url;
-
-            return `${parsed.origin}/${appId}/${pageId}/${rowId}`;
-        } catch {
-            return url;
+        // Collect formats from matching sub-handlers
+        for (const sub of subHandlers) {
+            if (sub.canHandle(ctx.url)) {
+                formats.push(...sub.getFormats(ctx.url));
+            }
         }
+
+        // Always include generic Airtable fallback
+        const url = canonicalAirtableUrl(ctx.url);
+        const title = this.extractGenericTitle();
+        formats.push({
+            label: 'Airtable Record',
+            priority: 40,
+            html: `<a href="${url}">${title}</a>`,
+            text: `${title} (${url})`,
+        });
+
+        return formats;
     }
 
-    private extractLinkText(): string {
-        // Listable record: first cell-editor is a formula field with "LTT#/Title"
-        const formulaCell = document.querySelector(
-            '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
-        );
-        if (formulaCell?.textContent) {
-            const raw = formulaCell.textContent.trim();
-            // Convert "LTT69717/Title text" → "LTT69717: Title text"
-            const slashIdx = raw.indexOf('/');
-            if (slashIdx !== -1) {
-                return `${raw.slice(0, slashIdx)}: ${raw.slice(slashIdx + 1)}`;
-            }
-            return raw;
-        }
-
+    private extractGenericTitle(): string {
         // Base name
         const baseName = document.querySelector('.basename');
         if (baseName?.textContent) {
@@ -66,18 +54,5 @@ export class AirtableHandler extends Handler {
         }
 
         return 'Airtable Record';
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
-        const url = this.canonicalUrl(ctx.url);
-        return [
-            {
-                label: 'Airtable Record',
-                priority: 40,
-                html: `<a href="${url}">${title}</a>`,
-                text: `${title} (${url})`,
-            },
-        ];
     }
 }
