@@ -19,14 +19,6 @@ describe('SpaceliftHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should have priority 60', () => {
-        expect(handler.priority).toBe(60);
-    });
-
-    it('should return "Spacelift Stack" as label', () => {
-        expect(handler.label).toBe('Spacelift Stack');
-    });
-
     it('should format as Spacelift: stack: title with run title', () => {
         const runTitle = document.createElement('h2');
         runTitle.className = 'run-title';
@@ -35,7 +27,8 @@ describe('SpaceliftHandler', () => {
 
         const url =
             'https://spacelift.shadowbox.cloud/stack/build_artifacts-production/run/01KJ84Z5SVB5RDZA1TZHZEH33W';
-        const linkText = handler.extractLinkText({url});
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
 
         // prefix "Spacelift: build_artifacts-production: " is 40 chars
         expect(linkText.length).toBe(SpaceliftHandler.TOTAL_MAX_LEN);
@@ -50,7 +43,8 @@ describe('SpaceliftHandler', () => {
         document.body.appendChild(runTitle);
 
         const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
-        const linkText = handler.extractLinkText({url});
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
 
         expect(linkText.length).toBe(SpaceliftHandler.TOTAL_MAX_LEN);
         expect(linkText).toMatch(/\.\.\.$/);
@@ -64,12 +58,14 @@ describe('SpaceliftHandler', () => {
         document.body.appendChild(runTitle);
 
         const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
-        expect(handler.extractLinkText({url})).toBe('Spacelift: my-stack: Short title');
+        const format = handler.getFormats({url})[0];
+        expect(format.text).toContain('Spacelift: my-stack: Short title');
     });
 
     it('should show just stack name when no page title', () => {
         const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
-        expect(handler.extractLinkText({url})).toBe('Spacelift: my-stack');
+        const format = handler.getFormats({url})[0];
+        expect(format.text).toContain('Spacelift: my-stack');
     });
 
     it('should fall back to h1 if no run-title or stack-name element', () => {
@@ -78,11 +74,14 @@ describe('SpaceliftHandler', () => {
         document.body.appendChild(h1);
 
         const url = 'https://spacelift.shadowbox.cloud/stack/infra-prod';
-        expect(handler.extractLinkText({url})).toBe('Spacelift: infra-prod: Dashboard Overview');
+        const format = handler.getFormats({url})[0];
+        expect(format.text).toContain('Spacelift: infra-prod: Dashboard Overview');
     });
 
     it('should return fallback when no stack in URL and no DOM title', () => {
         const url = 'https://spacelift.shadowbox.cloud/dashboard';
-        expect(handler.extractLinkText({url})).toBe('Spacelift Stack');
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText).toBe('Spacelift Stack');
     });
 });

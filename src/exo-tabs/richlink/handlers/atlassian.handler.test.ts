@@ -20,35 +20,32 @@ describe('AtlassianHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should have priority 30', () => {
-        expect(handler.priority).toBe(30);
-    });
-
     it('should return "Confluence Page" label for wiki URLs', () => {
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
-            },
-        });
-        expect(handler.label).toBe('Confluence Page');
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
+        })[0];
+        expect(format.label).toBe('Confluence Page');
     });
 
     it('should return "Jira Issue" label for browse URLs', () => {
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.atlassian.net/browse/PROJ-123',
-            },
-        });
-        expect(handler.label).toBe('Jira Issue');
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/browse/PROJ-123',
+        })[0];
+        expect(format.label).toBe('Jira Issue');
     });
 
     it('should return "Atlassian Page" label for other URLs', () => {
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://company.atlassian.net/jira/dashboard',
-            },
-        });
-        expect(handler.label).toBe('Atlassian Page');
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/jira/dashboard',
+        })[0];
+        expect(format.label).toBe('Atlassian Page');
+    });
+
+    it('should return format with priority 30', () => {
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
+        })[0];
+        expect(format.priority).toBe(30);
     });
 
     it('should extract Confluence page title', async () => {
@@ -63,17 +60,13 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Engineering Guidelines</a>',
         );
-
-        const text = handler.getFormat({
-            url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
-        }).text;
-        expect(text).toBe(
+        expect(format.text).toBe(
             'Engineering Guidelines (https://company.atlassian.net/wiki/spaces/ENG/pages/123)',
         );
 
@@ -95,13 +88,13 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).html;
-        expect(html).toBe(
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/browse/PROJ-123',
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-123">Fix login bug</a>',
         );
-
-        const text = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).text;
-        expect(text).toBe('Fix login bug (https://company.atlassian.net/browse/PROJ-123)');
+        expect(format.text).toBe('Fix login bug (https://company.atlassian.net/browse/PROJ-123)');
 
         document.body.removeChild(mockSummary);
     });
@@ -113,10 +106,10 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://company.atlassian.net/wiki/spaces/ENG/pages/123',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://company.atlassian.net/wiki/spaces/ENG/pages/123">Confluence Page</a>',
         );
     });
@@ -128,8 +121,12 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-123'}).html;
-        expect(html).toBe('<a href="https://company.atlassian.net/browse/PROJ-123">Jira Issue</a>');
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/browse/PROJ-123',
+        })[0];
+        expect(format.html).toBe(
+            '<a href="https://company.atlassian.net/browse/PROJ-123">Jira Issue</a>',
+        );
     });
 
     it('should use alternative Jira selector', async () => {
@@ -144,8 +141,10 @@ describe('AtlassianHandler', () => {
             },
         });
 
-        const html = handler.getFormat({url: 'https://company.atlassian.net/browse/PROJ-456'}).html;
-        expect(html).toBe(
+        const format = handler.getFormats({
+            url: 'https://company.atlassian.net/browse/PROJ-456',
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://company.atlassian.net/browse/PROJ-456">Update documentation</a>',
         );
 

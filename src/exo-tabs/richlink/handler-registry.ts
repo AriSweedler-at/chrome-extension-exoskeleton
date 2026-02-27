@@ -7,17 +7,9 @@ export class HandlerRegistry {
     static register(handler: Handler): void {
         if (handler.isFallback) {
             this.baseHandlers.push(handler);
-            this.baseHandlers.sort((a, b) => a.priority - b.priority);
         } else {
             this.specializedHandlers.push(handler);
-            this.specializedHandlers.sort((a, b) => a.priority - b.priority);
         }
-    }
-
-    static getHandlersForUrl(url: string): Handler[] {
-        const specialized = this.specializedHandlers.filter((h) => h.canHandle(url));
-        const combined = [...specialized, ...this.baseHandlers];
-        return combined.sort((a, b) => a.priority - b.priority);
     }
 
     static hasSpecializedHandler(url: string): boolean {
@@ -25,6 +17,8 @@ export class HandlerRegistry {
     }
 
     static getAllFormats(url: string): LinkFormat[] {
-        return this.getHandlersForUrl(url).map((h) => h.getFormat({url}));
+        const specialized = this.specializedHandlers.filter((h) => h.canHandle(url));
+        const combined = [...specialized, ...this.baseHandlers];
+        return combined.flatMap((h) => h.getFormats({url})).sort((a, b) => a.priority - b.priority);
     }
 }

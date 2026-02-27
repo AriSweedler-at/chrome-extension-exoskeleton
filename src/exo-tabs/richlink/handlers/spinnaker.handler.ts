@@ -1,9 +1,6 @@
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class SpinnakerHandler extends Handler {
-    readonly label = 'Spinnaker Pipeline';
-    readonly priority = 50;
-
     canHandle(url: string): boolean {
         return (
             url.includes('spinnaker.k8s.shadowbox.cloud') ||
@@ -11,7 +8,7 @@ export class SpinnakerHandler extends Handler {
         );
     }
 
-    extractLinkText(_ctx: FormatContext): string {
+    private extractLinkText(): string {
         // Try to extract pipeline name from execution group
         // TODO: Verify these selectors work across different Spinnaker deployments
         const pipelineName = document.querySelector('.execution-group-title');
@@ -38,5 +35,17 @@ export class SpinnakerHandler extends Handler {
         }
 
         return 'Spinnaker Page';
+    }
+
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const title = this.extractLinkText();
+        return [
+            {
+                label: 'Spinnaker Pipeline',
+                priority: 50,
+                html: `<a href="${ctx.url}">${title}</a>`,
+                text: `${title} (${ctx.url})`,
+            },
+        ];
     }
 }

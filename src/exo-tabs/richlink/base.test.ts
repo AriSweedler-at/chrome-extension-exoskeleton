@@ -1,27 +1,32 @@
 import {describe, it, expect} from 'vitest';
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 class TestHandler extends Handler {
-    readonly label = 'Test Handler';
-    readonly priority = 10;
-
     canHandle(url: string): boolean {
         return url.includes('test.com');
     }
 
-    extractLinkText(_ctx: FormatContext): string {
-        return 'Test';
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        return [
+            {
+                label: 'Test Handler',
+                priority: 10,
+                html: `<a href="${ctx.url}">Test</a>`,
+                text: `Test (${ctx.url})`,
+            },
+        ];
     }
 }
 
 describe('Handler', () => {
-    it('getFormat should return LinkFormat', () => {
+    it('getFormats should return LinkFormat[]', () => {
         const handler = new TestHandler();
-        const format = handler.getFormat({url: window.location.href});
+        const format = handler.getFormats({url: window.location.href})[0];
 
         const url = window.location.href;
         expect(format).toEqual({
             label: 'Test Handler',
+            priority: 10,
             html: `<a href="${url}">Test</a>`,
             text: `Test (${url})`,
         });

@@ -1,10 +1,6 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class AirtableHandler extends Handler {
-    readonly priority = 40;
-
-    readonly label = 'Airtable Record';
-
     canHandle(url: string): boolean {
         return url.includes('airtable.com');
     }
@@ -36,17 +32,7 @@ export class AirtableHandler extends Handler {
         }
     }
 
-    getFormat(ctx: FormatContext): LinkFormat {
-        const title = this.extractLinkText(ctx);
-        const url = this.canonicalUrl(ctx.url);
-        return {
-            label: this.label,
-            html: `<a href="${url}">${title}</a>`,
-            text: `${title} (${url})`,
-        };
-    }
-
-    extractLinkText(_ctx: FormatContext): string {
+    private extractLinkText(): string {
         // Listable record: first cell-editor is a formula field with "LTT#/Title"
         const formulaCell = document.querySelector(
             '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
@@ -80,5 +66,18 @@ export class AirtableHandler extends Handler {
         }
 
         return 'Airtable Record';
+    }
+
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const title = this.extractLinkText();
+        const url = this.canonicalUrl(ctx.url);
+        return [
+            {
+                label: 'Airtable Record',
+                priority: 40,
+                html: `<a href="${url}">${title}</a>`,
+                text: `${title} (${url})`,
+            },
+        ];
     }
 }

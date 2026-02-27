@@ -1,20 +1,17 @@
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
-    get label(): string {
-        const url = window.location.href;
+    canHandle(url: string): boolean {
+        return url.includes('atlassian.net');
+    }
+
+    private getLabel(url: string): string {
         if (url.includes('/wiki/')) return 'Confluence Page';
         if (url.includes('/browse/')) return 'Jira Issue';
         return 'Atlassian Page';
     }
 
-    readonly priority = 30;
-
-    canHandle(url: string): boolean {
-        return url.includes('atlassian.net');
-    }
-
-    extractLinkText({url}: FormatContext): string {
+    private extractLinkText(url: string): string {
         // Confluence page title
         // TODO: Verify this selector works across different Confluence versions
         if (url.includes('/wiki/')) {
@@ -46,5 +43,17 @@ export class AtlassianHandler extends Handler {
         }
 
         return 'Atlassian Page';
+    }
+
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const title = this.extractLinkText(ctx.url);
+        return [
+            {
+                label: this.getLabel(ctx.url),
+                priority: 30,
+                html: `<a href="${ctx.url}">${title}</a>`,
+                text: `${title} (${ctx.url})`,
+            },
+        ];
     }
 }

@@ -1,9 +1,6 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
-    readonly label: string = 'GitHub PR';
-    readonly priority: number = 10;
-
     // URL segment index for the PR number in github.com/org/repo/pull/{number}
     protected static readonly PR_NUMBER_INDEX = 6;
 
@@ -56,17 +53,7 @@ export class GitHubHandler extends Handler {
         return parts.slice(0, 7).join('/');
     }
 
-    getFormat(ctx: FormatContext): LinkFormat {
-        const title = this.extractLinkText(ctx);
-        const url = this.canonicalUrl(ctx.url);
-        return {
-            label: this.label,
-            html: `<a href="${url}">${title}</a>`,
-            text: `${title} (${url})`,
-        };
-    }
-
-    extractLinkText({url}: FormatContext): string {
+    private extractLinkText({url}: FormatContext): string {
         // Extract PR title from page - try multiple selectors for different GitHub layouts
         const titleElement =
             document.querySelector('.markdown-title') ||
@@ -80,5 +67,18 @@ export class GitHubHandler extends Handler {
         const title = titleElement.textContent.trim();
         const prNumber = this.parsePrNumber(url);
         return prNumber ? `${title} (#${prNumber})` : title;
+    }
+
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const title = this.extractLinkText(ctx);
+        const url = this.canonicalUrl(ctx.url);
+        return [
+            {
+                label: 'GitHub PR',
+                priority: 10,
+                html: `<a href="${url}">${title}</a>`,
+                text: `${title} (${url})`,
+            },
+        ];
     }
 }

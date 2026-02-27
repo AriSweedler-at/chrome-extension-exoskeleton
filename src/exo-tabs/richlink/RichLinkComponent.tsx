@@ -33,7 +33,7 @@ function FormatButton({
     const [paused, setPaused] = useState(false);
     const [overflow, setOverflow] = useState(0);
 
-    const isFallback = format.label === 'Page Title' || format.label === 'Raw URL';
+    const isFallback = format.isFallback ?? false;
     const opacity = isFallback ? 0.75 : 1;
     const backgroundColor = isFallback ? theme.richlink.fallbackBg : theme.richlink.specializedBg;
     const hoverBg = isFallback ? theme.richlink.fallbackHoverBg : theme.richlink.specializedHoverBg;

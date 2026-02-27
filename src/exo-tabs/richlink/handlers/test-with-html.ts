@@ -102,10 +102,10 @@ function testHandler(handlerName: string, htmlFilePath: string, url: string) {
     }
 
     // Test format extraction
-    const format = handler.getFormat({url});
+    const format = handler.getFormats({url})[0];
 
     console.log('\n=== Rich Link Output ===');
-    console.log(`Label: ${format.label}`);
+    console.log(`Label: ${format?.label}`);
     console.log(`HTML:  ${format.html}`);
     console.log(`Text:  ${format.text}`);
 

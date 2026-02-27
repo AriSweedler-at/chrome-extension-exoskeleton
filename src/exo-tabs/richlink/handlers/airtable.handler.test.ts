@@ -22,14 +22,6 @@ describe('AirtableHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should have priority 40', () => {
-        expect(handler.priority).toBe(40);
-    });
-
-    it('should return "Airtable Record" as label', () => {
-        expect(handler.label).toBe('Airtable Record');
-    });
-
     it('should extract Listable record title from formula cell', () => {
         // Mock Listable DOM: cell-editor formula field with "LTT#/Title"
         const cellEditor = document.createElement('div');
@@ -45,7 +37,7 @@ describe('AirtableHandler', () => {
             location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        const format = handler.getFormats({url: 'https://airtable.com/appABC123/tblXYZ789'})[0];
         expect(format.html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789">LTT69717: Validate the existence of new images</a>',
         );
@@ -64,7 +56,7 @@ describe('AirtableHandler', () => {
             location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        const format = handler.getFormats({url: 'https://airtable.com/appABC123/tblXYZ789'})[0];
         expect(format.html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789">Product Roadmap</a>',
         );
@@ -75,7 +67,7 @@ describe('AirtableHandler', () => {
             location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        const format = handler.getFormats({url: 'https://airtable.com/appABC123/tblXYZ789'})[0];
         expect(format.html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789">Airtable Record</a>',
         );
@@ -91,7 +83,7 @@ describe('AirtableHandler', () => {
             location: {href: 'https://airtable.com/appABC123/tblXYZ789'},
         });
 
-        const format = handler.getFormat({url: 'https://airtable.com/appABC123/tblXYZ789'});
+        const format = handler.getFormats({url: 'https://airtable.com/appABC123/tblXYZ789'})[0];
         expect(format.html).toBe('<a href="https://airtable.com/appABC123/tblXYZ789">Features</a>');
     });
 
@@ -105,9 +97,9 @@ describe('AirtableHandler', () => {
             location: {href: 'https://airtable.com/appABC123/tblXYZ789/viwDEF456'},
         });
 
-        const format = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://airtable.com/appABC123/tblXYZ789/viwDEF456',
-        });
+        })[0];
         expect(format.html).toBe(
             '<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>',
         );
@@ -129,7 +121,7 @@ describe('AirtableHandler', () => {
         cellEditor.appendChild(heading);
         document.body.appendChild(cellEditor);
 
-        const format = handler.getFormat({url: detailUrl});
+        const format = handler.getFormats({url: detailUrl})[0];
         expect(format.html).toBe(
             '<a href="https://airtable.com/appXYZ123/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T">LTT69726: Some task title</a>',
         );
@@ -141,14 +133,14 @@ describe('AirtableHandler', () => {
     it('should pass through URL unchanged when no detail param', () => {
         const url = 'https://airtable.com/appXYZ123/pagABC/recDEF?home=pagGHI';
 
-        const format = handler.getFormat({url});
+        const format = handler.getFormats({url})[0];
         expect(format.html).toBe(`<a href="${url}">Airtable Record</a>`);
     });
 
     it('should pass through URL unchanged when detail param is malformed', () => {
         const url = 'https://airtable.com/appXYZ123/pagABC?detail=notvalidbase64!!!';
 
-        const format = handler.getFormat({url});
+        const format = handler.getFormats({url})[0];
         expect(format.html).toBe(`<a href="${url}">Airtable Record</a>`);
     });
 });

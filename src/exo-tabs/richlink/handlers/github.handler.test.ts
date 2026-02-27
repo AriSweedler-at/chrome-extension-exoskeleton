@@ -24,12 +24,10 @@ describe('GitHubHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should have priority 10', () => {
-        expect(handler.priority).toBe(10);
-    });
-
-    it('should return "GitHub PR" as label', () => {
-        expect(handler.label).toBe('GitHub PR');
+    it('should return format with priority 10 and label "GitHub PR"', () => {
+        const format = handler.getFormats({url: 'https://github.com/user/repo/pull/123'})[0];
+        expect(format.priority).toBe(10);
+        expect(format.label).toBe('GitHub PR');
     });
 
     it('should extract PR title from GitHub page', async () => {
@@ -45,13 +43,11 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat({url: 'https://github.com/user/repo/pull/123'}).html;
-        expect(html).toBe(
+        const format = handler.getFormats({url: 'https://github.com/user/repo/pull/123'})[0];
+        expect(format.html).toBe(
             '<a href="https://github.com/user/repo/pull/123">Fix bug in authentication (#123)</a>',
         );
-
-        const text = handler.getFormat({url: 'https://github.com/user/repo/pull/123'}).text;
-        expect(text).toBe(
+        expect(format.text).toBe(
             'Fix bug in authentication (#123) (https://github.com/user/repo/pull/123)',
         );
 
@@ -65,8 +61,8 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat({url: 'https://github.com/user/repo/pull/456'}).html;
-        expect(html).toBe('<a href="https://github.com/user/repo/pull/456">GitHub PR</a>');
+        const format = handler.getFormats({url: 'https://github.com/user/repo/pull/456'})[0];
+        expect(format.html).toBe('<a href="https://github.com/user/repo/pull/456">GitHub PR</a>');
     });
 
     it('should strip sub-pages like /files from the link URL', async () => {
@@ -82,17 +78,13 @@ describe('GitHubHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://github.com/anthropics/escalation/pull/200045/files',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://github.com/anthropics/escalation/pull/200045">feat(escalation_agent): Add thread context to agent prompts (#200045)</a>',
         );
-
-        const text = handler.getFormat({
-            url: 'https://github.com/anthropics/escalation/pull/200045/files',
-        }).text;
-        expect(text).toBe(
+        expect(format.text).toBe(
             'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045)',
         );
 

@@ -22,19 +22,13 @@ describe('RawUrlHandler', () => {
         expect(handler.isFallback).toBe(true);
     });
 
-    it('should have priority 200', () => {
-        expect(handler.priority).toBe(200);
-    });
-
-    it('should return "Raw URL" as label', () => {
-        expect(handler.label).toBe('Raw URL');
-    });
-
     it('should return raw URL for both html and text', async () => {
-        const html = handler.getFormat({url: 'https://example.com/page?query=test#anchor'}).html;
+        const html = handler.getFormats({url: 'https://example.com/page?query=test#anchor'})[0]
+            .html;
         expect(html).toBe('https://example.com/page?query=test#anchor');
 
-        const text = handler.getFormat({url: 'https://example.com/page?query=test#anchor'}).text;
+        const text = handler.getFormats({url: 'https://example.com/page?query=test#anchor'})[0]
+            .text;
         expect(text).toBe('https://example.com/page?query=test#anchor');
     });
 });

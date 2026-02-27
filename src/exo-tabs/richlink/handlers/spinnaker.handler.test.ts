@@ -32,14 +32,6 @@ describe('SpinnakerHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should have priority 50', () => {
-        expect(handler.priority).toBe(50);
-    });
-
-    it('should return "Spinnaker Pipeline" as label', () => {
-        expect(handler.label).toBe('Spinnaker Pipeline');
-    });
-
     it('should extract pipeline name from Spinnaker page', async () => {
         // Mock Spinnaker page DOM with pipeline name
         const mockPipelineName = document.createElement('h3');
@@ -53,17 +45,13 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://spinnaker.company.com/applications/myapp/executions',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>',
         );
-
-        const text = handler.getFormat({
-            url: 'https://spinnaker.company.com/applications/myapp/executions',
-        }).text;
-        expect(text).toBe(
+        expect(format.text).toBe(
             'Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)',
         );
 
@@ -77,10 +65,10 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://spinnaker.company.com/applications/myapp',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>',
         );
     });
@@ -97,10 +85,10 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://spinnaker.company.com/applications/myapp',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp">my-service</a>',
         );
 
@@ -119,10 +107,10 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://spinnaker.company.com/applications/myapp/executions/details/exec123',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>',
         );
 
@@ -141,10 +129,10 @@ describe('SpinnakerHandler', () => {
             },
         });
 
-        const html = handler.getFormat({
+        const format = handler.getFormats({
             url: 'https://spinnaker.company.com/applications/myapp/pipelineConfig/edit',
-        }).html;
-        expect(html).toBe(
+        })[0];
+        expect(format.html).toBe(
             '<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>',
         );
 

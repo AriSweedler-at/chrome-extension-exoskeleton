@@ -27,26 +27,18 @@ describe('PageTitleHandler', () => {
         expect(handler.isFallback).toBe(true);
     });
 
-    it('should have priority 100', () => {
-        expect(handler.priority).toBe(100);
-    });
-
-    it('should return "Page Title" as label', () => {
-        expect(handler.label).toBe('Page Title');
-    });
-
     it('should extract page title from document', async () => {
-        const html = handler.getFormat({url: 'https://example.com/page'}).html;
+        const html = handler.getFormats({url: 'https://example.com/page'})[0].html;
         expect(html).toBe('<a href="https://example.com/page">Test Page Title</a>');
 
-        const text = handler.getFormat({url: 'https://example.com/page'}).text;
+        const text = handler.getFormats({url: 'https://example.com/page'})[0].text;
         expect(text).toBe('Test Page Title (https://example.com/page)');
     });
 
     it('should handle missing title', async () => {
         vi.stubGlobal('document', {title: ''});
 
-        const html = handler.getFormat({url: 'https://example.com/page'}).html;
+        const html = handler.getFormats({url: 'https://example.com/page'})[0].html;
         expect(html).toBe('<a href="https://example.com/page">Untitled</a>');
     });
 });

@@ -1,9 +1,6 @@
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class SpaceliftHandler extends Handler {
-    readonly label = 'Spacelift Stack';
-    readonly priority = 60;
-
     canHandle(url: string): boolean {
         return url.includes('spacelift.shadowbox.cloud');
     }
@@ -23,7 +20,7 @@ export class SpaceliftHandler extends Handler {
         return undefined;
     }
 
-    extractLinkText({url}: FormatContext): string {
+    private extractLinkText(url: string): string {
         const stackName = this.parseStackName(url);
         const title = this.getPageTitle();
 
@@ -40,5 +37,17 @@ export class SpaceliftHandler extends Handler {
             return `Spacelift: ${stackName}`;
         }
         return 'Spacelift Stack';
+    }
+
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        const title = this.extractLinkText(ctx.url);
+        return [
+            {
+                label: 'Spacelift Stack',
+                priority: 60,
+                html: `<a href="${ctx.url}">${title}</a>`,
+                text: `${title} (${ctx.url})`,
+            },
+        ];
     }
 }
