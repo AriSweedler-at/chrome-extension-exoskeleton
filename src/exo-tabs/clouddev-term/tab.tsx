@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {theme} from '@exo/theme/default';
+import {isClouddevTermPage} from '@exo/exo-tabs/clouddev-term';
 
 async function requestSetFont(): Promise<{applied: boolean; previous: string}> {
     return chrome.runtime.sendMessage({type: 'CLOUDDEV_TERM_SET_FONT'});
@@ -58,12 +59,7 @@ TabRegistry.register({
         return result.applied;
     },
     getPriority: (url: string) => {
-        try {
-            const hostname = new URL(url).hostname;
-            if (hostname.endsWith('-term.clouddev.hyperbasedev.com')) return 0;
-        } catch {
-            // invalid URL
-        }
+        if (isClouddevTermPage(url)) return 0;
         return Number.MAX_SAFE_INTEGER;
     },
 });
