@@ -6,8 +6,8 @@ import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url
 const LISTABLE_APP_ID = 'apptivTqaoebkrmV1';
 
 export const listableHandler: AirtableSubHandler = {
-    canHandle(url: string): boolean {
-        return url.includes(LISTABLE_APP_ID);
+    canHandle(url: URL): boolean {
+        return url.href.includes(LISTABLE_APP_ID);
     },
 
     getFormats({url}: FormatContext): LinkFormat[] {

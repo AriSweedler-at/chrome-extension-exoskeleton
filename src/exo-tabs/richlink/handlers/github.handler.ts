@@ -10,19 +10,14 @@ export class GitHubHandler extends Handler {
         return raw && /^\d+$/.test(raw) ? raw : undefined;
     }
 
-    canHandle(url: string): boolean {
-        try {
-            const urlObj = new URL(url);
-            if (urlObj.hostname !== 'github.com') return false;
+    canHandle(url: URL): boolean {
+        if (url.hostname !== 'github.com') return false;
 
-            // Expected: /org/repo/pull/number[/subpath]
-            const parts = urlObj.pathname.split('/').filter(Boolean);
-            if (parts.length < 4) return false;
+        // Expected: /org/repo/pull/number[/subpath]
+        const parts = url.pathname.split('/').filter(Boolean);
+        if (parts.length < 4) return false;
 
-            return parts[2] === 'pull' && !!this.parsePrNumber(url);
-        } catch {
-            return false;
-        }
+        return parts[2] === 'pull' && !!this.parsePrNumber(url.href);
     }
 
     /** Strip sub-pages (/files, /changes, /commits, /checks, etc.) from GitHub PR URLs. */

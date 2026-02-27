@@ -13,11 +13,22 @@ export class HandlerRegistry {
     }
 
     static hasSpecializedHandler(url: string): boolean {
-        return this.specializedHandlers.some((h) => h.canHandle(url));
+        try {
+            const parsed = new URL(url);
+            return this.specializedHandlers.some((h) => h.canHandle(parsed));
+        } catch {
+            return false;
+        }
     }
 
     static getAllFormats(url: string): LinkFormat[] {
-        const specialized = this.specializedHandlers.filter((h) => h.canHandle(url));
+        let parsed: URL;
+        try {
+            parsed = new URL(url);
+        } catch {
+            return [];
+        }
+        const specialized = this.specializedHandlers.filter((h) => h.canHandle(parsed));
         const combined = [...specialized, ...this.baseHandlers];
         return combined.flatMap((h) => h.getFormats({url})).sort((a, b) => a.priority - b.priority);
     }

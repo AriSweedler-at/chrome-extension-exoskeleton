@@ -1,12 +1,8 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
-    canHandle(url: string): boolean {
-        try {
-            return new URL(url).hostname.endsWith('.atlassian.net');
-        } catch {
-            return false;
-        }
+    canHandle(url: URL): boolean {
+        return url.hostname.endsWith('.atlassian.net');
     }
 
     private getLabel(url: string): string {

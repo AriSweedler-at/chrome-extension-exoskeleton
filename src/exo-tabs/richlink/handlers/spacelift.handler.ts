@@ -1,12 +1,8 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class SpaceliftHandler extends Handler {
-    canHandle(url: string): boolean {
-        try {
-            return new URL(url).hostname === 'spacelift.shadowbox.cloud';
-        } catch {
-            return false;
-        }
+    canHandle(url: URL): boolean {
+        return url.hostname === 'spacelift.shadowbox.cloud';
     }
 
     static readonly TOTAL_MAX_LEN = 60;

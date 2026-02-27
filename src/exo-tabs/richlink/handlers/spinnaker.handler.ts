@@ -1,16 +1,11 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class SpinnakerHandler extends Handler {
-    canHandle(url: string): boolean {
-        try {
-            const hostname = new URL(url).hostname;
-            return (
-                hostname === 'spinnaker.k8s.shadowbox.cloud' ||
-                hostname === 'spinnaker.k8s.alpha-shadowbox.cloud'
-            );
-        } catch {
-            return false;
-        }
+    canHandle(url: URL): boolean {
+        return (
+            url.hostname === 'spinnaker.k8s.shadowbox.cloud' ||
+            url.hostname === 'spinnaker.k8s.alpha-shadowbox.cloud'
+        );
     }
 
     private extractLinkText(): string {

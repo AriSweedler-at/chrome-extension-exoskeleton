@@ -9,15 +9,25 @@ describe('GitHubHandler', () => {
     });
 
     it('should handle GitHub PR URLs and sub-pages', () => {
-        expect(handler.canHandle('https://github.com/user/repo/pull/123')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo/pull/456/files')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo/pull/789/commits')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo/pull/789/checks')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo/pull/789/changes')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo/pull/123?tab=overview')).toBe(true);
-        expect(handler.canHandle('https://github.com/user/repo')).toBe(false);
-        expect(handler.canHandle('https://github.com/user/repo/issues/123')).toBe(false);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://github.com/user/repo/pull/123'))).toBe(true);
+        expect(handler.canHandle(new URL('https://github.com/user/repo/pull/456/files'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://github.com/user/repo/pull/789/commits'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://github.com/user/repo/pull/789/checks'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://github.com/user/repo/pull/789/changes'))).toBe(
+            true,
+        );
+        expect(
+            handler.canHandle(new URL('https://github.com/user/repo/pull/123?tab=overview')),
+        ).toBe(true);
+        expect(handler.canHandle(new URL('https://github.com/user/repo'))).toBe(false);
+        expect(handler.canHandle(new URL('https://github.com/user/repo/issues/123'))).toBe(false);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

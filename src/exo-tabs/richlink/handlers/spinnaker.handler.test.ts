@@ -11,19 +11,23 @@ describe('SpinnakerHandler', () => {
     it('should handle Spinnaker URLs', () => {
         expect(
             handler.canHandle(
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions',
+                new URL('https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions'),
             ),
         ).toBe(true);
         expect(
             handler.canHandle(
-                'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/myapp/executions',
+                new URL(
+                    'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/myapp/executions',
+                ),
             ),
         ).toBe(true);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
         // Buildkite pipeline with "spinnaker" in its name should NOT match
         expect(
             handler.canHandle(
-                'https://buildkite.com/airtable/update-spinnaker-deploy-code-container-sha/builds/69',
+                new URL(
+                    'https://buildkite.com/airtable/update-spinnaker-deploy-code-container-sha/builds/69',
+                ),
             ),
         ).toBe(false);
     });

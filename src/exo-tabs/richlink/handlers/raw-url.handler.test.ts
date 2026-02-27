@@ -14,8 +14,8 @@ describe('RawUrlHandler', () => {
     });
 
     it('should handle any URL', () => {
-        expect(handler.canHandle('https://example.com')).toBe(true);
-        expect(handler.canHandle('https://github.com')).toBe(true);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(true);
+        expect(handler.canHandle(new URL('https://github.com'))).toBe(true);
     });
 
     it('should be a fallback handler', () => {

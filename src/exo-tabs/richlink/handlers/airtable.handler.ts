@@ -7,12 +7,8 @@ import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url
 const subHandlers: AirtableSubHandler[] = [listableHandler];
 
 export class AirtableHandler extends Handler {
-    canHandle(url: string): boolean {
-        try {
-            return new URL(url).hostname === 'airtable.com';
-        } catch {
-            return false;
-        }
+    canHandle(url: URL): boolean {
+        return url.hostname === 'airtable.com';
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
@@ -20,7 +16,7 @@ export class AirtableHandler extends Handler {
 
         // Collect formats from matching sub-handlers
         for (const sub of subHandlers) {
-            if (sub.canHandle(ctx.url)) {
+            if (sub.canHandle(new URL(ctx.url))) {
                 formats.push(...sub.getFormats(ctx));
             }
         }

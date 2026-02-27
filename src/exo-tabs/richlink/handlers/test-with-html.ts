@@ -100,7 +100,7 @@ function testHandler(handlerName: string, htmlFilePath: string, url: string) {
     console.log(`HTML File: ${htmlPath}`);
     console.log('');
 
-    const canHandle = handler.canHandle(url);
+    const canHandle = handler.canHandle(new URL(url));
     console.log(`canHandle: ${canHandle}`);
 
     if (!canHandle) {

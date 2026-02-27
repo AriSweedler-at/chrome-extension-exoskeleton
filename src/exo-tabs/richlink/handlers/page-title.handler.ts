@@ -1,7 +1,7 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class PageTitleHandler extends Handler {
-    canHandle(_url: string): boolean {
+    canHandle(_url: URL): boolean {
         return true; // Handles all URLs as fallback
     }
 

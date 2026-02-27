@@ -3,8 +3,8 @@ import {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 class SpecializedHandler extends Handler {
-    canHandle(url: string): boolean {
-        return url.includes('github.com');
+    canHandle(url: URL): boolean {
+        return url.href.includes('github.com');
     }
     getFormats(_ctx: FormatContext): LinkFormat[] {
         return [
@@ -19,7 +19,7 @@ class SpecializedHandler extends Handler {
 }
 
 class FallbackHandler extends Handler {
-    canHandle(_url: string): boolean {
+    canHandle(_url: URL): boolean {
         return true;
     }
     getFormats(_ctx: FormatContext): LinkFormat[] {

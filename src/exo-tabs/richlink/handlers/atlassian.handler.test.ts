@@ -9,11 +9,13 @@ describe('AtlassianHandler', () => {
     });
 
     it('should handle Atlassian URLs', () => {
-        expect(handler.canHandle('https://company.atlassian.net/wiki/spaces/ENG/pages/123')).toBe(
+        expect(
+            handler.canHandle(new URL('https://company.atlassian.net/wiki/spaces/ENG/pages/123')),
+        ).toBe(true);
+        expect(handler.canHandle(new URL('https://company.atlassian.net/browse/PROJ-123'))).toBe(
             true,
         );
-        expect(handler.canHandle('https://company.atlassian.net/browse/PROJ-123')).toBe(true);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

@@ -2,8 +2,8 @@ import {describe, it, expect} from 'vitest';
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 class TestHandler extends Handler {
-    canHandle(url: string): boolean {
-        return url.includes('test.com');
+    canHandle(url: URL): boolean {
+        return url.href.includes('test.com');
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
@@ -39,7 +39,7 @@ describe('Handler', () => {
 
     it('canHandle should check URL', () => {
         const handler = new TestHandler();
-        expect(handler.canHandle('https://test.com/page')).toBe(true);
-        expect(handler.canHandle('https://other.com/page')).toBe(false);
+        expect(handler.canHandle(new URL('https://test.com/page'))).toBe(true);
+        expect(handler.canHandle(new URL('https://other.com/page'))).toBe(false);
     });
 });

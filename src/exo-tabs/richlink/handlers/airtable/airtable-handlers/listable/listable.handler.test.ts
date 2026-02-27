@@ -9,13 +9,17 @@ describe('listableHandler', () => {
     it('should handle Listable URLs', () => {
         expect(
             listableHandler.canHandle(
-                'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+                new URL(
+                    'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+                ),
             ),
         ).toBe(true);
     });
 
     it('should not handle non-Listable Airtable URLs', () => {
-        expect(listableHandler.canHandle('https://airtable.com/appOTHER/tblXYZ')).toBe(false);
+        expect(listableHandler.canHandle(new URL('https://airtable.com/appOTHER/tblXYZ'))).toBe(
+            false,
+        );
     });
 
     it('should extract Listable record title from formula cell', () => {

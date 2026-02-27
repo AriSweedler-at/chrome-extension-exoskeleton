@@ -1,12 +1,8 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class BuildkiteHandler extends Handler {
-    canHandle(url: string): boolean {
-        try {
-            return new URL(url).hostname === 'buildkite.com';
-        } catch {
-            return false;
-        }
+    canHandle(url: URL): boolean {
+        return url.hostname === 'buildkite.com';
     }
 
     private extractLinkText(url: string): string {

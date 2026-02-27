@@ -9,11 +9,11 @@ describe('BuildkiteHandler', () => {
     });
 
     it('should handle Buildkite URLs', () => {
-        expect(handler.canHandle('https://buildkite.com/airtable/my-pipeline')).toBe(true);
-        expect(handler.canHandle('https://buildkite.com/airtable/my-pipeline/builds/123')).toBe(
-            true,
-        );
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://buildkite.com/airtable/my-pipeline'))).toBe(true);
+        expect(
+            handler.canHandle(new URL('https://buildkite.com/airtable/my-pipeline/builds/123')),
+        ).toBe(true);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

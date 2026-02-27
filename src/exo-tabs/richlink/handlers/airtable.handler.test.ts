@@ -13,9 +13,11 @@ describe('AirtableHandler', () => {
     });
 
     it('should handle Airtable URLs', () => {
-        expect(handler.canHandle('https://airtable.com/appABC123/tblXYZ789/viwDEF456')).toBe(true);
-        expect(handler.canHandle('https://airtable.com/shrABC123')).toBe(true);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(
+            handler.canHandle(new URL('https://airtable.com/appABC123/tblXYZ789/viwDEF456')),
+        ).toBe(true);
+        expect(handler.canHandle(new URL('https://airtable.com/shrABC123'))).toBe(true);
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

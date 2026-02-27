@@ -10,9 +10,13 @@ describe('SpaceliftHandler', () => {
     });
 
     it('should handle Spacelift URLs', () => {
-        expect(handler.canHandle('https://spacelift.shadowbox.cloud/stack/my-stack')).toBe(true);
-        expect(handler.canHandle('https://spacelift.shadowbox.cloud/dashboard')).toBe(true);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://spacelift.shadowbox.cloud/stack/my-stack'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://spacelift.shadowbox.cloud/dashboard'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

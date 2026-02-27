@@ -9,10 +9,16 @@ describe('GoogleDocsHandler', () => {
     });
 
     it('should handle Google Docs URLs', () => {
-        expect(handler.canHandle('https://docs.google.com/document/d/abc123/edit')).toBe(true);
-        expect(handler.canHandle('https://docs.google.com/spreadsheets/d/xyz456')).toBe(true);
-        expect(handler.canHandle('https://docs.google.com/presentation/d/def789')).toBe(true);
-        expect(handler.canHandle('https://example.com')).toBe(false);
+        expect(handler.canHandle(new URL('https://docs.google.com/document/d/abc123/edit'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://docs.google.com/spreadsheets/d/xyz456'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://docs.google.com/presentation/d/def789'))).toBe(
+            true,
+        );
+        expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
     it('should not be a fallback handler', () => {

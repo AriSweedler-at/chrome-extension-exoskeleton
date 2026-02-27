@@ -30,7 +30,7 @@ export interface FormatContext {
  */
 export abstract class Handler {
     /** Return true if this handler knows how to produce links for the given URL. */
-    abstract canHandle(url: string): boolean;
+    abstract canHandle(url: URL): boolean;
 
     /** Return one or more LinkFormats for the given URL. */
     abstract getFormats(ctx: FormatContext): LinkFormat[];
