@@ -1,4 +1,4 @@
-import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class AirtableHandler extends Handler {
     readonly priority = 40;
@@ -7,6 +7,43 @@ export class AirtableHandler extends Handler {
 
     canHandle(url: string): boolean {
         return url.includes('airtable.com');
+    }
+
+    /**
+     * When viewing a record via the detail panel (list page with ?detail=base64JSON),
+     * the URL is ugly and long. Extract the record permalink from the detail param.
+     *
+     * Detail param decodes to: { pageId: "pagXXX", rowId: "recXXX", ... }
+     * Canonical URL: https://airtable.com/{appId}/{pageId}/{rowId}
+     */
+    private canonicalUrl(url: string): string {
+        const parsed = new URL(url);
+        const detail = parsed.searchParams.get('detail');
+        if (!detail) return url;
+
+        try {
+            const json = JSON.parse(globalThis.atob(detail));
+            const {pageId, rowId} = json;
+            if (!pageId || !rowId) return url;
+
+            // Extract appId from the pathname: /apptivTqaoebkrmV1/pagXXX...
+            const appId = parsed.pathname.split('/')[1];
+            if (!appId?.startsWith('app')) return url;
+
+            return `${parsed.origin}/${appId}/${pageId}/${rowId}`;
+        } catch {
+            return url;
+        }
+    }
+
+    getFormat(ctx: FormatContext): LinkFormat {
+        const title = this.extractLinkText(ctx);
+        const url = this.canonicalUrl(ctx.url);
+        return {
+            label: this.label,
+            html: `<a href="${url}">${title}</a>`,
+            text: `${title} (${url})`,
+        };
     }
 
     extractLinkText(_ctx: FormatContext): string {
