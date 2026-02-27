@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {theme} from '@exo/theme/default';
 
 const MESSAGE_TYPES = {
@@ -16,31 +16,30 @@ export function GitHubAutoscrollContent() {
         let mounted = true;
 
         const loadState = async () => {
-            chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
-                const tab = tabs[0];
+            const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+            const tab = tabs[0];
 
-                if (!mounted) return;
+            if (!mounted) return;
 
-                setTabId(tab?.id || null);
+            setTabId(tab?.id || null);
 
-                if (tab?.id) {
-                    try {
-                        const response = await chrome.tabs.sendMessage(tab.id, {
-                            type: MESSAGE_TYPES.GET_STATUS,
-                        });
-                        if (mounted) {
-                            setActive(response.active);
-                        }
-                    } catch {
-                        if (mounted) {
-                            setActive(false);
-                        }
+            if (tab?.id) {
+                try {
+                    const response = await chrome.tabs.sendMessage(tab.id, {
+                        type: MESSAGE_TYPES.GET_STATUS,
+                    });
+                    if (mounted) {
+                        setActive(response.active);
+                    }
+                } catch {
+                    if (mounted) {
+                        setActive(false);
                     }
                 }
-                if (mounted) {
-                    setLoading(false);
-                }
-            });
+            }
+            if (mounted) {
+                setLoading(false);
+            }
         };
 
         loadState();

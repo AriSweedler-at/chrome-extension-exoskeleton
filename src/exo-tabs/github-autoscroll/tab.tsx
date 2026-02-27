@@ -2,14 +2,10 @@ import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {GitHubAutoscrollContent} from '@exo/exo-tabs/github-autoscroll/GitHubAutoscrollComponent';
 import {isGitHubPRChangesPage} from '@exo/exo-tabs/github-autoscroll';
 
-const GitHubAutoscrollComponent = () => {
-    return <GitHubAutoscrollContent />;
-};
-
 TabRegistry.register({
     id: 'github-autoscroll',
     label: 'Autoscroll',
-    component: GitHubAutoscrollComponent,
+    component: GitHubAutoscrollContent,
     getPriority: (url: string) => {
         if (isGitHubPRChangesPage(url)) {
             return 0;
