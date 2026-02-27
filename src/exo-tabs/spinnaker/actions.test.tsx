@@ -8,18 +8,16 @@ import {
 } from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import * as podExtractor from '@exo/exo-tabs/spinnaker/pod-extractor';
+import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 
 vi.mock('@exo/lib/toast-notification', () => ({
     Notifications: {show: vi.fn()},
 }));
 
-// Mock navigator.clipboard
-Object.assign(navigator, {
-    clipboard: {
-        writeText: vi.fn(() => Promise.resolve()),
-    },
-});
+vi.mock('@exo/lib/clipboard', () => ({
+    Clipboard: {write: vi.fn(() => Promise.resolve())},
+}));
 
 describe('spinnaker actions', () => {
     beforeEach(() => {
@@ -152,7 +150,7 @@ describe('spinnaker actions', () => {
             expect(podExtractor.extractPodNames).toHaveBeenCalledWith(
                 '{"metadata":{"name":"test-pod-123"}}',
             );
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith('test-pod-123');
+            expect(Clipboard.write).toHaveBeenCalledWith('test-pod-123');
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'Copied pod name: test-pod-123',
             });
@@ -167,7 +165,7 @@ describe('spinnaker actions', () => {
 
             await extractPodNames();
 
-            expect(navigator.clipboard.writeText).toHaveBeenCalledWith('pod-1');
+            expect(Clipboard.write).toHaveBeenCalledWith('pod-1');
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'Copied pod name: pod-1 (3 total found)',
             });
@@ -182,7 +180,7 @@ describe('spinnaker actions', () => {
 
             await extractPodNames();
 
-            expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+            expect(Clipboard.write).not.toHaveBeenCalled();
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'No pod names found in error',
             });
@@ -193,7 +191,7 @@ describe('spinnaker actions', () => {
 
             await extractPodNames();
 
-            expect(navigator.clipboard.writeText).not.toHaveBeenCalled();
+            expect(Clipboard.write).not.toHaveBeenCalled();
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'No error container found',
             });

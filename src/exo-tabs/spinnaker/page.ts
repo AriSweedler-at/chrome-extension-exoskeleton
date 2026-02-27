@@ -6,9 +6,9 @@ import {
     jumpToExecution,
     extractPodNames,
 } from '@exo/exo-tabs/spinnaker/actions';
+import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
 
-// Only register on Spinnaker pages
-if (window.location.href.toLowerCase().includes('spinnaker')) {
+if (isSpinnakerPage(window.location.href)) {
     keybindings.registerAll([
         {
             key: 'e',

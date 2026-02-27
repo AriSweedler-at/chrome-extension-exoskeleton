@@ -1,21 +1,15 @@
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {SpinnakerContent} from '@exo/exo-tabs/spinnaker/SpinnakerComponent';
-
-const SpinnakerComponent = () => {
-    return <SpinnakerContent />;
-};
+import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
 
 TabRegistry.register({
     id: 'spinnaker',
     label: 'Spinnaker',
-    component: SpinnakerComponent,
+    component: SpinnakerContent,
     enablementToggle: true,
-    primaryAction: async () => false, // No content script action yet
+    primaryAction: async () => false,
     getPriority: (url: string) => {
-        // Show tab on any URL containing "spinnaker" (case-insensitive)
-        if (url.toLowerCase().includes('spinnaker')) {
-            return 0;
-        }
+        if (isSpinnakerPage(url)) return 0;
         return Number.MAX_SAFE_INTEGER;
     },
 });

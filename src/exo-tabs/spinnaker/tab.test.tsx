@@ -46,18 +46,18 @@ describe('Spinnaker Tab', () => {
         expect(spinnakerTab).toBeUndefined();
     });
 
-    it('shows tab with priority 0 when URL contains spinnaker', () => {
-        const url = 'https://my-spinnaker-instance.com/test';
+    it('shows tab on alpha-shadowbox Spinnaker', () => {
+        const url = 'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions';
         const tabs = TabRegistry.getVisibleTabs(url);
         const spinnakerTab = tabs.find((t) => t.id === 'spinnaker');
         expect(spinnakerTab).toBeDefined();
         expect(spinnakerTab?.priority).toBe(0);
     });
 
-    it('is case-insensitive for spinnaker URL matching', () => {
-        const url = 'https://my-SPINNAKER-instance.com/test';
+    it('does not match URLs that merely contain "spinnaker" as substring', () => {
+        const url = 'https://docs.google.com/document/d/spinnaker-notes';
         const tabs = TabRegistry.getVisibleTabs(url);
         const spinnakerTab = tabs.find((t) => t.id === 'spinnaker');
-        expect(spinnakerTab).toBeDefined();
+        expect(spinnakerTab).toBeUndefined();
     });
 });

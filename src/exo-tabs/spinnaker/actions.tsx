@@ -17,6 +17,7 @@ import {
     findErrorContainer,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {extractPodNames as extractPodNamesFromHtml} from '@exo/exo-tabs/spinnaker/pod-extractor';
+import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 
 /**
@@ -100,7 +101,7 @@ export async function extractPodNames(): Promise<void> {
     // Copy first pod name to clipboard
     const firstPodName = podNames[0];
     try {
-        await navigator.clipboard.writeText(firstPodName);
+        await Clipboard.write(firstPodName);
         const message =
             podNames.length === 1
                 ? `Copied pod name: ${firstPodName}`

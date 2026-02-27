@@ -8,4 +8,4 @@ export {Storage} from '@exo/lib/storage';
 export {Notifications} from '@exo/lib/toast-notification';
 export {Commands} from '@exo/lib/service-worker/commands';
 export {Tabs} from '@exo/lib/service-worker/tabs';
-export {isSpinnakerSearchPage} from '@exo/exo-tabs/spinnaker/url-match';
+export {isSpinnakerPage, isSpinnakerSearchPage} from '@exo/exo-tabs/spinnaker/url-match';
