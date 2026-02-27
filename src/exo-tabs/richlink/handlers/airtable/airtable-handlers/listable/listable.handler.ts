@@ -1,4 +1,4 @@
-import type {LinkFormat} from '@exo/exo-tabs/richlink/base';
+import type {FormatContext, LinkFormat} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
@@ -10,7 +10,7 @@ export const listableHandler: AirtableSubHandler = {
         return url.includes(LISTABLE_APP_ID);
     },
 
-    getFormats(url: string): LinkFormat[] {
+    getFormats({url}: FormatContext): LinkFormat[] {
         const canonicalUrl = canonicalAirtableUrl(url);
 
         // Listable record: first cell-editor is a formula field with "LTT#/Title"

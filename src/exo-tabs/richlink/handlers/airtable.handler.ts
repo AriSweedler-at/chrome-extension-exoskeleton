@@ -17,7 +17,7 @@ export class AirtableHandler extends Handler {
         // Collect formats from matching sub-handlers
         for (const sub of subHandlers) {
             if (sub.canHandle(ctx.url)) {
-                formats.push(...sub.getFormats(ctx.url));
+                formats.push(...sub.getFormats(ctx));
             }
         }
 

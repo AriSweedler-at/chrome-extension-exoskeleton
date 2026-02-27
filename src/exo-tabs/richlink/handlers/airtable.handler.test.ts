@@ -126,4 +126,13 @@ describe('AirtableHandler', () => {
         expect(formats[0].html).toContain(canonical);
         expect(formats[1].html).toContain(canonical);
     });
+
+    it('should not crash on Listable URL with malformed detail param', () => {
+        const url = 'https://airtable.com/apptivTqaoebkrmV1/pagABC?detail=!!!bad!!!';
+        const formats = handler.getFormats({url});
+        // Should still return 2 formats (listable + generic), both using original URL
+        expect(formats).toHaveLength(2);
+        expect(formats[0].html).toContain(url);
+        expect(formats[1].html).toContain(url);
+    });
 });
