@@ -31,6 +31,15 @@ describe('SO SPRINT Tab', () => {
         expect(soSprintTab).toBeUndefined();
     });
 
+    it('should match URL with query params', () => {
+        const url = 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6?blocks=hide';
+        const tabs = TabRegistry.getVisibleTabs(url);
+        const soSprintTab = tabs.find((t) => t.id === 'so-sprint');
+
+        expect(soSprintTab).toBeDefined();
+        expect(soSprintTab?.priority).toBe(0);
+    });
+
     it('should render HELLO WORLD message', () => {
         const tabs = TabRegistry.getVisibleTabs(AIRTABLE_URL);
         const soSprintTab = tabs.find((t) => t.id === 'so-sprint');

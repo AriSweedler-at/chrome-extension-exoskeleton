@@ -10,8 +10,16 @@ TabRegistry.register({
     component: SoSprintComponent,
     primaryAction: async () => false, // No action yet
     getPriority: (url: string) => {
-        if (url === 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6') {
-            return 0;
+        try {
+            const urlObj = new URL(url);
+            if (
+                urlObj.hostname === 'airtable.com' &&
+                urlObj.pathname.startsWith('/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6')
+            ) {
+                return 0;
+            }
+        } catch {
+            // invalid URL
         }
         return Number.MAX_SAFE_INTEGER;
     },
