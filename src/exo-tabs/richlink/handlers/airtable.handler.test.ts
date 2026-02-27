@@ -112,4 +112,43 @@ describe('AirtableHandler', () => {
             '<a href="https://airtable.com/appABC123/tblXYZ789/viwDEF456">Q1 2026 View</a>',
         );
     });
+
+    it('should canonicalize detail-view URL to record permalink', () => {
+        // Detail param encodes: { pageId: "pagYS8GHSAS9swLLI", rowId: "recrPE9CmgcEG008T", ... }
+        const detail = globalThis.btoa(
+            JSON.stringify({pageId: 'pagYS8GHSAS9swLLI', rowId: 'recrPE9CmgcEG008T'}),
+        );
+        const detailUrl = `https://airtable.com/appXYZ123/pagListPage?GI5YH=allRecords&detail=${detail}`;
+
+        const cellEditor = document.createElement('div');
+        cellEditor.setAttribute('data-testid', 'cell-editor');
+        cellEditor.setAttribute('data-columntype', 'formula');
+        const heading = document.createElement('div');
+        heading.className = 'heading-size-default';
+        heading.textContent = 'LTT69726/Some task title';
+        cellEditor.appendChild(heading);
+        document.body.appendChild(cellEditor);
+
+        const format = handler.getFormat({url: detailUrl});
+        expect(format.html).toBe(
+            '<a href="https://airtable.com/appXYZ123/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T">LTT69726: Some task title</a>',
+        );
+        expect(format.text).toBe(
+            'LTT69726: Some task title (https://airtable.com/appXYZ123/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T)',
+        );
+    });
+
+    it('should pass through URL unchanged when no detail param', () => {
+        const url = 'https://airtable.com/appXYZ123/pagABC/recDEF?home=pagGHI';
+
+        const format = handler.getFormat({url});
+        expect(format.html).toBe(`<a href="${url}">Airtable Record</a>`);
+    });
+
+    it('should pass through URL unchanged when detail param is malformed', () => {
+        const url = 'https://airtable.com/appXYZ123/pagABC?detail=notvalidbase64!!!';
+
+        const format = handler.getFormat({url});
+        expect(format.html).toBe(`<a href="${url}">Airtable Record</a>`);
+    });
 });
