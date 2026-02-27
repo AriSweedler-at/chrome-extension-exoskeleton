@@ -2,10 +2,15 @@ import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richli
 
 export class SpinnakerHandler extends Handler {
     canHandle(url: string): boolean {
-        return (
-            url.includes('spinnaker.k8s.shadowbox.cloud') ||
-            url.includes('spinnaker.k8s.alpha-shadowbox.cloud')
-        );
+        try {
+            const hostname = new URL(url).hostname;
+            return (
+                hostname === 'spinnaker.k8s.shadowbox.cloud' ||
+                hostname === 'spinnaker.k8s.alpha-shadowbox.cloud'
+            );
+        } catch {
+            return false;
+        }
     }
 
     private extractLinkText(): string {

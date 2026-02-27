@@ -2,7 +2,11 @@ import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richli
 
 export class SpaceliftHandler extends Handler {
     canHandle(url: string): boolean {
-        return url.includes('spacelift.shadowbox.cloud');
+        try {
+            return new URL(url).hostname === 'spacelift.shadowbox.cloud';
+        } catch {
+            return false;
+        }
     }
 
     static readonly TOTAL_MAX_LEN = 60;

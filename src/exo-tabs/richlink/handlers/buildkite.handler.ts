@@ -2,7 +2,11 @@ import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richli
 
 export class BuildkiteHandler extends Handler {
     canHandle(url: string): boolean {
-        return url.includes('buildkite.com');
+        try {
+            return new URL(url).hostname === 'buildkite.com';
+        } catch {
+            return false;
+        }
     }
 
     private extractLinkText(url: string): string {

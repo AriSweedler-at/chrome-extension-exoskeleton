@@ -2,7 +2,11 @@ import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richli
 
 export class GoogleDocsHandler extends Handler {
     canHandle(url: string): boolean {
-        return url.includes('docs.google.com');
+        try {
+            return new URL(url).hostname === 'docs.google.com';
+        } catch {
+            return false;
+        }
     }
 
     private extractLinkText(): string {

@@ -8,7 +8,11 @@ const subHandlers: AirtableSubHandler[] = [listableHandler];
 
 export class AirtableHandler extends Handler {
     canHandle(url: string): boolean {
-        return url.includes('airtable.com');
+        try {
+            return new URL(url).hostname === 'airtable.com';
+        } catch {
+            return false;
+        }
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {

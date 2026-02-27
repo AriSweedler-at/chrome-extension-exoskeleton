@@ -11,39 +11,18 @@ export class GitHubHandler extends Handler {
     }
 
     canHandle(url: string): boolean {
-        // Handle GitHub PR URLs including sub-pages:
-        // github.com/org/repo/pull/number
-        // github.com/org/repo/pull/number/files
-        // github.com/org/repo/pull/number/commits
-        // github.com/org/repo/pull/number/checks
-        // etc.
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname !== 'github.com') return false;
 
-        if (!url.includes('github.com/')) {
+            // Expected: /org/repo/pull/number[/subpath]
+            const parts = urlObj.pathname.split('/').filter(Boolean);
+            if (parts.length < 4) return false;
+
+            return parts[2] === 'pull' && !!this.parsePrNumber(url);
+        } catch {
             return false;
         }
-
-        const parts = url.split('/');
-        // Expected format: https://github.com/org/repo/pull/number[/subpath]
-        // parts: ['https:', '', 'github.com', 'org', 'repo', 'pull', 'number', ...optional subpath]
-
-        if (parts.length < 7) {
-            return false;
-        }
-
-        const domain = parts[2];
-        const org = parts[3];
-        const repo = parts[4];
-        const pullKeyword = parts[5];
-
-        return (
-            domain === 'github.com' &&
-            !!org &&
-            org !== '' &&
-            !!repo &&
-            repo !== '' &&
-            pullKeyword === 'pull' &&
-            !!this.parsePrNumber(url)
-        );
     }
 
     /** Strip sub-pages (/files, /changes, /commits, /checks, etc.) from GitHub PR URLs. */
