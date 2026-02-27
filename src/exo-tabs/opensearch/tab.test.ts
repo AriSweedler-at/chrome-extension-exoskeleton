@@ -27,4 +27,14 @@ describe('isOpenSearchPage', () => {
     it('returns false for similar but wrong domain', () => {
         expect(isOpenSearchPage('https://opensearch.shadowbox.cloud/app/discover')).toBe(false);
     });
+
+    it('returns false when domain appears as a substring', () => {
+        expect(
+            isOpenSearchPage('https://evil.com/redirect?url=opensearch-applogs.shadowbox.cloud'),
+        ).toBe(false);
+    });
+
+    it('returns false for invalid URLs', () => {
+        expect(isOpenSearchPage('not-a-url')).toBe(false);
+    });
 });

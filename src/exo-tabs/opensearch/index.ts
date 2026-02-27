@@ -15,7 +15,12 @@ const FLYOUT_SELECTORS = [
 ] as const;
 
 export function isOpenSearchPage(url: string): boolean {
-    return OPENSEARCH_DOMAINS.some((domain) => url.includes(domain));
+    try {
+        const hostname = new URL(url).hostname;
+        return OPENSEARCH_DOMAINS.some((domain) => hostname === domain);
+    } catch {
+        return false;
+    }
 }
 
 export function findOpenFlyout(): Element | null {
@@ -28,7 +33,7 @@ export function findOpenFlyout(): Element | null {
 
 export function getFieldValue(fieldName: string): string | null {
     const el = document.querySelector(`[data-test-subj="tableDocViewRow-${fieldName}-value"]`);
-    return el ? el.textContent!.trim() : null;
+    return el?.textContent?.trim() ?? null;
 }
 
 export function buildCommand(): CommandParts | null {
