@@ -5,6 +5,7 @@ export class GitHubPrNumberHandler extends GitHubHandler {
     override getFormats(ctx: FormatContext): LinkFormat[] {
         const prNumber = this.parsePrNumber(ctx.url);
         const text = `#${prNumber}`;
-        return [{label: 'GitHub PR #', priority: 300, html: text, text}];
+        const url = ctx.url.split('/').slice(0, 7).join('/');
+        return [{label: 'GitHub PR #', priority: 300, html: `<a href="${url}">${text}</a>`, text}];
     }
 }

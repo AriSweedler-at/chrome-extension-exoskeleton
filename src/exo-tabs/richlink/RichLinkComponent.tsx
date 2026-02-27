@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useLayoutEffect} from 'react';
+import {useState, useEffect, useRef, useLayoutEffect, type CSSProperties} from 'react';
 import {LinkFormat} from '@exo/exo-tabs/richlink/base';
 import {CopyRichLinkAction, GetFormatsAction} from '@exo/exo-tabs/richlink/action';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
@@ -116,7 +116,7 @@ function FormatButton({
                                   '--scroll-dist': `-${overflow}px`,
                                   animation: `exo-scroll-text ${scrollDuration}s linear infinite alternate`,
                                   animationPlayState: paused ? 'paused' : 'running',
-                              } as React.CSSProperties)
+                              } as CSSProperties)
                             : {display: 'inline'}
                     }
                 >
@@ -127,7 +127,7 @@ function FormatButton({
     );
 }
 
-export const RichLinkComponent: React.FC = () => {
+export function RichLinkComponent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [formats, setFormats] = useState<LinkFormat[]>([]);
@@ -223,4 +223,4 @@ export const RichLinkComponent: React.FC = () => {
             </div>
         </div>
     );
-};
+}
