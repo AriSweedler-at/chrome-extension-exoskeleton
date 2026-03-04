@@ -24,7 +24,7 @@ export class SpaceliftHandler extends Handler {
         const stackName = this.parseStackName(url);
         const title = this.getPageTitle();
 
-        if (stackName && title) {
+        if (stackName && title && title !== stackName) {
             const prefix = `Spacelift: ${stackName}: `;
             const remaining = SpaceliftHandler.TOTAL_MAX_LEN - prefix.length;
             const truncatedTitle =
@@ -34,7 +34,7 @@ export class SpaceliftHandler extends Handler {
             return prefix + truncatedTitle;
         }
         if (stackName) {
-            return `Spacelift: ${stackName}`;
+            return `Spacelift Stack: ${stackName}`;
         }
         return 'Spacelift Stack';
     }

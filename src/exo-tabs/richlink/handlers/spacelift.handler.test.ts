@@ -69,7 +69,7 @@ describe('SpaceliftHandler', () => {
     it('should show just stack name when no page title', () => {
         const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';
         const format = handler.getFormats({url})[0];
-        expect(format.text).toContain('Spacelift: my-stack');
+        expect(format.text).toContain('Spacelift Stack: my-stack');
     });
 
     it('should fall back to h1 if no run-title or stack-name element', () => {
@@ -80,6 +80,17 @@ describe('SpaceliftHandler', () => {
         const url = 'https://spacelift.shadowbox.cloud/stack/infra-prod';
         const format = handler.getFormats({url})[0];
         expect(format.text).toContain('Spacelift: infra-prod: Dashboard Overview');
+    });
+
+    it('should skip redundant title when page title matches stack name', () => {
+        const h1 = document.createElement('h1');
+        h1.textContent = 'build_artifacts-production';
+        document.body.appendChild(h1);
+
+        const url = 'https://spacelift.shadowbox.cloud/stack/build_artifacts-production';
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText).toBe('Spacelift Stack: build_artifacts-production');
     });
 
     it('should return fallback when no stack in URL and no DOM title', () => {

@@ -5,7 +5,7 @@ coverage
 .DS_Store
 extension.zip
 .worktrees
-src/exo-tabs/richlink/handlers/examples/*.html
+src/exo-tabs/richlink/handlers/**/examples/*.html
 
 # Playwright
 /test-results/
