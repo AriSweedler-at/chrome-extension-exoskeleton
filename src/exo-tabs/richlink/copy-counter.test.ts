@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach} from 'vitest';
+import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 
 describe('CopyCounter', () => {
@@ -6,12 +6,18 @@ describe('CopyCounter', () => {
 
     beforeEach(() => {
         storage = {};
-        chrome.storage.local.get.callsFake((key: string) => {
-            return Promise.resolve({[key]: storage[key]});
-        });
-        chrome.storage.local.set.callsFake((obj: Record<string, unknown>) => {
-            Object.assign(storage, obj);
-            return Promise.resolve();
+        vi.stubGlobal('chrome', {
+            storage: {
+                local: {
+                    get: vi.fn((key: string) => {
+                        return Promise.resolve({[key]: storage[key]});
+                    }),
+                    set: vi.fn((obj: Record<string, unknown>) => {
+                        Object.assign(storage, obj);
+                        return Promise.resolve();
+                    }),
+                },
+            },
         });
     });
 
