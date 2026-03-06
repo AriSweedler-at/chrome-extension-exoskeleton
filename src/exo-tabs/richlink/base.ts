@@ -28,6 +28,11 @@ export interface FormatContext {
  * To add a new handler, create a `*.handler.ts` file in `handlers/` that
  * extends this class — it will be auto-discovered and registered.
  */
+/** Truncate a string to `max` chars, adding "..." if it was shortened. */
+export function truncateWithEllipsis(s: string, max: number): string {
+    return s.length > max ? s.slice(0, max - 3) + '...' : s;
+}
+
 export abstract class Handler {
     /** Return true if this handler knows how to produce links for the given URL. */
     abstract canHandle(url: URL): boolean;

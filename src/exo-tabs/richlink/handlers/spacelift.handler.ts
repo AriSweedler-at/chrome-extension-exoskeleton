@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    truncateWithEllipsis,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class SpaceliftHandler extends Handler {
     canHandle(url: URL): boolean {
@@ -27,10 +32,7 @@ export class SpaceliftHandler extends Handler {
         if (stackName && title && title !== stackName) {
             const prefix = `Spacelift: ${stackName}: `;
             const remaining = SpaceliftHandler.TOTAL_MAX_LEN - prefix.length;
-            const truncatedTitle =
-                remaining >= 4 && title.length > remaining
-                    ? title.slice(0, remaining - 3) + '...'
-                    : title;
+            const truncatedTitle = remaining >= 4 ? truncateWithEllipsis(title, remaining) : title;
             return prefix + truncatedTitle;
         }
         if (stackName) {

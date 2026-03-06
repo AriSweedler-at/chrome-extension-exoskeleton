@@ -11,6 +11,7 @@
         "test:ui": "vitest --ui",
         "test:coverage": "vitest --coverage",
         "test-handler-html": "tsx src/exo-tabs/richlink/handlers/test-with-html.ts",
+        "parse-html": "tsx src/exo-tabs/richlink/handlers/parse-html.ts",
         "test-autoscroll": "tsx scripts/test-autoscroll-detection.ts",
         "lint": "eslint . --ext ts,tsx",
         "lint:fix": "eslint . --ext ts,tsx --fix",

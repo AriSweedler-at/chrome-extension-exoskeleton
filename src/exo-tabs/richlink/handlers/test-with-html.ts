@@ -16,9 +16,8 @@
  */
 
 import {JSDOM} from 'jsdom';
-import * as fs from 'fs';
-import * as path from 'path';
-import {fileURLToPath} from 'url';
+
+import {ExampleHtmlFile} from '@exo/exo-tabs/richlink/handlers/resolve-example';
 
 // Import handlers
 import {GitHubHandler} from '@exo/exo-tabs/richlink/handlers/github.handler';
@@ -40,38 +39,14 @@ const handlers: Record<string, new () => Handler> = {
     BuildkiteHandler,
 };
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const EXAMPLES_DIR = path.join(__dirname, 'examples');
-
-/** Resolve a file path — bare filenames look in examples/ dirs. */
-function resolveHtmlPath(input: string): string {
-    if (!input.includes('/') && !input.includes('\\')) {
-        // Check top-level examples/
-        const topLevel = path.join(EXAMPLES_DIR, input);
-        if (fs.existsSync(topLevel)) return topLevel;
-
-        // Check subdirectory examples/ (e.g., airtable/examples/)
-        for (const entry of fs.readdirSync(__dirname, {withFileTypes: true})) {
-            if (!entry.isDirectory() || entry.name === 'examples') continue;
-            const subExamples = path.join(__dirname, entry.name, 'examples', input);
-            if (fs.existsSync(subExamples)) return subExamples;
-        }
-    }
-    return path.resolve(input);
-}
-
 function testHandler(handlerName: string, htmlFilePath: string, url: string) {
-    // Load HTML file
-    const htmlPath = resolveHtmlPath(htmlFilePath);
-    if (!fs.existsSync(htmlPath)) {
-        console.error(`Error: HTML file not found: ${htmlPath}`);
-        if (!htmlFilePath.includes('/')) {
-            console.error(`  (also checked ${path.join(EXAMPLES_DIR, htmlFilePath)})`);
-        }
+    const resolved = ExampleHtmlFile.resolve(htmlFilePath);
+    if (!ExampleHtmlFile.exists(resolved)) {
+        console.error(`Error: HTML file not found: ${resolved}`);
         process.exit(1);
     }
 
-    const html = fs.readFileSync(htmlPath, 'utf-8');
+    const html = ExampleHtmlFile.read(resolved);
 
     // Create JSDOM environment
     const dom = new JSDOM(html, {
@@ -97,7 +72,7 @@ function testHandler(handlerName: string, htmlFilePath: string, url: string) {
     console.log('\n=== Testing Handler ===');
     console.log(`Handler: ${handlerName}`);
     console.log(`URL: ${url}`);
-    console.log(`HTML File: ${htmlPath}`);
+    console.log(`HTML File: ${resolved}`);
     console.log('');
 
     const canHandle = handler.canHandle(new URL(url));
@@ -138,14 +113,11 @@ if (args.length < 2) {
     console.log('Available handlers:');
     Object.keys(handlers).forEach((name) => console.log(`  - ${name}`));
 
-    // List example files if any exist
-    if (fs.existsSync(EXAMPLES_DIR)) {
-        const examples = fs.readdirSync(EXAMPLES_DIR).filter((f) => f.endsWith('.html'));
-        if (examples.length > 0) {
-            console.log('');
-            console.log('Example HTML files:');
-            examples.forEach((f) => console.log(`  - ${f}`));
-        }
+    const examples = ExampleHtmlFile.list();
+    if (examples.length > 0) {
+        console.log('');
+        console.log('Example HTML files:');
+        examples.forEach((f) => console.log(`  - ${f}`));
     }
     process.exit(1);
 }

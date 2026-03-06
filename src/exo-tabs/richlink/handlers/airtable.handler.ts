@@ -1,10 +1,11 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {listableHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/listable/listable.handler';
+import {securityExceptionHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/security-exception/security-exception.handler';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
 /** Sub-handlers tried in order; each matching handler contributes formats. */
-const subHandlers: AirtableSubHandler[] = [listableHandler];
+const subHandlers: AirtableSubHandler[] = [listableHandler, securityExceptionHandler];
 
 export class AirtableHandler extends Handler {
     canHandle(url: URL): boolean {

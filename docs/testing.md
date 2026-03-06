@@ -33,3 +33,30 @@ Key constraints:
 - **Chromium only** — extensions don't work in Firefox/WebKit
 - **No toolbar interaction** — popup is tested by navigating to `chrome-extension://<id>/src/popup/index.html`
 - **Sequential execution** — persistent context means 1 worker, no parallel isolation
+
+## Rich Link Handler Tools
+
+Two CLI scripts help develop rich link handlers by loading saved HTML files into JSDOM.
+
+### parse-html — DOM explorer
+
+Dumps structured DOM info (cell-editors, text nodes, selectors) so you can figure out what to extract.
+
+```bash
+npm run parse-html <htmlFile>
+```
+
+### test-handler-html — handler verification
+
+Tests a specific handler against an HTML file and shows the generated formats.
+
+```bash
+npm run test-handler-html <HandlerName> <htmlFile> [url]
+```
+
+Both resolve bare filenames from `handlers/examples/` and `handlers/{subdir}/examples/` directories. Drop an HTML file in the appropriate examples folder, then reference it by name.
+
+```bash
+npm run parse-html airtable-security-exception.html
+npm run test-handler-html AirtableHandler airtable-security-exception.html "https://airtable.com/appXYZ/pagABC"
+```
