@@ -35,6 +35,9 @@ async function tryAutoRunAutoscroll() {
 function setupSPANavigationListener() {
     let lastUrl = window.location.href;
     new MutationObserver(() => {
+        // Guard against teardown (MutationObserver can fire after environment cleanup)
+        if (typeof window === 'undefined') return;
+
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;

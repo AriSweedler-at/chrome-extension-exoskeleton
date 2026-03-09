@@ -42,6 +42,13 @@ function main() {
   fi
   log::info "Formatting passed"
 
+  log::info "Running type check..."
+  if ! npx tsc --noEmit 2>&1; then
+    log::err "Type check failed — fix type errors before committing"
+    exit 1
+  fi
+  log::info "Type check passed"
+
   log::info "Running tests..."
   if ! npx vitest run --reporter=dot 2>&1; then
     log::err "Tests failed — aborting commit"
