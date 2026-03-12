@@ -4,10 +4,11 @@ import {
     type FormatContext,
     type LinkFormat,
 } from '@exo/exo-tabs/richlink/base';
+import {SPACELIFT_HOSTNAME} from '@exo/exo-tabs/spacelift';
 
 export class SpaceliftHandler extends Handler {
     canHandle(url: URL): boolean {
-        return url.hostname === 'spacelift.shadowbox.cloud';
+        return url.hostname === SPACELIFT_HOSTNAME;
     }
 
     static readonly TOTAL_MAX_LEN = 60;
