@@ -83,7 +83,7 @@ jobs:
 
             - name: Download build artifact
               if: steps.version_check.outputs.version_changed == 'true'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: extension-build
 
@@ -97,3 +97,4 @@ jobs:
                   generate_release_notes: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
