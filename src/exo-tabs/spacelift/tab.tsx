@@ -25,19 +25,33 @@ async function navigateFromPopup(url: string): Promise<void> {
     await navigateAndToast(tab.id, url, makeToast(url));
 }
 
+const STYLE = {
+    current: {
+        bg: theme.richlink.fallbackBg,
+        hoverBg: theme.richlink.fallbackBg,
+        cursor: 'default' as const,
+        opacity: 0.5,
+    },
+    other: {
+        bg: theme.richlink.specializedBg,
+        hoverBg: theme.richlink.specializedHoverBg,
+        cursor: 'pointer' as const,
+        opacity: 1,
+    },
+};
+
 function EnvButton({info}: {info: EnvironmentInfo}) {
-    const bg = info.current ? theme.richlink.fallbackBg : theme.richlink.specializedBg;
-    const hoverBg = info.current ? theme.richlink.fallbackBg : theme.richlink.specializedHoverBg;
+    const s = info.current ? STYLE.current : STYLE.other;
 
     return (
         <button
             disabled={info.current}
             onClick={() => navigateFromPopup(info.url)}
             onMouseEnter={(e) => {
-                if (!info.current) e.currentTarget.style.backgroundColor = hoverBg;
+                if (!info.current) e.currentTarget.style.backgroundColor = s.hoverBg;
             }}
             onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = bg;
+                e.currentTarget.style.backgroundColor = s.bg;
             }}
             style={{
                 flex: 1,
@@ -46,10 +60,10 @@ function EnvButton({info}: {info: EnvironmentInfo}) {
                 fontWeight: 'bold',
                 border: `1px solid ${theme.richlink.border}`,
                 borderRadius: '4px',
-                backgroundColor: bg,
+                backgroundColor: s.bg,
                 color: theme.text.white,
-                cursor: info.current ? 'default' : 'pointer',
-                opacity: info.current ? 0.5 : 1,
+                cursor: s.cursor,
+                opacity: s.opacity,
                 transition: 'all 0.15s ease',
             }}
         >
