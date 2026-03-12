@@ -3,14 +3,11 @@ import {
     CONTENT_SCRIPT_PATH,
 } from '@exo/lib/service-worker/content-script-injector';
 import {initializeCommandHandlers} from '@exo/lib/service-worker/command-handlers';
-import {initNavigateWithToast} from '@exo/lib/service-worker/navigate-with-toast';
-
 /**
  * Background service worker entry point
  */
 
 initializeCommandHandlers();
-initNavigateWithToast();
 
 const CLOUDDEV_TERM_FONT = '"CaskaydiaMono Nerd Font", monospace';
 

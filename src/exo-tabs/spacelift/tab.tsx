@@ -19,12 +19,10 @@ function makeToast(url: string): ShowToastPayload {
     };
 }
 
-/** Navigate from popup — delegates to service worker so the popup doesn't close. */
 async function navigateFromPopup(url: string): Promise<void> {
-    await chrome.runtime.sendMessage({
-        type: 'NAVIGATE_WITH_TOAST',
-        payload: {tabId: -1, url, toast: makeToast(url)},
-    });
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    if (!tab?.id) return;
+    await navigateAndToast(tab.id, url, makeToast(url));
 }
 
 function EnvButton({info}: {info: EnvironmentInfo}) {
