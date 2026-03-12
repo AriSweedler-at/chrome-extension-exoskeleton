@@ -75,3 +75,47 @@ npm run zip
 ```
 
 This creates an optimized build in `dist/` and packages it as `extension.zip`.
+
+## Releasing
+
+### Version Bumping
+
+Use `commit-and-tag-version` to bump the version in `package.json`, `package-lock.json`, and `manifest.json` simultaneously, update `CHANGELOG.md`, and create a tagged commit.
+
+```bash
+npm run bump          # auto-detect from conventional commits (feat → minor, fix → patch)
+npm run bump:patch    # force patch  (0.2.1 → 0.2.2)
+npm run bump:minor    # force minor  (0.2.1 → 0.3.0)
+npm run bump:major    # force major  (0.2.1 → 1.0.0)
+```
+
+This will:
+1. Bump the version in all three files
+2. Generate/update `CHANGELOG.md` from conventional commit messages
+3. Create a commit: `chore(release): X.Y.Z`
+4. Create a git tag: `vX.Y.Z`
+
+### Publishing a Release
+
+After bumping, push to trigger the CI/CD release pipeline:
+
+```bash
+git push origin main --follow-tags
+```
+
+The GitHub Actions workflow (`.github/workflows/ci-cd.yml`) will:
+1. Run tests and linting
+2. Build the extension and create `extension.zip`
+3. Detect the version change in `manifest.json`
+4. Create a GitHub Release tagged `vX.Y.Z` with auto-generated release notes and the zip attached
+
+### Changelog
+
+`CHANGELOG.md` is auto-generated from conventional commit messages. Commits are grouped by type:
+
+| Prefix | Section | Example |
+|--------|---------|---------|
+| `feat` | Features | `feat(richlink): add Spacelift handler` |
+| `fix` | Bug Fixes | `fix(spinnaker): add error handling for URL parsing` |
+| `refactor` | Refactors | `refactor: colocate tests with source` |
+| `chore`, `test`, `docs`, `ci` | *(hidden)* | Not included in changelog |

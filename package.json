@@ -1,6 +1,6 @@
 {
     "name": "aris-chrome-exoskeleton",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Ari's Chrome exoskeleton with reusable library, testing, and CI/CD",
     "type": "module",
     "scripts": {
@@ -19,7 +19,11 @@
         "test:e2e": "npm run build && npx playwright test",
         "test:e2e:headed": "npm run build && npx playwright test --headed",
         "test:e2e:ui": "npm run build && npx playwright test --ui",
-        "zip": "npm run build && cd dist && zip -r ../extension.zip . && cd .."
+        "zip": "npm run build && cd dist && zip -r ../extension.zip . && cd ..",
+        "bump": "commit-and-tag-version",
+        "bump:patch": "commit-and-tag-version --release-as patch",
+        "bump:minor": "commit-and-tag-version --release-as minor",
+        "bump:major": "commit-and-tag-version --release-as major"
     },
     "engines": {
         "node": ">=20.19.0"
@@ -45,6 +49,7 @@
         "@vitejs/plugin-react": "^4.3.0",
         "@vitest/coverage-v8": "^4.0.17",
         "@vitest/ui": "^4.0.0",
+        "commit-and-tag-version": "^12.6.1",
         "eslint": "^9.0.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-react": "^7.37.0",
