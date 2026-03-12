@@ -1,6 +1,6 @@
 {
     "name": "aris-chrome-exoskeleton",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Ari's Chrome exoskeleton with reusable library, testing, and CI/CD",
     "type": "module",
     "scripts": {
