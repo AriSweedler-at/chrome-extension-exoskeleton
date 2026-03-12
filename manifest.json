@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Ari's Chrome Exoskeleton",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Ari's Chrome exoskeleton with reusable library",
     "icons": {
         "16": "assets/icon16.png",
@@ -22,8 +22,12 @@
     },
     "content_scripts": [
         {
-            "matches": ["<all_urls>"],
-            "js": ["src/index.tsx"]
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "src/index.tsx"
+            ]
         }
     ],
     "commands": {
@@ -42,8 +46,16 @@
             "description": "Primary action for current page"
         }
     },
-    "permissions": ["activeTab", "storage", "tabs", "notifications", "scripting"],
-    "host_permissions": ["<all_urls>"],
+    "permissions": [
+        "activeTab",
+        "storage",
+        "tabs",
+        "notifications",
+        "scripting"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
     }
