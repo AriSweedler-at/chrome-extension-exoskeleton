@@ -2,8 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {
     isSpaceliftStackPage,
     getNextEnvironmentUrl,
-    getPrevEnvironmentUrl,
-    getAdjacentEnvironments,
+    getEnvironments,
 } from '@exo/exo-tabs/spacelift';
 
 describe('isSpaceliftStackPage', () => {
@@ -60,56 +59,47 @@ describe('getNextEnvironmentUrl', () => {
     });
 });
 
-describe('getPrevEnvironmentUrl', () => {
-    it('rotates staging → alpha', () => {
-        expect(
-            getPrevEnvironmentUrl('https://spacelift.shadowbox.cloud/stack/sendsafely-staging'),
-        ).toBe('https://spacelift.shadowbox.cloud/stack/sendsafely-alpha');
+describe('getEnvironments', () => {
+    it('returns all three environments with correct current flag', () => {
+        const envs = getEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely-staging');
+        expect(envs).toEqual([
+            {
+                env: 'alpha',
+                url: 'https://spacelift.shadowbox.cloud/stack/sendsafely-alpha',
+                current: false,
+            },
+            {
+                env: 'staging',
+                url: 'https://spacelift.shadowbox.cloud/stack/sendsafely-staging',
+                current: true,
+            },
+            {
+                env: 'production',
+                url: 'https://spacelift.shadowbox.cloud/stack/sendsafely-production',
+                current: false,
+            },
+        ]);
     });
 
-    it('rotates production → staging', () => {
-        expect(
-            getPrevEnvironmentUrl('https://spacelift.shadowbox.cloud/stack/sendsafely-production'),
-        ).toBe('https://spacelift.shadowbox.cloud/stack/sendsafely-staging');
+    it('marks production as current', () => {
+        const envs = getEnvironments(
+            'https://spacelift.shadowbox.cloud/stack/sendsafely-production',
+        );
+        expect(envs?.find((e) => e.current)?.env).toBe('production');
     });
 
-    it('rotates alpha → production', () => {
-        expect(
-            getPrevEnvironmentUrl('https://spacelift.shadowbox.cloud/stack/sendsafely-alpha'),
-        ).toBe('https://spacelift.shadowbox.cloud/stack/sendsafely-production');
-    });
-
-    it('returns undefined for unknown suffix', () => {
-        expect(
-            getPrevEnvironmentUrl('https://spacelift.shadowbox.cloud/stack/sendsafely'),
-        ).toBeUndefined();
-    });
-});
-
-describe('getAdjacentEnvironments', () => {
-    it('returns prev and next for staging', () => {
-        expect(
-            getAdjacentEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely-staging'),
-        ).toEqual({prev: 'alpha', next: 'production'});
-    });
-
-    it('returns prev and next for production', () => {
-        expect(
-            getAdjacentEnvironments(
-                'https://spacelift.shadowbox.cloud/stack/sendsafely-production',
-            ),
-        ).toEqual({prev: 'staging', next: 'alpha'});
-    });
-
-    it('returns prev and next for alpha', () => {
-        expect(
-            getAdjacentEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely-alpha'),
-        ).toEqual({prev: 'production', next: 'staging'});
+    it('marks alpha as current', () => {
+        const envs = getEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely-alpha');
+        expect(envs?.find((e) => e.current)?.env).toBe('alpha');
     });
 
     it('returns undefined for unknown suffix', () => {
         expect(
-            getAdjacentEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely'),
+            getEnvironments('https://spacelift.shadowbox.cloud/stack/sendsafely'),
         ).toBeUndefined();
+    });
+
+    it('returns undefined for non-stack URLs', () => {
+        expect(getEnvironments('https://spacelift.shadowbox.cloud/runs')).toBeUndefined();
     });
 });

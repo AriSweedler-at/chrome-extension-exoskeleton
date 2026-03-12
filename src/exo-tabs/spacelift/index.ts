@@ -1,5 +1,6 @@
 export const SPACELIFT_HOSTNAME = 'spacelift.shadowbox.cloud';
-const ENVIRONMENTS = ['alpha', 'staging', 'production'] as const;
+export const ENVIRONMENTS = ['alpha', 'staging', 'production'] as const;
+export type Environment = (typeof ENVIRONMENTS)[number];
 
 function parseStackName(url: string): string | undefined {
     try {
@@ -15,35 +16,33 @@ export function isSpaceliftStackPage(url: string): boolean {
     return parseStackName(url) !== undefined;
 }
 
-function findCurrentEnvIndex(stackName: string): number {
-    return ENVIRONMENTS.findIndex((env) => stackName.endsWith(`-${env}`));
+export interface EnvironmentInfo {
+    env: Environment;
+    url: string;
+    current: boolean;
 }
 
-function rotateEnv(url: string, direction: 1 | -1): {env: string; url: string} | undefined {
+/** Returns all environments with their URLs and which is current, or undefined if not a recognized stack. */
+export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
     const stackName = parseStackName(url);
     if (!stackName) return undefined;
 
-    const i = findCurrentEnvIndex(stackName);
-    if (i === -1) return undefined;
+    const currentIdx = ENVIRONMENTS.findIndex((env) => stackName.endsWith(`-${env}`));
+    if (currentIdx === -1) return undefined;
 
-    const nextEnv = ENVIRONMENTS[(i + direction + ENVIRONMENTS.length) % ENVIRONMENTS.length];
-    const baseName = stackName.slice(0, -(ENVIRONMENTS[i].length + 1));
+    const baseName = stackName.slice(0, -(ENVIRONMENTS[currentIdx].length + 1));
     const u = new URL(url);
-    u.pathname = `/stack/${baseName}-${nextEnv}`;
-    return {env: nextEnv, url: u.toString()};
+
+    return ENVIRONMENTS.map((env, i) => {
+        u.pathname = `/stack/${baseName}-${env}`;
+        return {env, url: u.toString(), current: i === currentIdx};
+    });
 }
 
-export function getAdjacentEnvironments(url: string): {prev: string; next: string} | undefined {
-    const prev = rotateEnv(url, -1);
-    const next = rotateEnv(url, 1);
-    if (!prev || !next) return undefined;
-    return {prev: prev.env, next: next.env};
-}
-
+/** Returns the URL for the next environment in rotation, or undefined. */
 export function getNextEnvironmentUrl(url: string): string | undefined {
-    return rotateEnv(url, 1)?.url;
-}
-
-export function getPrevEnvironmentUrl(url: string): string | undefined {
-    return rotateEnv(url, -1)?.url;
+    const envs = getEnvironments(url);
+    if (!envs) return undefined;
+    const currentIdx = envs.findIndex((e) => e.current);
+    return envs[(currentIdx + 1) % envs.length].url;
 }

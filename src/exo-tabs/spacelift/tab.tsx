@@ -1,62 +1,90 @@
 import {useState, useEffect} from 'react';
 import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
-import {ShowToastAction} from '@exo/lib/actions/show-toast.action';
 import {NotificationType} from '@exo/lib/toast-notification';
+import type {ShowToastPayload} from '@exo/lib/actions/show-toast.action';
+import {navigateAndToast} from '@exo/lib/service-worker/navigate-with-toast';
 import {theme} from '@exo/theme/default';
 import {
     isSpaceliftStackPage,
-    getAdjacentEnvironments,
+    getEnvironments,
     getNextEnvironmentUrl,
-    getPrevEnvironmentUrl,
+    type EnvironmentInfo,
 } from '@exo/exo-tabs/spacelift';
 
-async function navigate(getUrl: (url: string) => string | undefined): Promise<boolean> {
-    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-    if (!tab?.id || !tab.url) return false;
-    const url = getUrl(tab.url);
-    if (!url) return false;
-    await ShowToastAction.sendToTab(tab.id, {
+function makeToast(url: string): ShowToastPayload {
+    return {
         message: `Navigating to ${new URL(url).pathname.split('/').pop()}`,
         type: NotificationType.Success,
-    });
-    await chrome.tabs.update(tab.id, {url});
-    return true;
+        duration: 2000,
+    };
 }
 
-const buttonStyle = {
-    flex: 1,
-    padding: '8px 12px',
-    fontSize: '14px',
-    fontWeight: 'bold' as const,
-    border: '2px solid',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    backgroundColor: theme.status.successDark,
-    color: 'white',
-    borderColor: theme.status.successDarkBorder,
-    transition: 'all 0.2s',
-    whiteSpace: 'nowrap' as const,
-};
+/** Navigate from popup — delegates to service worker so the popup doesn't close. */
+async function navigateFromPopup(url: string): Promise<void> {
+    await chrome.runtime.sendMessage({
+        type: 'NAVIGATE_WITH_TOAST',
+        payload: {tabId: -1, url, toast: makeToast(url)},
+    });
+}
+
+function EnvButton({info}: {info: EnvironmentInfo}) {
+    const bg = info.current ? theme.richlink.fallbackBg : theme.richlink.specializedBg;
+    const hoverBg = info.current ? theme.richlink.fallbackBg : theme.richlink.specializedHoverBg;
+
+    return (
+        <button
+            disabled={info.current}
+            onClick={() => navigateFromPopup(info.url)}
+            onMouseEnter={(e) => {
+                if (!info.current) e.currentTarget.style.backgroundColor = hoverBg;
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = bg;
+            }}
+            style={{
+                flex: 1,
+                padding: '10px 8px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                border: `1px solid ${theme.richlink.border}`,
+                borderRadius: '4px',
+                backgroundColor: bg,
+                color: theme.text.white,
+                cursor: info.current ? 'default' : 'pointer',
+                opacity: info.current ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+            }}
+        >
+            {info.env}
+        </button>
+    );
+}
 
 const SpaceliftComponent = () => {
-    const [adjacent, setAdjacent] = useState<{prev: string; next: string} | undefined>();
+    const [envs, setEnvs] = useState<EnvironmentInfo[] | undefined>();
 
     useEffect(() => {
-        chrome.tabs.query({active: true, currentWindow: true}, ([tab]) => {
-            if (tab?.url) setAdjacent(getAdjacentEnvironments(tab.url));
-        });
+        const refresh = () => {
+            chrome.tabs.query({active: true, currentWindow: true}, ([tab]) => {
+                if (tab?.url) setEnvs(getEnvironments(tab.url));
+            });
+        };
+        refresh();
+
+        const onUpdated = (_tabId: number, info: chrome.tabs.TabChangeInfo) => {
+            if (info.url) refresh();
+        };
+        chrome.tabs.onUpdated.addListener(onUpdated);
+        return () => chrome.tabs.onUpdated.removeListener(onUpdated);
     }, []);
 
-    if (!adjacent) return null;
+    if (!envs) return null;
 
     return (
         <div style={{padding: '16px', display: 'flex', gap: '8px'}}>
-            <button onClick={() => navigate(getPrevEnvironmentUrl)} style={buttonStyle}>
-                &larr; {adjacent.prev}
-            </button>
-            <button onClick={() => navigate(getNextEnvironmentUrl)} style={buttonStyle}>
-                {adjacent.next} &rarr;
-            </button>
+            {envs.map((info) => (
+                <EnvButton key={info.env} info={info} />
+            ))}
         </div>
     );
 };
@@ -69,5 +97,10 @@ TabRegistry.register({
         if (isSpaceliftStackPage(url)) return 0;
         return Number.MAX_SAFE_INTEGER;
     },
-    primaryAction: () => navigate(getNextEnvironmentUrl),
+    primaryAction: async (tabId, url) => {
+        const next = getNextEnvironmentUrl(url);
+        if (!next) return false;
+        await navigateAndToast(tabId, next, makeToast(next));
+        return true;
+    },
 });
