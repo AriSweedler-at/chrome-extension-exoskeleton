@@ -60,3 +60,37 @@ Both resolve bare filenames from `handlers/examples/` and `handlers/{subdir}/exa
 npm run parse-html airtable-security-exception.html
 npm run test-handler-html AirtableHandler airtable-security-exception.html "https://airtable.com/appXYZ/pagABC"
 ```
+
+### Airtable sub-handlers
+
+`AirtableHandler` delegates to per-base sub-handlers that are **auto-discovered** via `import.meta.glob`. Each sub-handler lives in its own directory under `src/exo-tabs/richlink/handlers/airtable/airtable-handlers/` and matches a single Airtable base by app ID.
+
+```
+src/exo-tabs/richlink/handlers/airtable/airtable-handlers/
+  base.ts                              # AirtableSubHandler interface
+  listable/listable.handler.ts         # Listable (apptivTqaoebkrmV1)
+  glossary/glossary.handler.ts         # Airtable Glossary (appebZJp08MytrQhs)
+  security-exception/security-exception.handler.ts  # Security Exceptions (appjBm1uPTsu1yTVU)
+```
+
+To add a new Airtable sub-handler:
+
+1. Create `airtable-handlers/{name}/{name}.handler.ts` exporting an `AirtableSubHandler` object
+2. Create `airtable-handlers/{name}/{name}.handler.test.ts` with colocated tests
+3. Optionally save example HTML in `airtable/examples/` for the CLI tools
+
+No imports or registration changes needed — the glob in `airtable.handler.ts` picks up any `*.handler.ts` file matching the `airtable-handlers/*/*.handler.ts` pattern.
+
+A sub-handler implements two methods:
+
+```ts
+interface AirtableSubHandler {
+    canHandle(url: URL): boolean;       // match by app ID
+    getFormats(ctx: FormatContext): LinkFormat[];  // extract title from DOM, build link
+}
+```
+
+Common patterns:
+- **URL canonicalization:** Use `canonicalAirtableUrl()` from `url-utils.ts` to resolve `?detail=base64` URLs
+- **Record ID extraction:** Parse from path (`/recXXX`) or query param values (`?key=recXXX`)
+- **Title extraction:** Query `[data-testid="cell-editor"]` elements with the appropriate `data-columntype`
