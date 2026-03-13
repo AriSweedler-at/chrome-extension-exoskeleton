@@ -55,13 +55,44 @@ function buildLabel(name: string): string {
     return long.length <= MAX_LABEL_LENGTH ? long : short;
 }
 
+/**
+ * Find the Definition field's richText cell.
+ *
+ * Two DOM layouts:
+ *  - Old-style (data view): .labelCellPair with .fieldLabel "Definition"
+ *  - Interfaces view: a <span> "Definition" label with the cell-editor in a nearby ancestor
+ */
+function findDefinitionCell(): Element | null {
+    // Old-style: labelCellPair
+    const pairs = document.querySelectorAll('.labelCellPair');
+    for (const pair of pairs) {
+        const label = pair.querySelector('.fieldLabel');
+        if (label?.textContent?.trim() === 'Definition') {
+            return pair.querySelector('[data-testid="cell-editor"][data-columntype="richText"]');
+        }
+    }
+
+    // Interfaces: span label near a richText cell
+    const spans = document.querySelectorAll('span');
+    for (const span of spans) {
+        if (span.textContent?.trim() !== 'Definition') continue;
+        let container = span.parentElement;
+        for (let i = 0; i < 5 && container; i++) {
+            const rt = container.querySelector(
+                '[data-testid="cell-editor"][data-columntype="richText"]',
+            );
+            if (rt) return rt;
+            container = container.parentElement;
+        }
+    }
+
+    return null;
+}
+
 function extractDefinitionFirstSentence(): string | null {
-    const richTextCell = document.querySelector(
-        '[data-testid="cell-editor"][data-columntype="richText"]',
-    );
-    if (!richTextCell?.textContent) return null;
-    const text = richTextCell.textContent.trim();
-    // Take just the first sentence
+    const cell = findDefinitionCell();
+    if (!cell?.textContent) return null;
+    const text = cell.textContent.trim();
     const dotIdx = text.indexOf('.');
     return dotIdx !== -1 ? text.slice(0, dotIdx + 1) : text;
 }

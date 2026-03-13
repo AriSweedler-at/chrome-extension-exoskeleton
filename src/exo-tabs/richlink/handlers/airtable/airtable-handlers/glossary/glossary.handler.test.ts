@@ -9,12 +9,40 @@ function addTextCell(text: string) {
     document.body.appendChild(el);
 }
 
-function addRichTextCell(text: string) {
-    const el = document.createElement('div');
-    el.setAttribute('data-testid', 'cell-editor');
-    el.setAttribute('data-columntype', 'richText');
-    el.textContent = text;
-    document.body.appendChild(el);
+/** Old-style data view: .labelCellPair with .fieldLabel "Definition" */
+function addDefinitionViaLabelCellPair(text: string) {
+    const pair = document.createElement('div');
+    pair.className = 'labelCellPair';
+
+    const label = document.createElement('div');
+    label.className = 'fieldLabel';
+    label.textContent = 'Definition';
+    pair.appendChild(label);
+
+    const cellEditor = document.createElement('div');
+    cellEditor.setAttribute('data-testid', 'cell-editor');
+    cellEditor.setAttribute('data-columntype', 'richText');
+    cellEditor.textContent = text;
+    pair.appendChild(cellEditor);
+
+    document.body.appendChild(pair);
+}
+
+/** Interfaces view: <span>Definition</span> with a richText cell in a nearby ancestor */
+function addDefinitionViaSpanLabel(text: string) {
+    const container = document.createElement('div');
+
+    const span = document.createElement('span');
+    span.textContent = 'Definition';
+    container.appendChild(span);
+
+    const cellEditor = document.createElement('div');
+    cellEditor.setAttribute('data-testid', 'cell-editor');
+    cellEditor.setAttribute('data-columntype', 'richText');
+    cellEditor.textContent = text;
+    container.appendChild(cellEditor);
+
+    document.body.appendChild(container);
 }
 
 describe('glossaryHandler', () => {
@@ -63,9 +91,9 @@ describe('glossaryHandler', () => {
         );
     });
 
-    it('should include expansion when "stands for" and under 100 chars', () => {
+    it('should include expansion from labelCellPair Definition field', () => {
         addTextCell('SSP');
-        addRichTextCell(
+        addDefinitionViaLabelCellPair(
             'SSP stands for Single-Service Pipeline. The SO team has different groupings.',
         );
 
@@ -75,9 +103,38 @@ describe('glossaryHandler', () => {
         expect(formats[0].html).toContain('Airtable Glossary: SSP: Single-Service Pipeline');
     });
 
+    it('should include expansion from interfaces span-label Definition field', () => {
+        addTextCell('SSP');
+        addDefinitionViaSpanLabel(
+            'SSP stands for Single-Service Pipeline. The SO team has different groupings.',
+        );
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: SSP: Single-Service Pipeline');
+    });
+
+    it('should ignore unrelated richText cells and only use Definition field', () => {
+        addTextCell('SSP');
+        // Unrelated richText cell (e.g. from list panel) — no "Definition" label
+        const stray = document.createElement('div');
+        stray.setAttribute('data-testid', 'cell-editor');
+        stray.setAttribute('data-columntype', 'richText');
+        stray.textContent = 'Container Runtime Interface';
+        document.body.appendChild(stray);
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN',
+        });
+        // Should NOT pick up "Container Runtime Interface"
+        expect(formats[0].html).toContain('Airtable Glossary: SSP<');
+        expect(formats[0].html).not.toContain('Container Runtime');
+    });
+
     it('should omit expansion when result would exceed 100 chars', () => {
         addTextCell('SSP');
-        addRichTextCell(
+        addDefinitionViaLabelCellPair(
             'SSP stands for Some Extremely Long Expansion That Would Make The Label Way Too Long For Comfortable Reading In A Link.',
         );
 
@@ -90,7 +147,9 @@ describe('glossaryHandler', () => {
 
     it('should fall back to short label when definition does not match "stands for"', () => {
         addTextCell('KCL');
-        addRichTextCell('Kinesis Client Library is a Java library for consuming Kinesis streams.');
+        addDefinitionViaLabelCellPair(
+            'Kinesis Client Library is a Java library for consuming Kinesis streams.',
+        );
 
         const formats = glossaryHandler.getFormats({
             url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
