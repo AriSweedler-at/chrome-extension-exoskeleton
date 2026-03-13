@@ -61,17 +61,25 @@ function buildLabel(name: string): string {
 }
 
 /**
- * Extract the expansion from a definition sentence.
+ * Extract a short expansion from a definition sentence.
  *
- * 1. Strip "{name} stands for / is / are " prefix if present
- * 2. Strip trailing period
- * 3. Strip trailing parenthetical  e.g. "(Director, VPs, C-suite)"
+ * Heuristic pipeline:
+ *  1. Strip "{name} stands for / is / are / means " prefix if present
+ *  2. Strip trailing period
+ *  3. Truncate at the first natural break that keeps it short:
+ *     - trailing parenthetical  "(Director, VPs, C-suite)"
+ *     - subordinate clause      ", which means ...", ", from which ..."
+ *     - conjunction             ". Also ...", "; see also ..."
+ *  4. Reject if the result still looks like a full sentence (has a verb
+ *     phrase like "is a" or "has different") rather than a noun phrase.
+ *
+ * Returns null if no clean expansion can be extracted.
  */
 function extractExpansion(name: string, sentence: string): string | null {
     let expansion = sentence;
 
-    // Strip known prefixes: "XXX stands for ...", "XXX is/are ..."
-    const prefix = new RegExp(`^${escapeRegExp(name)}\\s+(?:stands\\s+for|is|are)\\s+`, 'i');
+    // Strip known prefixes
+    const prefix = new RegExp(`^${escapeRegExp(name)}\\s+(?:stands\\s+for|is|are|means)\\s+`, 'i');
     const prefixMatch = expansion.match(prefix);
     if (prefixMatch) {
         expansion = expansion.slice(prefixMatch[0].length);
@@ -80,8 +88,18 @@ function extractExpansion(name: string, sentence: string): string | null {
     // Strip trailing period
     expansion = expansion.replace(/\.\s*$/, '');
 
-    // Strip trailing parenthetical
-    expansion = expansion.replace(/\s*\([^)]*\)\s*$/, '');
+    // Truncate at natural breaks (keep the part before the break)
+    expansion = expansion.replace(/[,;]\s+(?:which|that|from which|where|so|but|via|see)\s.*/i, ''); // subordinate clauses
+    expansion = expansion.replace(/\.\s+.*$/, ''); // second sentence fragment
+    expansion = expansion.replace(/\s*\([^)]*\)/g, '').trim(); // all parentheticals
+
+    // Reject expansions that are too wordy to be a clean noun-phrase.
+    // A good expansion is typically 1-6 words. If it's over 8 words
+    // and wasn't explicitly prefixed with "stands for" etc., it's
+    // probably an explanation, not an expansion.
+    const wordCount = expansion.split(/\s+/).length;
+    const hadPrefix = !!prefixMatch;
+    if (!hadPrefix && wordCount > 8) return null;
 
     return expansion || null;
 }

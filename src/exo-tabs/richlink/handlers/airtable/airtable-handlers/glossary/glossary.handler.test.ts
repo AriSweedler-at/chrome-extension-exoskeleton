@@ -163,7 +163,7 @@ describe('glossaryHandler', () => {
         expect(formats[0].html).toContain('Airtable Glossary: DNS: Domain Name System');
     });
 
-    it('should omit expansion when result would exceed 100 chars', () => {
+    it('should strip subordinate clause and parenthetical', () => {
         addTextCell('FLA');
         addDefinitionViaLabelCellPair(
             'Flexible License Agreement (an Airtable-coined term), which means companies choose to have Enterprise permissions at the team/group level',
@@ -172,7 +172,31 @@ describe('glossaryHandler', () => {
         const formats = glossaryHandler.getFormats({
             url: 'https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN',
         });
-        expect(formats[0].html).toContain('Airtable Glossary: FLA<');
+        expect(formats[0].html).toContain('Airtable Glossary: FLA: Flexible License Agreement');
+        expect(formats[0].html).not.toContain('Airtable-coined');
+    });
+
+    it('should truncate at second sentence', () => {
+        addTextCell('ACV');
+        addDefinitionViaLabelCellPair('Annual Contract Value. See also ARR.');
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: ACV: Annual Contract Value');
+        expect(formats[0].html).not.toContain('See also');
+    });
+
+    it('should reject wordy expansions without a prefix', () => {
+        addTextCell('command of the message');
+        addDefinitionViaLabelCellPair(
+            "Airtable's broader business-side organization, including Sales, Customer Success, Support, PS, and other teams.",
+        );
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: command of the message<');
     });
 
     it('should fall back to "Glossary Record" when text cell not found', () => {
