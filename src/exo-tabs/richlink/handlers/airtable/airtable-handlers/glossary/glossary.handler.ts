@@ -33,9 +33,19 @@ function buildRecordUrl(recordId: string): string {
 const MAX_LABEL_LENGTH = 100;
 
 /**
- * Build the display label. If the definition starts with "{name} stands for ..."
- * and the expanded form fits within MAX_LABEL_LENGTH, include it.
- * Otherwise just use "Airtable Glossary: {name}".
+ * Build the display label from the Definition field's first sentence.
+ *
+ * The first sentence of each glossary entry IS the expansion, sometimes
+ * prefixed with "{name} stands for ..." or "{name} is/are ...".
+ *
+ * Examples:
+ *   SSP  + "SSP stands for Single-Service Pipeline."  → "SSP: Single-Service Pipeline"
+ *   ATL  + "Above the line (Director, VPs, C-suite)"  → "ATL: Above the line"
+ *   ARR  + "Annual recurring revenue."                 → "ARR: Annual recurring revenue"
+ *   SLA  + "service-level agreement"                   → "SLA: service-level agreement"
+ *
+ * Falls back to just "Airtable Glossary: {name}" when there's no definition
+ * or the expanded label would exceed MAX_LABEL_LENGTH.
  */
 function buildLabel(name: string): string {
     const short = `Airtable Glossary: ${name}`;
@@ -43,16 +53,37 @@ function buildLabel(name: string): string {
     const definition = extractDefinitionFirstSentence();
     if (!definition) return short;
 
-    // Match "XXX stands for Something."
-    const standsForPattern = new RegExp(`^${escapeRegExp(name)}\\s+stands\\s+for\\s+`, 'i');
-    const match = definition.match(standsForPattern);
-    if (!match) return short;
-
-    const expansion = definition.slice(match[0].length).replace(/\.?\s*$/, '');
+    const expansion = extractExpansion(name, definition);
     if (!expansion) return short;
 
     const long = `Airtable Glossary: ${name}: ${expansion}`;
     return long.length <= MAX_LABEL_LENGTH ? long : short;
+}
+
+/**
+ * Extract the expansion from a definition sentence.
+ *
+ * 1. Strip "{name} stands for / is / are " prefix if present
+ * 2. Strip trailing period
+ * 3. Strip trailing parenthetical  e.g. "(Director, VPs, C-suite)"
+ */
+function extractExpansion(name: string, sentence: string): string | null {
+    let expansion = sentence;
+
+    // Strip known prefixes: "XXX stands for ...", "XXX is/are ..."
+    const prefix = new RegExp(`^${escapeRegExp(name)}\\s+(?:stands\\s+for|is|are)\\s+`, 'i');
+    const prefixMatch = expansion.match(prefix);
+    if (prefixMatch) {
+        expansion = expansion.slice(prefixMatch[0].length);
+    }
+
+    // Strip trailing period
+    expansion = expansion.replace(/\.\s*$/, '');
+
+    // Strip trailing parenthetical
+    expansion = expansion.replace(/\s*\([^)]*\)\s*$/, '');
+
+    return expansion || null;
 }
 
 /**

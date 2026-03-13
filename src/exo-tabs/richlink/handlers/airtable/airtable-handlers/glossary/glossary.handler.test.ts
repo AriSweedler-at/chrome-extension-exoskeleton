@@ -132,29 +132,47 @@ describe('glossaryHandler', () => {
         expect(formats[0].html).not.toContain('Container Runtime');
     });
 
+    it('should use first sentence directly when no prefix', () => {
+        addTextCell('SLA');
+        addDefinitionViaLabelCellPair('service-level agreement');
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: SLA: service-level agreement');
+    });
+
+    it('should strip trailing parenthetical', () => {
+        addTextCell('ATL');
+        addDefinitionViaLabelCellPair('Above the line (Director, VPs, C-suite)');
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: ATL: Above the line');
+        expect(formats[0].html).not.toContain('Director');
+    });
+
+    it('should strip "is/are" prefix', () => {
+        addTextCell('DNS');
+        addDefinitionViaLabelCellPair('DNS is Domain Name System.');
+
+        const formats = glossaryHandler.getFormats({
+            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
+        });
+        expect(formats[0].html).toContain('Airtable Glossary: DNS: Domain Name System');
+    });
+
     it('should omit expansion when result would exceed 100 chars', () => {
-        addTextCell('SSP');
+        addTextCell('FLA');
         addDefinitionViaLabelCellPair(
-            'SSP stands for Some Extremely Long Expansion That Would Make The Label Way Too Long For Comfortable Reading In A Link.',
+            'Flexible License Agreement (an Airtable-coined term), which means companies choose to have Enterprise permissions at the team/group level',
         );
 
         const formats = glossaryHandler.getFormats({
             url: 'https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN',
         });
-        expect(formats[0].html).toContain('Airtable Glossary: SSP<');
-        expect(formats[0].html).not.toContain('Some Extremely');
-    });
-
-    it('should fall back to short label when definition does not match "stands for"', () => {
-        addTextCell('KCL');
-        addDefinitionViaLabelCellPair(
-            'Kinesis Client Library is a Java library for consuming Kinesis streams.',
-        );
-
-        const formats = glossaryHandler.getFormats({
-            url: 'https://airtable.com/appebZJp08MytrQhs/recXYZ',
-        });
-        expect(formats[0].html).toContain('Airtable Glossary: KCL<');
+        expect(formats[0].html).toContain('Airtable Glossary: FLA<');
     });
 
     it('should fall back to "Glossary Record" when text cell not found', () => {
