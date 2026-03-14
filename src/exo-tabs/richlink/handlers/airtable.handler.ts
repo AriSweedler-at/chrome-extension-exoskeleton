@@ -1,11 +1,25 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
-import {listableHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/listable/listable.handler';
-import {securityExceptionHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/security-exception/security-exception.handler';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
-/** Sub-handlers tried in order; each matching handler contributes formats. */
-const subHandlers: AirtableSubHandler[] = [listableHandler, securityExceptionHandler];
+// Auto-discover all *.handler.ts files under airtable-handlers/.
+// To add a new sub-handler, just create a new {name}/{name}.handler.ts file — no other changes needed.
+const modules = import.meta.glob('./airtable/airtable-handlers/*/*.handler.ts', {
+    eager: true,
+}) as Record<string, Record<string, unknown>>;
+
+function isSubHandler(v: unknown): v is AirtableSubHandler {
+    return (
+        typeof v === 'object' &&
+        v !== null &&
+        typeof (v as AirtableSubHandler).canHandle === 'function' &&
+        typeof (v as AirtableSubHandler).getFormats === 'function'
+    );
+}
+
+const subHandlers: AirtableSubHandler[] = Object.values(modules).flatMap((mod) =>
+    Object.values(mod).filter(isSubHandler),
+);
 
 export class AirtableHandler extends Handler {
     canHandle(url: URL): boolean {
