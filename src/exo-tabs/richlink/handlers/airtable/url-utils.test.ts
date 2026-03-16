@@ -13,7 +13,15 @@ describe('canonicalAirtableUrl', () => {
         );
     });
 
-    it('should pass through URL unchanged when no detail param', () => {
+    it('should canonicalize interfaces URL with rec in query param', () => {
+        expect(
+            canonicalAirtableUrl(
+                'https://airtable.com/appebZJp08MytrQhs/pagagsZtQRDbx4O5u?ACh2y=recK1hqBktQeDGchN',
+            ),
+        ).toBe('https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN');
+    });
+
+    it('should pass through URL unchanged when no detail param and no rec param', () => {
         const url = 'https://airtable.com/appXYZ123/pagABC/recDEF?home=pagGHI';
         expect(canonicalAirtableUrl(url)).toBe(url);
     });
