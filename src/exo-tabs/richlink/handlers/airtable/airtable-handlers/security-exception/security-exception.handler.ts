@@ -1,9 +1,4 @@
-import {
-    linkFormat,
-    truncateWithEllipsis,
-    type FormatContext,
-    type LinkFormat,
-} from '@exo/exo-tabs/richlink/base';
+import {linkFormat, truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
@@ -15,7 +10,7 @@ export const securityExceptionHandler: AirtableSubHandler = {
         return url.href.includes(SECURITY_EXCEPTIONS_APP_ID);
     },
 
-    getFormats({url}: FormatContext): LinkFormat[] {
+    getFormats({url}) {
         const canonicalUrl = canonicalAirtableUrl(url);
         const title = extractTitle();
         const reReviewDate = extractReReviewDate();

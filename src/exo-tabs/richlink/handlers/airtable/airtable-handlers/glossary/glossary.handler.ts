@@ -1,4 +1,4 @@
-import {linkFormat, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {linkFormat} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
 /** Known Glossary base appId. */
@@ -155,7 +155,7 @@ export const glossaryHandler: AirtableSubHandler = {
         return url.href.includes(GLOSSARY_APP_ID);
     },
 
-    getFormats({url}: FormatContext): LinkFormat[] {
+    getFormats({url}) {
         const recordId = extractRecordId(url);
         const canonicalUrl = recordId ? buildRecordUrl(recordId) : url;
 
