@@ -1,5 +1,112 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
+import {describe, it, expect, beforeEach} from 'vitest';
+import {
+    SpinnakerHandler,
+    formatSpinnakerTitle,
+} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
+
+describe('formatSpinnakerTitle', () => {
+    describe('deploy pipelines (Deploy {service} {ENV} {number})', () => {
+        it('should format PRODUCTION deploy', () => {
+            const result = formatSpinnakerTitle('Deploy internal-tool-service PRODUCTION 1');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: internal-tool-service',
+            });
+        });
+
+        it('should format ALPHA deploy', () => {
+            const result = formatSpinnakerTitle('Deploy my-app ALPHA 3');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy ALPHA: my-app',
+            });
+        });
+
+        it('should format STAGING deploy', () => {
+            const result = formatSpinnakerTitle('Deploy foo-bar STAGING 42');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy STAGING: foo-bar',
+            });
+        });
+
+        it('should handle service names with multiple hyphens', () => {
+            const result = formatSpinnakerTitle('Deploy my-cool-service-v2 PRODUCTION 7');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: my-cool-service-v2',
+            });
+        });
+
+        it('should handle multi-word service names', () => {
+            const result = formatSpinnakerTitle('Deploy some service name STAGING 1');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy STAGING: some service name',
+            });
+        });
+
+        it('should handle large execution numbers', () => {
+            const result = formatSpinnakerTitle('Deploy api-gateway PRODUCTION 9999');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: api-gateway',
+            });
+        });
+    });
+
+    describe('non-deploy pipelines', () => {
+        it('should strip trailing number and prefix with Spinnaker Pipeline:', () => {
+            const result = formatSpinnakerTitle('Some Other Pipeline 5');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Pipeline: Some Other Pipeline',
+            });
+        });
+
+        it('should handle pipeline name without trailing number', () => {
+            const result = formatSpinnakerTitle('My Custom Pipeline');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Pipeline: My Custom Pipeline',
+            });
+        });
+
+        it('should handle pipeline name that starts with Deploy but does not match env pattern', () => {
+            const result = formatSpinnakerTitle('Deploy to QA 1');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Pipeline: Deploy to QA',
+            });
+        });
+
+        it('should handle pipeline with number in the middle but not trailing', () => {
+            const result = formatSpinnakerTitle('Build v2 Pipeline');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Pipeline: Build v2 Pipeline',
+            });
+        });
+
+        it('should strip only trailing number from non-deploy pipeline', () => {
+            const result = formatSpinnakerTitle('Canary Release 12');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Pipeline: Canary Release',
+            });
+        });
+    });
+
+    describe('fallback title', () => {
+        it('should return Spinnaker Page as-is (no prefix)', () => {
+            const result = formatSpinnakerTitle(null);
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker Page',
+            });
+        });
+    });
+});
 
 describe('SpinnakerHandler', () => {
     let handler: SpinnakerHandler;
@@ -36,109 +143,79 @@ describe('SpinnakerHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should extract pipeline name from Spinnaker page', async () => {
-        // Mock Spinnaker page DOM with pipeline name
-        const mockPipelineName = document.createElement('h3');
-        mockPipelineName.className = 'execution-group-title';
-        mockPipelineName.textContent = 'Deploy to Production';
-        document.body.appendChild(mockPipelineName);
+    it('should format deploy pipeline from DOM', () => {
+        const el = document.createElement('h3');
+        el.className = 'execution-group-title';
+        el.textContent = 'Deploy internal-tool-service PRODUCTION 1';
+        document.body.appendChild(el);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://spinnaker.company.com/applications/myapp/executions',
-            },
-        });
-
-        const format = handler.getFormats({
-            url: 'https://spinnaker.company.com/applications/myapp/executions',
-        })[0];
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/internal-tool-service/executions/01KM0S3TAN23A4NWAF8BRSKMTP';
+        const format = handler.getFormats({url})[0];
+        expect(format.label).toBe('Spinnaker Pipeline');
         expect(format.html).toBe(
-            '<a href="https://spinnaker.company.com/applications/myapp/executions">Deploy to Production</a>',
+            `<a href="${url}">Spinnaker: deploy PRODUCTION: internal-tool-service</a>`,
         );
-        expect(format.text).toBe(
-            'Deploy to Production (https://spinnaker.company.com/applications/myapp/executions)',
-        );
+        expect(format.text).toBe(`Spinnaker: deploy PRODUCTION: internal-tool-service (${url})`);
 
-        document.body.removeChild(mockPipelineName);
+        document.body.removeChild(el);
     });
 
-    it('should handle missing pipeline name', async () => {
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://spinnaker.company.com/applications/myapp',
-            },
-        });
+    it('should format non-deploy pipeline from DOM', () => {
+        const el = document.createElement('h3');
+        el.className = 'execution-group-title';
+        el.textContent = 'Canary Release 5';
+        document.body.appendChild(el);
 
-        const format = handler.getFormats({
-            url: 'https://spinnaker.company.com/applications/myapp',
-        })[0];
-        expect(format.html).toBe(
-            '<a href="https://spinnaker.company.com/applications/myapp">Spinnaker Page</a>',
-        );
+        const url = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe(`<a href="${url}">Spinnaker Pipeline: Canary Release</a>`);
+        expect(format.text).toBe(`Spinnaker Pipeline: Canary Release (${url})`);
+
+        document.body.removeChild(el);
     });
 
-    it('should extract application name if pipeline name not found', async () => {
+    it('should handle missing pipeline name (fallback)', () => {
+        const url = 'https://spinnaker.company.com/applications/myapp';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe(`<a href="${url}">Spinnaker Page</a>`);
+    });
+
+    it('should extract application name if pipeline name not found', () => {
         const mockAppName = document.createElement('h2');
         mockAppName.className = 'application-header';
         mockAppName.textContent = 'my-service';
         document.body.appendChild(mockAppName);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://spinnaker.company.com/applications/myapp',
-            },
-        });
-
-        const format = handler.getFormats({
-            url: 'https://spinnaker.company.com/applications/myapp',
-        })[0];
-        expect(format.html).toBe(
-            '<a href="https://spinnaker.company.com/applications/myapp">my-service</a>',
-        );
+        const url = 'https://spinnaker.company.com/applications/myapp';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe(`<a href="${url}">Spinnaker Pipeline: my-service</a>`);
 
         document.body.removeChild(mockAppName);
     });
 
-    it('should extract execution details', async () => {
+    it('should extract execution details', () => {
         const mockExecution = document.createElement('div');
         mockExecution.className = 'execution-name';
         mockExecution.textContent = 'Build #42';
         document.body.appendChild(mockExecution);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://spinnaker.company.com/applications/myapp/executions/details/exec123',
-            },
-        });
-
-        const format = handler.getFormats({
-            url: 'https://spinnaker.company.com/applications/myapp/executions/details/exec123',
-        })[0];
-        expect(format.html).toBe(
-            '<a href="https://spinnaker.company.com/applications/myapp/executions/details/exec123">Build #42</a>',
-        );
+        const url = 'https://spinnaker.company.com/applications/myapp/executions/details/exec123';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe(`<a href="${url}">Spinnaker Pipeline: Build #42</a>`);
 
         document.body.removeChild(mockExecution);
     });
 
-    it('should handle pipeline config page', async () => {
+    it('should handle pipeline config page', () => {
         const mockConfig = document.createElement('h4');
         mockConfig.className = 'pipeline-config-name';
         mockConfig.textContent = 'Staging Deployment';
         document.body.appendChild(mockConfig);
 
-        vi.stubGlobal('window', {
-            location: {
-                href: 'https://spinnaker.company.com/applications/myapp/pipelineConfig/edit',
-            },
-        });
-
-        const format = handler.getFormats({
-            url: 'https://spinnaker.company.com/applications/myapp/pipelineConfig/edit',
-        })[0];
-        expect(format.html).toBe(
-            '<a href="https://spinnaker.company.com/applications/myapp/pipelineConfig/edit">Staging Deployment</a>',
-        );
+        const url = 'https://spinnaker.company.com/applications/myapp/pipelineConfig/edit';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe(`<a href="${url}">Spinnaker Pipeline: Staging Deployment</a>`);
 
         document.body.removeChild(mockConfig);
     });

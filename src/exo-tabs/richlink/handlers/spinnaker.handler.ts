@@ -1,5 +1,33 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
+const DEPLOY_PATTERN = /^Deploy\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
+const TRAILING_NUMBER = /\s+\d+$/;
+
+/**
+ * Format a raw Spinnaker pipeline title into a structured label + title.
+ *
+ * - Deploy pipelines: "Deploy svc PRODUCTION 1" → "Spinnaker: deploy PRODUCTION: svc"
+ * - Other pipelines: "Some Pipeline 5" → "Spinnaker Pipeline: Some Pipeline" (number stripped)
+ * - Fallback (null): "Spinnaker Page"
+ */
+export function formatSpinnakerTitle(raw: string | null): {label: string; title: string} {
+    if (raw === null) {
+        return {label: 'Spinnaker Pipeline', title: 'Spinnaker Page'};
+    }
+
+    const deployMatch = raw.match(DEPLOY_PATTERN);
+    if (deployMatch) {
+        const [, service, env] = deployMatch;
+        return {
+            label: 'Spinnaker Pipeline',
+            title: `Spinnaker: deploy ${env}: ${service}`,
+        };
+    }
+
+    const stripped = raw.replace(TRAILING_NUMBER, '');
+    return {label: 'Spinnaker Pipeline', title: `Spinnaker Pipeline: ${stripped}`};
+}
+
 export class SpinnakerHandler extends Handler {
     canHandle(url: URL): boolean {
         return (
@@ -8,40 +36,28 @@ export class SpinnakerHandler extends Handler {
         );
     }
 
-    private extractLinkText(): string {
-        // Try to extract pipeline name from execution group
-        // TODO: Verify these selectors work across different Spinnaker deployments
-        const pipelineName = document.querySelector('.execution-group-title');
-        if (pipelineName?.textContent) {
-            return pipelineName.textContent.trim();
+    private extractLinkText(): string | null {
+        const selectors = [
+            '.execution-group-title',
+            '.execution-name',
+            '.pipeline-config-name',
+            '.application-header',
+        ];
+        for (const sel of selectors) {
+            const el = document.querySelector(sel);
+            if (el?.textContent) {
+                return el.textContent.trim();
+            }
         }
-
-        // Try to extract execution name
-        const executionName = document.querySelector('.execution-name');
-        if (executionName?.textContent) {
-            return executionName.textContent.trim();
-        }
-
-        // Try to extract pipeline config name
-        const configName = document.querySelector('.pipeline-config-name');
-        if (configName?.textContent) {
-            return configName.textContent.trim();
-        }
-
-        // Try to extract application name
-        const appName = document.querySelector('.application-header');
-        if (appName?.textContent) {
-            return appName.textContent.trim();
-        }
-
-        return 'Spinnaker Page';
+        return null;
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
+        const raw = this.extractLinkText();
+        const {label, title} = formatSpinnakerTitle(raw);
         return [
             {
-                label: 'Spinnaker Pipeline',
+                label,
                 priority: 50,
                 html: `<a href="${ctx.url}">${title}</a>`,
                 text: `${title} (${ctx.url})`,
