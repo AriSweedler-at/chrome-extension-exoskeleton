@@ -55,6 +55,40 @@ describe('formatSpinnakerTitle', () => {
         });
     });
 
+    describe('deploy pipeline group (Deploy Pipeline Group {name} {ENV} {number})', () => {
+        it('should format PRODUCTION pipeline group deploy', () => {
+            const result = formatSpinnakerTitle('Deploy Pipeline Group Support Panel PRODUCTION 3');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: Support Panel',
+            });
+        });
+
+        it('should format ALPHA pipeline group deploy', () => {
+            const result = formatSpinnakerTitle('Deploy Pipeline Group My Services ALPHA 1');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy ALPHA: My Services',
+            });
+        });
+
+        it('should format STAGING pipeline group deploy', () => {
+            const result = formatSpinnakerTitle('Deploy Pipeline Group Data Ingestion STAGING 42');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy STAGING: Data Ingestion',
+            });
+        });
+
+        it('should handle single-word group name', () => {
+            const result = formatSpinnakerTitle('Deploy Pipeline Group Infra PRODUCTION 7');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: Infra',
+            });
+        });
+    });
+
     describe('non-deploy pipelines', () => {
         it('should strip trailing number and prefix with Spinnaker Pipeline:', () => {
             const result = formatSpinnakerTitle('Some Other Pipeline 5');

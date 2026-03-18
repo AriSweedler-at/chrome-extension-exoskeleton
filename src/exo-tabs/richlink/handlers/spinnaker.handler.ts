@@ -1,11 +1,13 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
+const DEPLOY_GROUP_PATTERN = /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
 const DEPLOY_PATTERN = /^Deploy\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
 const TRAILING_NUMBER = /\s+\d+$/;
 
 /**
  * Format a raw Spinnaker pipeline title into a structured label + title.
  *
+ * - Pipeline groups: "Deploy Pipeline Group Support Panel PRODUCTION 3" → "Spinnaker: deploy PRODUCTION: Support Panel"
  * - Deploy pipelines: "Deploy svc PRODUCTION 1" → "Spinnaker: deploy PRODUCTION: svc"
  * - Other pipelines: "Some Pipeline 5" → "Spinnaker Pipeline: Some Pipeline" (number stripped)
  * - Fallback (null): "Spinnaker Page"
@@ -13,6 +15,15 @@ const TRAILING_NUMBER = /\s+\d+$/;
 export function formatSpinnakerTitle(raw: string | null): {label: string; title: string} {
     if (raw === null) {
         return {label: 'Spinnaker Pipeline', title: 'Spinnaker Page'};
+    }
+
+    const groupMatch = raw.match(DEPLOY_GROUP_PATTERN);
+    if (groupMatch) {
+        const [, group, env] = groupMatch;
+        return {
+            label: 'Spinnaker Pipeline',
+            title: `Spinnaker: deploy ${env}: ${group}`,
+        };
     }
 
     const deployMatch = raw.match(DEPLOY_PATTERN);
