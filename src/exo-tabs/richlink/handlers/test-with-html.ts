@@ -27,6 +27,7 @@ import {AirtableHandler} from '@exo/exo-tabs/richlink/handlers/airtable.handler'
 import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 import {SpaceliftHandler} from '@exo/exo-tabs/richlink/handlers/spacelift.handler';
 import {BuildkiteHandler} from '@exo/exo-tabs/richlink/handlers/buildkite.handler';
+import {GreenhouseHandler} from '@exo/exo-tabs/richlink/handlers/greenhouse.handler';
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 const handlers: Record<string, new () => Handler> = {
@@ -37,6 +38,7 @@ const handlers: Record<string, new () => Handler> = {
     SpinnakerHandler,
     SpaceliftHandler,
     BuildkiteHandler,
+    GreenhouseHandler,
 };
 
 function testHandler(handlerName: string, htmlFilePath: string, url: string) {
