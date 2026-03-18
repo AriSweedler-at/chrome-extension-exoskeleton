@@ -1,11 +1,14 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class GoogleDocsHandler extends Handler {
+    readonly label = 'Google Doc';
+    readonly priority = 20;
+
     canHandle(url: URL): boolean {
         return url.hostname === 'docs.google.com';
     }
 
-    private extractLinkText(): string {
+    extractLinkText(): string {
         // Google Docs uses an input element for the document title
         // TODO: Verify this selector works across all Google Docs pages (Docs, Sheets, Slides)
         const titleInput = document.querySelector('.docs-title-input') as HTMLInputElement;
@@ -20,17 +23,5 @@ export class GoogleDocsHandler extends Handler {
         }
 
         return 'Google Doc';
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
-        return [
-            {
-                label: 'Google Doc',
-                priority: 20,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
     }
 }

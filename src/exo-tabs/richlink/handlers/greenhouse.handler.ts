@@ -1,6 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {Handler} from '@exo/exo-tabs/richlink/base';
 
 export class GreenhouseHandler extends Handler {
+    readonly label = 'Greenhouse Scorecard';
+    readonly priority = 50;
+
     canHandle(url: URL): boolean {
         return url.hostname.endsWith('.greenhouse.io') && /^\/scorecards\/\d+/.test(url.pathname);
     }
@@ -15,11 +18,10 @@ export class GreenhouseHandler extends Handler {
         return el?.textContent?.trim() || undefined;
     }
 
-    private extractLinkText(): string {
+    extractLinkText(): string {
         const name = this.extractCandidateName();
         const job = this.extractJobTitle();
 
-        // Build: Greenhouse: Scorecard: {Name} ({Job})
         const parts: string[] = ['Greenhouse', 'Scorecard'];
         if (name && job) {
             parts.push(`${name} (${job})`);
@@ -30,17 +32,5 @@ export class GreenhouseHandler extends Handler {
         }
 
         return parts.join(': ');
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
-        return [
-            {
-                label: 'Greenhouse Scorecard',
-                priority: 50,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
     }
 }

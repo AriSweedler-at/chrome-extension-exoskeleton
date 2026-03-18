@@ -33,13 +33,56 @@ export function truncateWithEllipsis(s: string, max: number): string {
     return s.length > max ? s.slice(0, max - 3) + '...' : s;
 }
 
+/** Build a standard LinkFormat: `<a href="url">title</a>` / `title (url)`. */
+export function linkFormat(
+    label: string,
+    priority: number,
+    title: string,
+    url: string,
+    isFallback?: boolean,
+): LinkFormat {
+    return {
+        label,
+        priority,
+        ...(isFallback && {isFallback}),
+        html: `<a href="${url}">${title}</a>`,
+        text: `${title} (${url})`,
+    };
+}
+
 export abstract class Handler {
     /** Return true if this handler knows how to produce links for the given URL. */
     abstract canHandle(url: URL): boolean;
 
-    /** Return one or more LinkFormats for the given URL. */
-    abstract getFormats(ctx: FormatContext): LinkFormat[];
+    /** The button label shown in the format picker (e.g. "GitHub PR", "Spacelift Stack"). */
+    abstract readonly label: string;
+
+    /** Lower numbers appear first in the format picker. */
+    abstract readonly priority: number;
+
+    /** Extract the display text for the link from the page DOM and/or URL. Defaults to document.title. */
+    extractLinkText(_ctx: FormatContext): string {
+        return document.title;
+    }
 
     /** True for fallback handlers (e.g. Page Title, Raw URL) that match all URLs. */
     readonly isFallback: boolean = false;
+
+    /** Override to canonicalize the URL (e.g. strip GitHub PR sub-pages). Defaults to ctx.url. */
+    protected getUrl(ctx: FormatContext): string {
+        return ctx.url;
+    }
+
+    /** Return one or more LinkFormats for the given URL. Override for multi-format handlers. */
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        return [
+            linkFormat(
+                this.label,
+                this.priority,
+                this.extractLinkText(ctx),
+                this.getUrl(ctx),
+                this.isFallback,
+            ),
+        ];
+    }
 }

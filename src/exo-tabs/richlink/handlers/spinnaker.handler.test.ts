@@ -53,6 +53,14 @@ describe('formatSpinnakerTitle', () => {
                 title: 'Spinnaker: deploy PRODUCTION: api-gateway',
             });
         });
+
+        it('should handle deploy without trailing number', () => {
+            const result = formatSpinnakerTitle('Deploy worker-service-dogfood-crd PRODUCTION');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline',
+                title: 'Spinnaker: deploy PRODUCTION: worker-service-dogfood-crd',
+            });
+        });
     });
 
     describe('deploy pipeline group (Deploy Pipeline Group {name} {ENV} {number})', () => {

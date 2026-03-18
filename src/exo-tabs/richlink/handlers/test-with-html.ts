@@ -22,7 +22,6 @@ import {ExampleHtmlFile} from '@exo/exo-tabs/richlink/handlers/resolve-example';
 // Import handlers
 import {GitHubHandler} from '@exo/exo-tabs/richlink/handlers/github.handler';
 import {GoogleDocsHandler} from '@exo/exo-tabs/richlink/handlers/google-docs.handler';
-import {AtlassianHandler} from '@exo/exo-tabs/richlink/handlers/atlassian.handler';
 import {AirtableHandler} from '@exo/exo-tabs/richlink/handlers/airtable.handler';
 import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 import {SpaceliftHandler} from '@exo/exo-tabs/richlink/handlers/spacelift.handler';
@@ -33,7 +32,6 @@ import {Handler} from '@exo/exo-tabs/richlink/base';
 const handlers: Record<string, new () => Handler> = {
     GitHubHandler,
     GoogleDocsHandler,
-    AtlassianHandler,
     AirtableHandler,
     SpinnakerHandler,
     SpaceliftHandler,

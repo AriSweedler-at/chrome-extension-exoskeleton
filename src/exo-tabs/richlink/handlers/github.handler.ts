@@ -1,6 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
+    readonly label: string = 'GitHub PR';
+    readonly priority: number = 10;
+
     // URL segment index for the PR number in github.com/org/repo/pull/{number}
     protected static readonly PR_NUMBER_INDEX = 6;
 
@@ -21,13 +24,13 @@ export class GitHubHandler extends Handler {
     }
 
     /** Strip sub-pages (/files, /changes, /commits, /checks, etc.) from GitHub PR URLs. */
-    private canonicalUrl(url: string): string {
+    protected override getUrl({url}: FormatContext): string {
         const parts = url.split('/');
         // Keep: https://github.com/org/repo/pull/number (indices 0–6)
         return parts.slice(0, 7).join('/');
     }
 
-    private extractLinkText({url}: FormatContext): string {
+    extractLinkText({url}: FormatContext): string {
         // Extract PR title from page - try multiple selectors for different GitHub layouts
         const titleElement =
             document.querySelector('.markdown-title') ||
@@ -41,18 +44,5 @@ export class GitHubHandler extends Handler {
         const title = titleElement.textContent.trim();
         const prNumber = this.parsePrNumber(url);
         return prNumber ? `${title} (#${prNumber})` : title;
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText(ctx);
-        const url = this.canonicalUrl(ctx.url);
-        return [
-            {
-                label: 'GitHub PR',
-                priority: 10,
-                html: `<a href="${url}">${title}</a>`,
-                text: `${title} (${url})`,
-            },
-        ];
     }
 }

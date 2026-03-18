@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
@@ -22,34 +27,14 @@ const subHandlers: AirtableSubHandler[] = Object.values(modules).flatMap((mod) =
 );
 
 export class AirtableHandler extends Handler {
+    readonly label = 'Airtable Record';
+    readonly priority = 40;
+
     canHandle(url: URL): boolean {
         return url.hostname === 'airtable.com';
     }
 
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const formats: LinkFormat[] = [];
-
-        // Collect formats from matching sub-handlers
-        for (const sub of subHandlers) {
-            if (sub.canHandle(new URL(ctx.url))) {
-                formats.push(...sub.getFormats(ctx));
-            }
-        }
-
-        // Always include generic Airtable fallback
-        const url = canonicalAirtableUrl(ctx.url);
-        const title = this.extractGenericTitle();
-        formats.push({
-            label: 'Airtable Record',
-            priority: 40,
-            html: `<a href="${url}">${title}</a>`,
-            text: `${title} (${url})`,
-        });
-
-        return formats;
-    }
-
-    private extractGenericTitle(): string {
+    extractLinkText(): string {
         // Base name
         const baseName = document.querySelector('.basename');
         if (baseName?.textContent) {
@@ -69,5 +54,29 @@ export class AirtableHandler extends Handler {
         }
 
         return 'Airtable Record';
+    }
+
+    /** Override: collects formats from sub-handlers + generic fallback. */
+    override getFormats(ctx: FormatContext): LinkFormat[] {
+        const formats: LinkFormat[] = [];
+
+        // Collect formats from matching sub-handlers
+        for (const sub of subHandlers) {
+            if (sub.canHandle(new URL(ctx.url))) {
+                formats.push(...sub.getFormats(ctx));
+            }
+        }
+
+        // Always include generic Airtable fallback
+        formats.push(
+            linkFormat(
+                this.label,
+                this.priority,
+                this.extractLinkText(),
+                canonicalAirtableUrl(ctx.url),
+            ),
+        );
+
+        return formats;
     }
 }

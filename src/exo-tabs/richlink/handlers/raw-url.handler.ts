@@ -1,14 +1,28 @@
 import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 
 export class RawUrlHandler extends Handler {
+    readonly label = 'Raw URL';
+    readonly priority = 200;
+    override readonly isFallback = true;
+
     canHandle(_url: URL): boolean {
         return true; // Handles all URLs as fallback
     }
 
-    override readonly isFallback = true;
+    extractLinkText({url}: FormatContext): string {
+        return url;
+    }
 
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const url = ctx.url;
-        return [{label: 'Raw URL', priority: 200, isFallback: true, html: url, text: url}];
+    /** Override: raw URL has no anchor tag wrapping. */
+    override getFormats(ctx: FormatContext): LinkFormat[] {
+        return [
+            {
+                label: this.label,
+                priority: this.priority,
+                isFallback: true,
+                html: ctx.url,
+                text: ctx.url,
+            },
+        ];
     }
 }
