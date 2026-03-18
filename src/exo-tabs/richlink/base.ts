@@ -60,8 +60,10 @@ export abstract class Handler {
     /** Lower numbers appear first in the format picker. */
     abstract readonly priority: number;
 
-    /** Extract the display text for the link from the page DOM and/or URL. */
-    abstract extractLinkText(ctx: FormatContext): string;
+    /** Extract the display text for the link from the page DOM and/or URL. Defaults to document.title. */
+    extractLinkText(_ctx: FormatContext): string {
+        return document.title;
+    }
 
     /** True for fallback handlers (e.g. Page Title, Raw URL) that match all URLs. */
     readonly isFallback: boolean = false;
