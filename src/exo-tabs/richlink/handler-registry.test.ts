@@ -3,15 +3,11 @@ import {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 class SpecializedHandler extends Handler {
-    readonly label = 'GitHub';
+    readonly label = 'Specialized';
     readonly priority = 10;
 
     canHandle(url: URL): boolean {
-        return url.href.includes('github.com');
-    }
-
-    extractLinkText(): string {
-        return 'GitHub';
+        return url.hostname === 'specialized.com';
     }
 }
 
@@ -20,34 +16,27 @@ class FallbackHandler extends Handler {
     readonly priority = 100;
     override readonly isFallback = true;
 
-    canHandle(_url: URL): boolean {
+    canHandle(): boolean {
         return true;
-    }
-
-    extractLinkText(): string {
-        return 'Fallback';
     }
 }
 
 describe('HandlerRegistry', () => {
     beforeEach(() => {
-        // Clear registry before each test
         HandlerRegistry['baseHandlers'] = [];
         HandlerRegistry['specializedHandlers'] = [];
     });
 
     it('should register specialized handlers', () => {
-        const handler = new SpecializedHandler();
-        HandlerRegistry.register(handler);
+        HandlerRegistry.register(new SpecializedHandler());
 
-        const formats = HandlerRegistry.getAllFormats('https://github.com/repo');
+        const formats = HandlerRegistry.getAllFormats('https://specialized.com/page');
         expect(formats).toHaveLength(1);
-        expect(formats[0].label).toBe('GitHub');
+        expect(formats[0].label).toBe('Specialized');
     });
 
-    it('should register base handlers', () => {
-        const handler = new FallbackHandler();
-        HandlerRegistry.register(handler);
+    it('should register fallback handlers', () => {
+        HandlerRegistry.register(new FallbackHandler());
 
         const formats = HandlerRegistry.getAllFormats('https://example.com');
         expect(formats).toHaveLength(1);
@@ -55,39 +44,20 @@ describe('HandlerRegistry', () => {
     });
 
     it('should return formats in priority order', () => {
-        const specialized = new SpecializedHandler();
-        const fallback = new FallbackHandler();
+        HandlerRegistry.register(new SpecializedHandler());
+        HandlerRegistry.register(new FallbackHandler());
 
-        HandlerRegistry.register(specialized);
-        HandlerRegistry.register(fallback);
-
-        const formats = HandlerRegistry.getAllFormats('https://github.com/repo');
+        const formats = HandlerRegistry.getAllFormats('https://specialized.com/page');
         expect(formats).toHaveLength(2);
-        expect(formats[0].label).toBe('GitHub'); // Lower priority (10) comes first
+        expect(formats[0].label).toBe('Specialized');
         expect(formats[1].label).toBe('Fallback');
     });
 
     it('should detect specialized handlers', () => {
-        const specialized = new SpecializedHandler();
-        const fallback = new FallbackHandler();
+        HandlerRegistry.register(new SpecializedHandler());
+        HandlerRegistry.register(new FallbackHandler());
 
-        HandlerRegistry.register(specialized);
-        HandlerRegistry.register(fallback);
-
-        expect(HandlerRegistry.hasSpecializedHandler('https://github.com/repo')).toBe(true);
+        expect(HandlerRegistry.hasSpecializedHandler('https://specialized.com/page')).toBe(true);
         expect(HandlerRegistry.hasSpecializedHandler('https://example.com')).toBe(false);
-    });
-
-    it('should get all formats from matching handlers', async () => {
-        const specialized = new SpecializedHandler();
-        const fallback = new FallbackHandler();
-
-        HandlerRegistry.register(specialized);
-        HandlerRegistry.register(fallback);
-
-        const formats = HandlerRegistry.getAllFormats('https://github.com/repo');
-        expect(formats).toHaveLength(2);
-        expect(formats[0].label).toBe('GitHub');
-        expect(formats[1].label).toBe('Fallback');
     });
 });

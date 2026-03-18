@@ -1,4 +1,4 @@
-import {describe, it, expect} from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 import {Handler} from '@exo/exo-tabs/richlink/base';
 
 class TestHandler extends Handler {
@@ -6,34 +6,32 @@ class TestHandler extends Handler {
     readonly priority = 10;
 
     canHandle(url: URL): boolean {
-        return url.href.includes('test.com');
-    }
-
-    extractLinkText(): string {
-        return 'Test';
+        return url.hostname === 'test.com';
     }
 }
 
 describe('Handler', () => {
-    it('getFormats should return LinkFormat[]', () => {
-        const handler = new TestHandler();
-        const format = handler.getFormats({url: window.location.href})[0];
+    beforeEach(() => {
+        document.title = 'Test Page';
+    });
 
-        const url = window.location.href;
+    it('getFormats uses label, priority, extractLinkText, and url', () => {
+        const handler = new TestHandler();
+        const url = 'https://test.com/page';
+        const format = handler.getFormats({url})[0];
         expect(format).toEqual({
             label: 'Test Handler',
             priority: 10,
-            html: `<a href="${url}">Test</a>`,
-            text: `Test (${url})`,
+            html: `<a href="${url}">Test Page</a>`,
+            text: `Test Page (${url})`,
         });
     });
 
-    it('isFallback should default to false', () => {
-        const handler = new TestHandler();
-        expect(handler.isFallback).toBe(false);
+    it('isFallback defaults to false', () => {
+        expect(new TestHandler().isFallback).toBe(false);
     });
 
-    it('canHandle should check URL', () => {
+    it('canHandle checks URL', () => {
         const handler = new TestHandler();
         expect(handler.canHandle(new URL('https://test.com/page'))).toBe(true);
         expect(handler.canHandle(new URL('https://other.com/page'))).toBe(false);
