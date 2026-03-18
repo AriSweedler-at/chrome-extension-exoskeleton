@@ -6,6 +6,9 @@ import {
 } from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
+    readonly label = 'Atlassian Page';
+    readonly priority = 30;
+
     canHandle(url: URL): boolean {
         return url.hostname.endsWith('.atlassian.net');
     }
@@ -16,7 +19,7 @@ export class AtlassianHandler extends Handler {
         return 'Atlassian Page';
     }
 
-    private extractLinkText(url: string): string {
+    extractLinkText({url}: FormatContext): string {
         // Confluence page title
         // TODO: Verify this selector works across different Confluence versions
         if (url.includes('/wiki/')) {
@@ -50,7 +53,10 @@ export class AtlassianHandler extends Handler {
         return 'Atlassian Page';
     }
 
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        return [linkFormat(this.getLabel(ctx.url), 30, this.extractLinkText(ctx.url), ctx.url)];
+    /** Override to use dynamic label based on URL type. */
+    override getFormats(ctx: FormatContext): LinkFormat[] {
+        return [
+            linkFormat(this.getLabel(ctx.url), this.priority, this.extractLinkText(ctx), ctx.url),
+        ];
     }
 }

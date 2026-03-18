@@ -1,13 +1,10 @@
-import {
-    Handler,
-    linkFormat,
-    truncateWithEllipsis,
-    type FormatContext,
-    type LinkFormat,
-} from '@exo/exo-tabs/richlink/base';
+import {Handler, truncateWithEllipsis, type FormatContext} from '@exo/exo-tabs/richlink/base';
 import {SPACELIFT_HOSTNAME} from '@exo/exo-tabs/spacelift';
 
 export class SpaceliftHandler extends Handler {
+    readonly label = 'Spacelift Stack';
+    readonly priority = 60;
+
     canHandle(url: URL): boolean {
         return url.hostname === SPACELIFT_HOSTNAME;
     }
@@ -27,7 +24,7 @@ export class SpaceliftHandler extends Handler {
         return undefined;
     }
 
-    private extractLinkText(url: string): string {
+    extractLinkText({url}: FormatContext): string {
         const stackName = this.parseStackName(url);
         const title = this.getPageTitle();
 
@@ -41,9 +38,5 @@ export class SpaceliftHandler extends Handler {
             return `Spacelift Stack: ${stackName}`;
         }
         return 'Spacelift Stack';
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        return [linkFormat('Spacelift Stack', 60, this.extractLinkText(ctx.url), ctx.url)];
     }
 }

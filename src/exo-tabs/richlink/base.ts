@@ -54,9 +54,33 @@ export abstract class Handler {
     /** Return true if this handler knows how to produce links for the given URL. */
     abstract canHandle(url: URL): boolean;
 
-    /** Return one or more LinkFormats for the given URL. */
-    abstract getFormats(ctx: FormatContext): LinkFormat[];
+    /** The button label shown in the format picker (e.g. "GitHub PR", "Spacelift Stack"). */
+    abstract readonly label: string;
+
+    /** Lower numbers appear first in the format picker. */
+    abstract readonly priority: number;
+
+    /** Extract the display text for the link from the page DOM and/or URL. */
+    abstract extractLinkText(ctx: FormatContext): string;
 
     /** True for fallback handlers (e.g. Page Title, Raw URL) that match all URLs. */
     readonly isFallback: boolean = false;
+
+    /** Override to canonicalize the URL (e.g. strip GitHub PR sub-pages). Defaults to ctx.url. */
+    protected getUrl(ctx: FormatContext): string {
+        return ctx.url;
+    }
+
+    /** Return one or more LinkFormats for the given URL. Override for multi-format handlers. */
+    getFormats(ctx: FormatContext): LinkFormat[] {
+        return [
+            linkFormat(
+                this.label,
+                this.priority,
+                this.extractLinkText(ctx),
+                this.getUrl(ctx),
+                this.isFallback,
+            ),
+        ];
+    }
 }

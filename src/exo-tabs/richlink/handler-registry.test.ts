@@ -1,39 +1,32 @@
 import {describe, it, expect, beforeEach} from 'vitest';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handler-registry';
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {Handler} from '@exo/exo-tabs/richlink/base';
 
 class SpecializedHandler extends Handler {
+    readonly label = 'GitHub';
+    readonly priority = 10;
+
     canHandle(url: URL): boolean {
         return url.href.includes('github.com');
     }
-    getFormats(_ctx: FormatContext): LinkFormat[] {
-        return [
-            {
-                label: 'GitHub',
-                priority: 10,
-                html: '<a href="">GitHub</a>',
-                text: 'GitHub',
-            },
-        ];
+
+    extractLinkText(): string {
+        return 'GitHub';
     }
 }
 
 class FallbackHandler extends Handler {
+    readonly label = 'Fallback';
+    readonly priority = 100;
+    override readonly isFallback = true;
+
     canHandle(_url: URL): boolean {
         return true;
     }
-    getFormats(_ctx: FormatContext): LinkFormat[] {
-        return [
-            {
-                label: 'Fallback',
-                priority: 100,
-                isFallback: true,
-                html: '<a href="">Fallback</a>',
-                text: 'Fallback',
-            },
-        ];
+
+    extractLinkText(): string {
+        return 'Fallback';
     }
-    override readonly isFallback = true;
 }
 
 describe('HandlerRegistry', () => {

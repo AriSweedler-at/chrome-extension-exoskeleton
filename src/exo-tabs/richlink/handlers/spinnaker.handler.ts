@@ -45,6 +45,9 @@ export function formatSpinnakerTitle(raw: string | null): {label: string; title:
 }
 
 export class SpinnakerHandler extends Handler {
+    readonly label = 'Spinnaker Pipeline';
+    readonly priority = 50;
+
     canHandle(url: URL): boolean {
         return (
             url.hostname === 'spinnaker.k8s.shadowbox.cloud' ||
@@ -52,7 +55,7 @@ export class SpinnakerHandler extends Handler {
         );
     }
 
-    private extractLinkText(): string | null {
+    private extractRawTitle(): string | null {
         const selectors = [
             '.execution-group-title',
             '.execution-name',
@@ -68,9 +71,14 @@ export class SpinnakerHandler extends Handler {
         return null;
     }
 
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const raw = this.extractLinkText();
+    extractLinkText(): string {
+        return formatSpinnakerTitle(this.extractRawTitle()).title;
+    }
+
+    /** Override to use the formatted label from formatSpinnakerTitle. */
+    override getFormats(ctx: FormatContext): LinkFormat[] {
+        const raw = this.extractRawTitle();
         const {label, title} = formatSpinnakerTitle(raw);
-        return [linkFormat(label, 50, title, ctx.url)];
+        return [linkFormat(label, this.priority, title, ctx.url)];
     }
 }

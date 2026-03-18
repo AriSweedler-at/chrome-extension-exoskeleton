@@ -1,16 +1,14 @@
-import {
-    Handler,
-    linkFormat,
-    type FormatContext,
-    type LinkFormat,
-} from '@exo/exo-tabs/richlink/base';
+import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
 
 export class BuildkiteHandler extends Handler {
+    readonly label = 'BuildKite Pipeline';
+    readonly priority = 65;
+
     canHandle(url: URL): boolean {
         return url.hostname === 'buildkite.com';
     }
 
-    private extractLinkText(url: string): string {
+    extractLinkText({url}: FormatContext): string {
         // Extract pipeline name and optional build number from URL path:
         // buildkite.com/{org}/{pipeline}[/builds/{number}]
         const path = new URL(url).pathname;
@@ -23,9 +21,5 @@ export class BuildkiteHandler extends Handler {
                 : `BuildKite: ${pipeline}`;
         }
         return 'BuildKite';
-    }
-
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        return [linkFormat('BuildKite Pipeline', 65, this.extractLinkText(ctx.url), ctx.url)];
     }
 }

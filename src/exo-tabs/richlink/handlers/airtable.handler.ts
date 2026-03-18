@@ -27,34 +27,14 @@ const subHandlers: AirtableSubHandler[] = Object.values(modules).flatMap((mod) =
 );
 
 export class AirtableHandler extends Handler {
+    readonly label = 'Airtable Record';
+    readonly priority = 40;
+
     canHandle(url: URL): boolean {
         return url.hostname === 'airtable.com';
     }
 
-    getFormats(ctx: FormatContext): LinkFormat[] {
-        const formats: LinkFormat[] = [];
-
-        // Collect formats from matching sub-handlers
-        for (const sub of subHandlers) {
-            if (sub.canHandle(new URL(ctx.url))) {
-                formats.push(...sub.getFormats(ctx));
-            }
-        }
-
-        // Always include generic Airtable fallback
-        formats.push(
-            linkFormat(
-                'Airtable Record',
-                40,
-                this.extractGenericTitle(),
-                canonicalAirtableUrl(ctx.url),
-            ),
-        );
-
-        return formats;
-    }
-
-    private extractGenericTitle(): string {
+    extractLinkText(): string {
         // Base name
         const baseName = document.querySelector('.basename');
         if (baseName?.textContent) {
@@ -74,5 +54,29 @@ export class AirtableHandler extends Handler {
         }
 
         return 'Airtable Record';
+    }
+
+    /** Override: collects formats from sub-handlers + generic fallback. */
+    override getFormats(ctx: FormatContext): LinkFormat[] {
+        const formats: LinkFormat[] = [];
+
+        // Collect formats from matching sub-handlers
+        for (const sub of subHandlers) {
+            if (sub.canHandle(new URL(ctx.url))) {
+                formats.push(...sub.getFormats(ctx));
+            }
+        }
+
+        // Always include generic Airtable fallback
+        formats.push(
+            linkFormat(
+                this.label,
+                this.priority,
+                this.extractLinkText(),
+                canonicalAirtableUrl(ctx.url),
+            ),
+        );
+
+        return formats;
     }
 }
