@@ -5,8 +5,9 @@ import {
     type LinkFormat,
 } from '@exo/exo-tabs/richlink/base';
 
-const DEPLOY_GROUP_PATTERN = /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
-const DEPLOY_PATTERN = /^Deploy\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
+const DEPLOY_GROUP_PATTERN =
+    /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
+const DEPLOY_PATTERN = /^Deploy\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
 const TRAILING_NUMBER = /\s+\d+$/;
 
 /**
