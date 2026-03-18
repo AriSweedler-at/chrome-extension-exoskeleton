@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class PageTitleHandler extends Handler {
     canHandle(_url: URL): boolean {
@@ -8,15 +13,6 @@ export class PageTitleHandler extends Handler {
     override readonly isFallback = true;
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = document.title || 'Untitled';
-        return [
-            {
-                label: 'Page Title',
-                priority: 100,
-                isFallback: true,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat('Page Title', 100, document.title || 'Untitled', ctx.url, true)];
     }
 }

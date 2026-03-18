@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
@@ -37,14 +42,14 @@ export class AirtableHandler extends Handler {
         }
 
         // Always include generic Airtable fallback
-        const url = canonicalAirtableUrl(ctx.url);
-        const title = this.extractGenericTitle();
-        formats.push({
-            label: 'Airtable Record',
-            priority: 40,
-            html: `<a href="${url}">${title}</a>`,
-            text: `${title} (${url})`,
-        });
+        formats.push(
+            linkFormat(
+                'Airtable Record',
+                40,
+                this.extractGenericTitle(),
+                canonicalAirtableUrl(ctx.url),
+            ),
+        );
 
         return formats;
     }

@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 const DEPLOY_GROUP_PATTERN = /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
 const DEPLOY_PATTERN = /^Deploy\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)\s+\d+$/;
@@ -66,13 +71,6 @@ export class SpinnakerHandler extends Handler {
     getFormats(ctx: FormatContext): LinkFormat[] {
         const raw = this.extractLinkText();
         const {label, title} = formatSpinnakerTitle(raw);
-        return [
-            {
-                label,
-                priority: 50,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat(label, 50, title, ctx.url)];
     }
 }

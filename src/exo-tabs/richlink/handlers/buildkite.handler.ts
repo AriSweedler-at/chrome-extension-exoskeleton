@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class BuildkiteHandler extends Handler {
     canHandle(url: URL): boolean {
@@ -21,14 +26,6 @@ export class BuildkiteHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText(ctx.url);
-        return [
-            {
-                label: 'BuildKite Pipeline',
-                priority: 65,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat('BuildKite Pipeline', 65, this.extractLinkText(ctx.url), ctx.url)];
     }
 }

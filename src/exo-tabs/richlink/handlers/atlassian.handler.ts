@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class AtlassianHandler extends Handler {
     canHandle(url: URL): boolean {
@@ -46,14 +51,6 @@ export class AtlassianHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText(ctx.url);
-        return [
-            {
-                label: this.getLabel(ctx.url),
-                priority: 30,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat(this.getLabel(ctx.url), 30, this.extractLinkText(ctx.url), ctx.url)];
     }
 }

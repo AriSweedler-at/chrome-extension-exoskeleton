@@ -1,5 +1,6 @@
 import {
     Handler,
+    linkFormat,
     truncateWithEllipsis,
     type FormatContext,
     type LinkFormat,
@@ -43,14 +44,6 @@ export class SpaceliftHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText(ctx.url);
-        return [
-            {
-                label: 'Spacelift Stack',
-                priority: 60,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat('Spacelift Stack', 60, this.extractLinkText(ctx.url), ctx.url)];
     }
 }

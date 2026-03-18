@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class GitHubHandler extends Handler {
     // URL segment index for the PR number in github.com/org/repo/pull/{number}
@@ -44,15 +49,6 @@ export class GitHubHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText(ctx);
-        const url = this.canonicalUrl(ctx.url);
-        return [
-            {
-                label: 'GitHub PR',
-                priority: 10,
-                html: `<a href="${url}">${title}</a>`,
-                text: `${title} (${url})`,
-            },
-        ];
+        return [linkFormat('GitHub PR', 10, this.extractLinkText(ctx), this.canonicalUrl(ctx.url))];
     }
 }

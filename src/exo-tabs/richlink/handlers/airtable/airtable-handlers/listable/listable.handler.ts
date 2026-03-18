@@ -1,4 +1,4 @@
-import type {FormatContext, LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {linkFormat, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
@@ -26,13 +26,6 @@ export const listableHandler: AirtableSubHandler = {
             title = slashIdx !== -1 ? `${raw.slice(0, slashIdx)}: ${raw.slice(slashIdx + 1)}` : raw;
         }
 
-        return [
-            {
-                label: 'Listable Record',
-                priority: 35,
-                html: `<a href="${canonicalUrl}">${title}</a>`,
-                text: `${title} (${canonicalUrl})`,
-            },
-        ];
+        return [linkFormat('Listable Record', 35, title, canonicalUrl)];
     },
 };

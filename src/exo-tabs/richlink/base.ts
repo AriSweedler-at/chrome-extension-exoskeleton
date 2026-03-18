@@ -33,6 +33,23 @@ export function truncateWithEllipsis(s: string, max: number): string {
     return s.length > max ? s.slice(0, max - 3) + '...' : s;
 }
 
+/** Build a standard LinkFormat: `<a href="url">title</a>` / `title (url)`. */
+export function linkFormat(
+    label: string,
+    priority: number,
+    title: string,
+    url: string,
+    isFallback?: boolean,
+): LinkFormat {
+    return {
+        label,
+        priority,
+        ...(isFallback && {isFallback}),
+        html: `<a href="${url}">${title}</a>`,
+        text: `${title} (${url})`,
+    };
+}
+
 export abstract class Handler {
     /** Return true if this handler knows how to produce links for the given URL. */
     abstract canHandle(url: URL): boolean;

@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class GreenhouseHandler extends Handler {
     canHandle(url: URL): boolean {
@@ -33,14 +38,6 @@ export class GreenhouseHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
-        return [
-            {
-                label: 'Greenhouse Scorecard',
-                priority: 50,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat('Greenhouse Scorecard', 50, this.extractLinkText(), ctx.url)];
     }
 }

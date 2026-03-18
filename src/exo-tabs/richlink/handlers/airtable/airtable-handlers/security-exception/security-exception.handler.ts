@@ -1,4 +1,5 @@
 import {
+    linkFormat,
     truncateWithEllipsis,
     type FormatContext,
     type LinkFormat,
@@ -24,14 +25,7 @@ export const securityExceptionHandler: AirtableSubHandler = {
             ? `Security Exception: ${truncated} (re-review ${reReviewDate})`
             : `Security Exception: ${truncated}`;
 
-        return [
-            {
-                label: 'Security Exception',
-                priority: 35,
-                html: `<a href="${canonicalUrl}">${label}</a>`,
-                text: `${label} (${canonicalUrl})`,
-            },
-        ];
+        return [linkFormat('Security Exception', 35, label, canonicalUrl)];
     },
 };
 

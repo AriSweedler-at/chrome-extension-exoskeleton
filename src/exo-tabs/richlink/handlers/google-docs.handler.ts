@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    Handler,
+    linkFormat,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class GoogleDocsHandler extends Handler {
     canHandle(url: URL): boolean {
@@ -23,14 +28,6 @@ export class GoogleDocsHandler extends Handler {
     }
 
     getFormats(ctx: FormatContext): LinkFormat[] {
-        const title = this.extractLinkText();
-        return [
-            {
-                label: 'Google Doc',
-                priority: 20,
-                html: `<a href="${ctx.url}">${title}</a>`,
-                text: `${title} (${ctx.url})`,
-            },
-        ];
+        return [linkFormat('Google Doc', 20, this.extractLinkText(), ctx.url)];
     }
 }
