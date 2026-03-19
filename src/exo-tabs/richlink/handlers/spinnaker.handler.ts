@@ -13,8 +13,11 @@ const TRAILING_NUMBER = /\s+\d+$/;
 /**
  * Format a raw Spinnaker pipeline title into a structured label + title.
  *
- * - Pipeline groups: "Deploy Pipeline Group Support Panel PRODUCTION 3" → "Spinnaker: deploy PRODUCTION: Support Panel"
+ * Pipeline groups and individual pipelines are intentionally distinct formats:
+ * - Pipeline groups: "Deploy Pipeline Group Web PRODUCTION" → "Spinnaker: deploy PRODUCTION: group: Web"
+ *   (label: "Spinnaker Pipeline Group") — groups fan out into multiple individual pipelines
  * - Deploy pipelines: "Deploy svc PRODUCTION 1" → "Spinnaker: deploy PRODUCTION: svc"
+ *   (label: "Spinnaker Pipeline") — a single pipeline deploying one service
  * - Other pipelines: "Some Pipeline 5" → "Spinnaker Pipeline: Some Pipeline" (number stripped)
  * - Fallback (null): "Spinnaker Page"
  */
@@ -27,8 +30,8 @@ export function formatSpinnakerTitle(raw: string | null): {label: string; title:
     if (groupMatch) {
         const [, group, env] = groupMatch;
         return {
-            label: 'Spinnaker Pipeline',
-            title: `Spinnaker: deploy ${env}: ${group}`,
+            label: 'Spinnaker Pipeline Group',
+            title: `Spinnaker: deploy ${env}: group: ${group}`,
         };
     }
 

@@ -5,7 +5,7 @@ import {
 } from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 
 describe('formatSpinnakerTitle', () => {
-    describe('deploy pipelines (Deploy {service} {ENV} {number})', () => {
+    describe('deploy pipelines — single service (Deploy {service} {ENV} {number})', () => {
         it('should format PRODUCTION deploy', () => {
             const result = formatSpinnakerTitle('Deploy internal-tool-service PRODUCTION 1');
             expect(result).toEqual({
@@ -63,36 +63,44 @@ describe('formatSpinnakerTitle', () => {
         });
     });
 
-    describe('deploy pipeline group (Deploy Pipeline Group {name} {ENV} {number})', () => {
+    describe('deploy pipeline groups — fans out into multiple pipelines (Deploy Pipeline Group {name} {ENV})', () => {
         it('should format PRODUCTION pipeline group deploy', () => {
             const result = formatSpinnakerTitle('Deploy Pipeline Group Support Panel PRODUCTION 3');
             expect(result).toEqual({
-                label: 'Spinnaker Pipeline',
-                title: 'Spinnaker: deploy PRODUCTION: Support Panel',
+                label: 'Spinnaker Pipeline Group',
+                title: 'Spinnaker: deploy PRODUCTION: group: Support Panel',
             });
         });
 
         it('should format ALPHA pipeline group deploy', () => {
             const result = formatSpinnakerTitle('Deploy Pipeline Group My Services ALPHA 1');
             expect(result).toEqual({
-                label: 'Spinnaker Pipeline',
-                title: 'Spinnaker: deploy ALPHA: My Services',
+                label: 'Spinnaker Pipeline Group',
+                title: 'Spinnaker: deploy ALPHA: group: My Services',
             });
         });
 
         it('should format STAGING pipeline group deploy', () => {
             const result = formatSpinnakerTitle('Deploy Pipeline Group Data Ingestion STAGING 42');
             expect(result).toEqual({
-                label: 'Spinnaker Pipeline',
-                title: 'Spinnaker: deploy STAGING: Data Ingestion',
+                label: 'Spinnaker Pipeline Group',
+                title: 'Spinnaker: deploy STAGING: group: Data Ingestion',
             });
         });
 
         it('should handle single-word group name', () => {
             const result = formatSpinnakerTitle('Deploy Pipeline Group Infra PRODUCTION 7');
             expect(result).toEqual({
-                label: 'Spinnaker Pipeline',
-                title: 'Spinnaker: deploy PRODUCTION: Infra',
+                label: 'Spinnaker Pipeline Group',
+                title: 'Spinnaker: deploy PRODUCTION: group: Infra',
+            });
+        });
+
+        it('should handle group without trailing number', () => {
+            const result = formatSpinnakerTitle('Deploy Pipeline Group Web PRODUCTION');
+            expect(result).toEqual({
+                label: 'Spinnaker Pipeline Group',
+                title: 'Spinnaker: deploy PRODUCTION: group: Web',
             });
         });
     });
