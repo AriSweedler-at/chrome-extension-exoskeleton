@@ -34,16 +34,16 @@ describe('SpaceliftHandler', () => {
         const format = handler.getFormats({url})[0];
         const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
 
-        // prefix "Spacelift: build_artifacts-production: " is 40 chars
-        expect(linkText.length).toBe(SpaceliftHandler.TOTAL_MAX_LEN);
-        expect(linkText).toMatch(/^Spacelift: build_artifacts-production: /);
-        expect(linkText).toMatch(/\.\.\.$/);
+        expect(linkText).toBe(
+            'Spacelift: build_artifacts-production: Remove stale references from k8s services (#201431)',
+        );
     });
 
     it('should truncate so total link text is TOTAL_MAX_LEN chars', () => {
         const runTitle = document.createElement('h2');
         runTitle.className = 'run-title';
-        runTitle.textContent = 'This is a very long title that exceeds the limit easily';
+        runTitle.textContent =
+            'This is a very long title that exceeds the limit easily and keeps going to be even longer than before';
         document.body.appendChild(runTitle);
 
         const url = 'https://spacelift.shadowbox.cloud/stack/my-stack/run/abc';

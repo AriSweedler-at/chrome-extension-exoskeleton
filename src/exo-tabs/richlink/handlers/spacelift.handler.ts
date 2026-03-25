@@ -9,7 +9,7 @@ export class SpaceliftHandler extends Handler {
         return url.hostname === SPACELIFT_HOSTNAME;
     }
 
-    static readonly TOTAL_MAX_LEN = 60;
+    static readonly TOTAL_MAX_LEN = 90;
 
     private parseStackName(url: string): string | undefined {
         const match = new URL(url).pathname.match(/^\/stack\/([^/]+)/);
