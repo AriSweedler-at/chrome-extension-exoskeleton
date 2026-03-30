@@ -1,5 +1,8 @@
 import {describe, it, expect, afterEach} from 'vitest';
-import {glossaryHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary/glossary.handler';
+import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary/glossary';
+import {createSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
+
+const glossaryHandler = createSubHandler(glossaryConfig);
 
 function addTextCell(text: string) {
     const el = document.createElement('div');

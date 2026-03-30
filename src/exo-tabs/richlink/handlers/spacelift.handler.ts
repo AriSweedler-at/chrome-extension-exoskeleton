@@ -1,4 +1,4 @@
-import {Handler, truncateWithEllipsis, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {Handler, prefixedTitle, type FormatContext} from '@exo/exo-tabs/richlink/base';
 import {SPACELIFT_HOSTNAME} from '@exo/exo-tabs/spacelift';
 
 export class SpaceliftHandler extends Handler {
@@ -29,10 +29,7 @@ export class SpaceliftHandler extends Handler {
         const title = this.getPageTitle();
 
         if (stackName && title && title !== stackName) {
-            const prefix = `Spacelift: ${stackName}: `;
-            const remaining = SpaceliftHandler.TOTAL_MAX_LEN - prefix.length;
-            const truncatedTitle = remaining >= 4 ? truncateWithEllipsis(title, remaining) : title;
-            return prefix + truncatedTitle;
+            return prefixedTitle(`Spacelift: ${stackName}`, title, SpaceliftHandler.TOTAL_MAX_LEN);
         }
         if (stackName) {
             return `Spacelift Stack: ${stackName}`;
