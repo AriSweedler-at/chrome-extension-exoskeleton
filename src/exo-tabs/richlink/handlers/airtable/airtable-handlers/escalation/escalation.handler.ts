@@ -3,7 +3,8 @@ import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 
 /** Known Escalations base appId. */
-const ESCALATIONS_APP_ID = 'appWh5G6JXbHDKC2b';
+export const ESCALATIONS_APP_ID = 'appWh5G6JXbHDKC2b';
+export const ESCALATIONS_LABEL = 'Escalations';
 
 export const escalationHandler: AirtableSubHandler = {
     canHandle(url: URL): boolean {
@@ -17,8 +18,8 @@ export const escalationHandler: AirtableSubHandler = {
             '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
         );
 
-        const title = formulaCell?.textContent?.trim() || 'Escalation';
+        const title = formulaCell?.textContent?.trim() || ESCALATIONS_LABEL;
 
-        return [linkFormat('Escalation', 35, title, canonicalUrl)];
+        return [linkFormat(ESCALATIONS_LABEL, 35, title, canonicalUrl)];
     },
 };

@@ -1,5 +1,8 @@
 import {describe, it, expect, afterEach} from 'vitest';
-import {escalationHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/escalation/escalation.handler';
+import {
+    escalationHandler,
+    ESCALATIONS_LABEL,
+} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/escalation/escalation.handler';
 
 describe('escalationHandler', () => {
     afterEach(() => {
@@ -40,19 +43,19 @@ describe('escalationHandler', () => {
             url: 'https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC',
         });
         expect(formats).toHaveLength(1);
-        expect(formats[0].label).toBe('Escalation');
+        expect(formats[0].label).toBe(ESCALATIONS_LABEL);
         expect(formats[0].priority).toBe(35);
         expect(formats[0].html).toBe(
             '<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">Update DNS record - Include AirProcure link if related to a vendor: airtable-labs.com DNS | 3/27/26</a>',
         );
     });
 
-    it('should fall back to "Escalation" when no formula cell found', () => {
+    it('should fall back to label when no formula cell found', () => {
         const formats = escalationHandler.getFormats({
             url: 'https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC',
         });
         expect(formats[0].html).toBe(
-            '<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">Escalation</a>',
+            `<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">${ESCALATIONS_LABEL}</a>`,
         );
     });
 
