@@ -31,7 +31,7 @@ export class AirtableHandler extends Handler {
     readonly priority = 40;
 
     canHandle(url: URL): boolean {
-        return url.hostname === 'airtable.com';
+        return url.hostname === 'airtable.com' || url.hostname.endsWith('.airtable.app');
     }
 
     extractLinkText(): string {

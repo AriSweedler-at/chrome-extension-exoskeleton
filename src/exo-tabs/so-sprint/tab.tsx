@@ -13,7 +13,7 @@ TabRegistry.register({
         try {
             const urlObj = new URL(url);
             if (
-                urlObj.hostname === 'airtable.com' &&
+                (urlObj.hostname === 'airtable.com' || urlObj.hostname.endsWith('.airtable.app')) &&
                 urlObj.pathname.startsWith('/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6')
             ) {
                 return 0;

@@ -17,6 +17,11 @@ describe('AirtableHandler', () => {
             handler.canHandle(new URL('https://airtable.com/appABC123/tblXYZ789/viwDEF456')),
         ).toBe(true);
         expect(handler.canHandle(new URL('https://airtable.com/shrABC123'))).toBe(true);
+        expect(
+            handler.canHandle(
+                new URL('https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagV4H5IuPFrR5SIF'),
+            ),
+        ).toBe(true);
         expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
     });
 
