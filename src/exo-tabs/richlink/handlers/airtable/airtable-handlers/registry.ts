@@ -4,7 +4,7 @@ import type {
     AirtableSubHandler,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
-import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary/glossary';
+import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary-config';
 
 export const DEFAULT_MAX_TITLE_LEN = 120;
 

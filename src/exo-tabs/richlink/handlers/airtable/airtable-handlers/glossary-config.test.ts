@@ -1,5 +1,5 @@
 import {describe, it, expect, afterEach} from 'vitest';
-import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary/glossary';
+import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary-config';
 import {createSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
 
 const glossaryHandler = createSubHandler(glossaryConfig);
