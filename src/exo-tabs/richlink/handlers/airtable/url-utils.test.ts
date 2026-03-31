@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
+import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
 
 describe('canonicalAirtableUrl', () => {
     it('should canonicalize detail-view URL to record permalink', () => {
