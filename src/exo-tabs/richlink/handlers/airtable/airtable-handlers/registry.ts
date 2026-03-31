@@ -17,7 +17,7 @@ export const DEFAULT_MAX_TITLE_LEN = 120;
  *
  * Returns the original URL unchanged if no record ID can be extracted.
  */
-export function canonicalAirtableUrl(url: string): string {
+export function defaultCanonicalizeUrl(url: string): string {
     const parsed = new URL(url);
     const appId = parsed.pathname.split('/')[1];
     if (!appId?.startsWith('app')) return url;
@@ -60,7 +60,7 @@ export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler
     return {
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
-            const canonicalize = config.canonicalizeUrl ?? canonicalAirtableUrl;
+            const canonicalize = config.canonicalizeUrl ?? defaultCanonicalizeUrl;
             const rawTitle = (config.extractTitle ?? defaultExtractTitle)();
             const maxLen = config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN;
 

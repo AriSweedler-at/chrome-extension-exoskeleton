@@ -4,8 +4,8 @@ import {
     type FormatContext,
     type LinkFormat,
 } from '@exo/exo-tabs/richlink/base';
-import {canonicalAirtableUrl} from '@exo/exo-tabs/richlink/handlers/airtable/url-utils';
 import {
+    defaultCanonicalizeUrl,
     registeredHandlers,
     customDomains,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
@@ -61,7 +61,7 @@ export class AirtableHandler extends Handler {
                 this.label,
                 this.priority,
                 this.extractLinkText(),
-                canonicalAirtableUrl(ctx.url),
+                defaultCanonicalizeUrl(ctx.url),
             ),
         );
 

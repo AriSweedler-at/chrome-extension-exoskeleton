@@ -4,6 +4,7 @@ import {
     createSubHandler,
     customDomains,
     DEFAULT_MAX_TITLE_LEN,
+    defaultCanonicalizeUrl,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
@@ -313,5 +314,42 @@ describe('Security Exception handler', () => {
         expect(formats[0].html).toContain(
             'https://airtable.com/appjBm1uPTsu1yTVU/pagJ6m8B8IQ5qqiOp/rechslfu3s9zIJa6L',
         );
+    });
+});
+
+describe('defaultCanonicalizeUrl', () => {
+    it('should canonicalize detail-view URL to record permalink', () => {
+        const detail = globalThis.btoa(
+            JSON.stringify({pageId: 'pagYS8GHSAS9swLLI', rowId: 'recrPE9CmgcEG008T'}),
+        );
+        const detailUrl = `https://airtable.com/appXYZ123/pagListPage?GI5YH=allRecords&detail=${detail}`;
+
+        expect(defaultCanonicalizeUrl(detailUrl)).toBe(
+            'https://airtable.com/appXYZ123/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+        );
+    });
+
+    it('should canonicalize interfaces URL with rec in query param', () => {
+        expect(
+            defaultCanonicalizeUrl(
+                'https://airtable.com/appebZJp08MytrQhs/pagagsZtQRDbx4O5u?ACh2y=recK1hqBktQeDGchN',
+            ),
+        ).toBe('https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN');
+    });
+
+    it('should pass through URL unchanged when no detail param and no rec param', () => {
+        const url = 'https://airtable.com/appXYZ123/pagABC/recDEF?home=pagGHI';
+        expect(defaultCanonicalizeUrl(url)).toBe(url);
+    });
+
+    it('should pass through URL unchanged when detail param is malformed', () => {
+        const url = 'https://airtable.com/appXYZ123/pagABC?detail=notvalidbase64!!!';
+        expect(defaultCanonicalizeUrl(url)).toBe(url);
+    });
+
+    it('should pass through URL unchanged when detail JSON lacks pageId', () => {
+        const detail = globalThis.btoa(JSON.stringify({rowId: 'recXYZ'}));
+        const url = `https://airtable.com/appXYZ123/pagABC?detail=${detail}`;
+        expect(defaultCanonicalizeUrl(url)).toBe(url);
     });
 });
