@@ -17,8 +17,8 @@ export interface AirtableBaseConfig {
     appId: string;
     /** Custom domain (e.g. "escalations.airtable.app"). */
     domain?: string;
-    /** Extract display title from the page DOM. Receives the label. Default: first formula cell heading. */
-    extractTitle?: (label: string) => string | null;
+    /** Extract display title from the page DOM. Receives the label. */
+    extractTitle: (label: string) => string | null;
     /** Build the canonical URL for the link. Default: defaultCanonicalizeUrl(). */
     canonicalizeUrl?: (url: string) => string;
     /** Max length for the total link text. Uses truncateWithEllipsis. */

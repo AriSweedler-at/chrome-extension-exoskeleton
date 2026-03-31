@@ -20,13 +20,21 @@ describe('registry', () => {
     });
 
     it('should create a handler that matches by appId', () => {
-        const handler = createSubHandler({label: 'Test', appId: 'appTEST123'});
+        const handler = createSubHandler({
+            label: 'Test',
+            appId: 'appTEST123',
+            extractTitle: () => null,
+        });
         expect(handler.canHandle(new URL('https://airtable.com/appTEST123/tblXYZ'))).toBe(true);
         expect(handler.canHandle(new URL('https://airtable.com/appOTHER/tblXYZ'))).toBe(false);
     });
 
-    it('should fall back to label when no title extracted', () => {
-        const handler = createSubHandler({label: 'My Base', appId: 'appTEST123'});
+    it('should fall back to label when extractTitle returns null', () => {
+        const handler = createSubHandler({
+            label: 'My Base',
+            appId: 'appTEST123',
+            extractTitle: () => null,
+        });
         const formats = handler.getFormats({url: 'https://airtable.com/appTEST123/pagXYZ/recABC'});
         expect(formats[0].html).toContain('>My Base<');
     });

@@ -49,23 +49,11 @@ export function defaultCanonicalizeUrl(url: string): string {
     return url;
 }
 
-/** Default title extractor: first formula cell's heading text. */
-function defaultExtractTitle(_label: string): string | null {
-    return (
-        document
-            .querySelector(
-                '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
-            )
-            ?.textContent?.trim() || null
-    );
-}
-
 /** Apply defaults to a config, filling in any unset optional fields. */
 function withDefaults(config: AirtableBaseConfig): Required<AirtableBaseConfig> {
     return {
         ...config,
         domain: config.domain ?? '',
-        extractTitle: config.extractTitle ?? defaultExtractTitle,
         canonicalizeUrl: config.canonicalizeUrl ?? defaultCanonicalizeUrl,
         maxTitleLen: config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN,
     };
