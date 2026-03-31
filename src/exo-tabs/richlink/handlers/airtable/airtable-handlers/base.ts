@@ -19,8 +19,6 @@ export interface AirtableBaseConfig {
     domain?: string;
     /** Extract display title from the page DOM. Receives the label. Default: first formula cell heading. */
     extractTitle?: (label: string) => string | null;
-    /** Transform the raw extracted title. Applied after extractTitle. */
-    transformTitle?: (raw: string) => string;
     /** Build the canonical URL for the link. Default: defaultCanonicalizeUrl(). */
     canonicalizeUrl?: (url: string) => string;
     /** Max length for the total link text. Uses truncateWithEllipsis. */

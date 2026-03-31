@@ -66,8 +66,7 @@ export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
             const canonicalize = config.canonicalizeUrl ?? defaultCanonicalizeUrl;
-            let title = (config.extractTitle ?? defaultExtractTitle)(config.label);
-            if (title && config.transformTitle) title = config.transformTitle(title);
+            const title = (config.extractTitle ?? defaultExtractTitle)(config.label);
 
             return [linkFormat(config.label, 35, title || config.label, canonicalize(url))];
         },

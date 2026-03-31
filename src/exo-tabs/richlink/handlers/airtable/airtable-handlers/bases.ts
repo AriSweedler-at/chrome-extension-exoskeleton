@@ -31,7 +31,12 @@ export const airtableBases: AirtableBaseConfig[] = [
     {
         label: 'Listable Record',
         appId: 'apptivTqaoebkrmV1',
-        transformTitle: (raw) => {
+        extractTitle: () => {
+            const cell = document.querySelector(
+                '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
+            );
+            const raw = cell?.textContent?.trim();
+            if (!raw) return null;
             const i = raw.indexOf('/');
             return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
         },
