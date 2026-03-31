@@ -219,4 +219,79 @@ describe('glossaryHandler', () => {
             '<a href="https://airtable.com/appebZJp08MytrQhs/pagagsZtQRDbx4O5u">Airtable Glossary: Glossary Record</a>',
         );
     });
+
+    describe('definition expansion heuristics', () => {
+        const URL = 'https://airtable.com/appebZJp08MytrQhs/recXYZ';
+
+        interface ExpansionCase {
+            name: string;
+            definition: string;
+            expected: string;
+        }
+
+        const expansionCases: ExpansionCase[] = [
+            {
+                name: 'SSP',
+                definition: 'SSP stands for Single-Service Pipeline.',
+                expected: 'SSP: Single-Service Pipeline',
+            },
+            {
+                name: 'DNS',
+                definition: 'DNS is Domain Name System.',
+                expected: 'DNS: Domain Name System',
+            },
+            {
+                name: 'SLA',
+                definition: 'service-level agreement',
+                expected: 'SLA: service-level agreement',
+            },
+            {
+                name: 'ARR',
+                definition: 'Annual recurring revenue.',
+                expected: 'ARR: Annual recurring revenue',
+            },
+            {
+                name: 'ACV',
+                definition: 'Annual Contract Value. See also ARR.',
+                expected: 'ACV: Annual Contract Value',
+            },
+            {
+                name: 'ATL',
+                definition: 'Above the line (Director, VPs, C-suite)',
+                expected: 'ATL: Above the line',
+            },
+            {
+                name: 'FLA',
+                definition:
+                    'Flexible License Agreement (an Airtable-coined term), which means companies choose',
+                expected: 'FLA: Flexible License Agreement',
+            },
+        ];
+
+        const rejectionCases: Omit<ExpansionCase, 'expected'>[] = [
+            {
+                name: 'command of the message',
+                definition:
+                    "Airtable's broader business-side organization, including Sales, Customer Success, Support, PS, and other teams.",
+            },
+        ];
+
+        afterEach(() => {
+            document.body.innerHTML = '';
+        });
+
+        it.each(expansionCases)('$name → "$expected"', ({name, definition, expected}) => {
+            addTextCell(name);
+            addDefinitionViaLabelCellPair(definition);
+            const formats = glossaryHandler.getFormats({url: URL});
+            expect(formats[0].html).toContain(`Airtable Glossary: ${expected}`);
+        });
+
+        it.each(rejectionCases)('$name — rejects wordy expansion', ({name, definition}) => {
+            addTextCell(name);
+            addDefinitionViaLabelCellPair(definition);
+            const formats = glossaryHandler.getFormats({url: URL});
+            expect(formats[0].html).toContain(`Airtable Glossary: ${name}<`);
+        });
+    });
 });
