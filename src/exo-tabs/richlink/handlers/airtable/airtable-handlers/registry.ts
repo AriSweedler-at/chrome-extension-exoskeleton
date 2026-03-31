@@ -60,15 +60,27 @@ function defaultExtractTitle(_label: string): string | null {
     );
 }
 
+/** Apply defaults to a config, filling in any unset optional fields. */
+function withDefaults(config: AirtableBaseConfig): Required<AirtableBaseConfig> {
+    return {
+        ...config,
+        domain: config.domain ?? '',
+        extractTitle: config.extractTitle ?? defaultExtractTitle,
+        canonicalizeUrl: config.canonicalizeUrl ?? defaultCanonicalizeUrl,
+        maxTitleLen: config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN,
+    };
+}
+
 /** Create an AirtableSubHandler from a declarative config. */
-export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler {
+export function createSubHandler(raw: AirtableBaseConfig): AirtableSubHandler {
+    const config = withDefaults(raw);
     return {
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
-            const canonicalize = config.canonicalizeUrl ?? defaultCanonicalizeUrl;
-            const title = (config.extractTitle ?? defaultExtractTitle)(config.label);
-
-            return [linkFormat(config.label, 35, title || config.label, canonicalize(url))];
+            const title = config.extractTitle(config.label);
+            return [
+                linkFormat(config.label, 35, title || config.label, config.canonicalizeUrl(url)),
+            ];
         },
     };
 }
