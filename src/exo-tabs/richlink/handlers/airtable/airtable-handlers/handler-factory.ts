@@ -3,12 +3,9 @@ import type {
     AirtableBaseConfig,
     AirtableSubHandler,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
-import {
-    airtableBases,
-    DEFAULT_MAX_TITLE_LEN,
-} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
+import {airtableBases} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 
-export {airtableBases, DEFAULT_MAX_TITLE_LEN};
+export {airtableBases};
 
 /**
  * Canonicalize an Airtable URL to a clean record permalink.
@@ -55,7 +52,6 @@ function withDefaults(config: AirtableBaseConfig): Required<AirtableBaseConfig> 
         ...config,
         domain: config.domain ?? '',
         canonicalizeUrl: config.canonicalizeUrl ?? defaultCanonicalizeUrl,
-        maxTitleLen: config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN,
     };
 }
 

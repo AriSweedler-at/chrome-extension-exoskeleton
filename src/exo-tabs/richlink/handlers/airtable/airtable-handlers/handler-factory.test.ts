@@ -3,9 +3,9 @@ import {
     airtableBases,
     createSubHandler,
     customDomains,
-    DEFAULT_MAX_TITLE_LEN,
     defaultCanonicalizeUrl,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/handler-factory';
+import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
 function getHandler(label: string): AirtableSubHandler {
@@ -14,7 +14,7 @@ function getHandler(label: string): AirtableSubHandler {
     return createSubHandler(config);
 }
 
-describe('registry', () => {
+describe('handler-factory', () => {
     it('should export custom domains from configs with domain field', () => {
         expect(customDomains).toContain('escalations.airtable.app');
     });

@@ -7,9 +7,9 @@ export const DEFAULT_MAX_TITLE_LEN = 120;
 /**
  * Declarative registry of known Airtable bases.
  *
- * To add a new base, append an entry here. The registry factory in
- * registry.ts handles canHandle, URL canonicalization, and fallback
- * automatically.
+ * To add a new base, append an entry here. The factory in
+ * handler-factory.ts handles canHandle, URL canonicalization, and
+ * fallback automatically.
  *
  * extractTitle(label) receives the label so it can prefix if desired.
  */

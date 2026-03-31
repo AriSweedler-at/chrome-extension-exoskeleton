@@ -9,7 +9,7 @@ export interface AirtableSubHandler {
     getFormats(ctx: FormatContext): LinkFormat[];
 }
 
-/** Declarative config for an Airtable base. Fed to createSubHandler() in the registry. */
+/** Declarative config for an Airtable base. Fed to createSubHandler() in handler-factory. */
 export interface AirtableBaseConfig {
     /** Format-picker button label (e.g. "Escalation", "Listable Record"). */
     label: string;
@@ -21,6 +21,4 @@ export interface AirtableBaseConfig {
     extractTitle: (label: string) => string | null;
     /** Build the canonical URL for the link. Default: defaultCanonicalizeUrl(). */
     canonicalizeUrl?: (url: string) => string;
-    /** Max length for the total link text. Uses truncateWithEllipsis. */
-    maxTitleLen?: number;
 }
