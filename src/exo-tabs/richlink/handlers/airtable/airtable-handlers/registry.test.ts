@@ -32,8 +32,8 @@ describe('registry', () => {
     });
 });
 
-describe('Escalations handler', () => {
-    const handler = getHandler('Escalations');
+describe('Escalation handler', () => {
+    const handler = getHandler('Escalation');
 
     afterEach(() => {
         document.body.innerHTML = '';
@@ -71,7 +71,7 @@ describe('Escalations handler', () => {
             url: 'https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC',
         });
         expect(formats).toHaveLength(1);
-        expect(formats[0].label).toBe('Escalations');
+        expect(formats[0].label).toBe('Escalation');
         expect(formats[0].priority).toBe(35);
         expect(formats[0].html).toBe(
             '<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">Escalation: Some escalation title | 3/27/26</a>',
@@ -83,7 +83,7 @@ describe('Escalations handler', () => {
             url: 'https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC',
         });
         expect(formats[0].html).toBe(
-            '<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">Escalations</a>',
+            '<a href="https://escalations.airtable.app/appWh5G6JXbHDKC2b/pagXYZ/recABC">Escalation</a>',
         );
     });
 

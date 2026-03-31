@@ -11,7 +11,7 @@ export interface AirtableSubHandler {
 
 /** Declarative config for an Airtable base. Fed to createSubHandler() in the registry. */
 export interface AirtableBaseConfig {
-    /** Format-picker button label (e.g. "Escalations", "Listable Record"). */
+    /** Format-picker button label (e.g. "Escalation", "Listable Record"). */
     label: string;
     /** Airtable base ID (e.g. "appWh5G6JXbHDKC2b"). */
     appId: string;
@@ -19,10 +19,12 @@ export interface AirtableBaseConfig {
     domain?: string;
     /** Extract display title from the page DOM. Default: first formula cell heading. */
     extractTitle?: () => string | null;
-    /** Build the canonical URL for the link. Default: canonicalAirtableUrl(). */
+    /** Transform the raw extracted title. Applied after extractTitle. */
+    transformTitle?: (raw: string) => string;
+    /** Build the canonical URL for the link. Default: defaultCanonicalizeUrl(). */
     canonicalizeUrl?: (url: string) => string;
-    /** Prefix prepended to the title (e.g. "Escalation" → "Escalation: <title>"). */
-    prefix?: string;
-    /** Max length for the total link text (prefix + title). Uses truncateWithEllipsis. */
+    /** If true, display title is "label: title" with truncation. */
+    usePrefix?: boolean;
+    /** Max length for the total link text. Uses truncateWithEllipsis. */
     maxTitleLen?: number;
 }

@@ -61,12 +61,13 @@ export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
             const canonicalize = config.canonicalizeUrl ?? defaultCanonicalizeUrl;
-            const rawTitle = (config.extractTitle ?? defaultExtractTitle)();
+            let rawTitle = (config.extractTitle ?? defaultExtractTitle)();
+            if (rawTitle && config.transformTitle) rawTitle = config.transformTitle(rawTitle);
             const maxLen = config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN;
 
             let displayTitle: string;
-            if (config.prefix && rawTitle) {
-                displayTitle = prefixedTitle(config.prefix, rawTitle, maxLen);
+            if (config.usePrefix && rawTitle) {
+                displayTitle = prefixedTitle(config.label, rawTitle, maxLen);
             } else {
                 displayTitle = rawTitle || config.label;
             }
@@ -78,20 +79,15 @@ export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler
 
 export const airtableBases: AirtableBaseConfig[] = [
     {
-        label: 'Escalations',
+        label: 'Escalation',
         appId: 'appWh5G6JXbHDKC2b',
         domain: 'escalations.airtable.app',
-        prefix: 'Escalation',
+        usePrefix: true,
     },
     {
         label: 'Listable Record',
         appId: 'apptivTqaoebkrmV1',
-        extractTitle: () => {
-            const cell = document.querySelector(
-                '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
-            );
-            const raw = cell?.textContent?.trim();
-            if (!raw) return null;
+        transformTitle: (raw) => {
             const i = raw.indexOf('/');
             return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
         },
@@ -99,7 +95,7 @@ export const airtableBases: AirtableBaseConfig[] = [
     {
         label: 'Security Exception',
         appId: 'appjBm1uPTsu1yTVU',
-        prefix: 'Security Exception',
+        usePrefix: true,
         extractTitle: () => {
             const textCell = document.querySelector(
                 '[data-testid="cell-editor"][data-columntype="text"]',
