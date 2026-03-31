@@ -1,48 +1,43 @@
-import {linkFormat} from '@exo/exo-tabs/richlink/base';
-import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
-/** Known Glossary base appId. */
 const GLOSSARY_APP_ID = 'appebZJp08MytrQhs';
+const MAX_LABEL_LENGTH = 100;
 
-/**
- * Extract a record ID from an Airtable URL.
- *
- * Handles two patterns:
- *  - Old-style: /appXXX/tblYYY/viwZZZ/recXXX  (rec in path)
- *  - Interfaces: /appXXX/pagXXX?someKey=recXXX  (rec as query param value)
- */
+export const glossaryConfig: AirtableBaseConfig = {
+    label: 'Airtable Glossary',
+    appId: GLOSSARY_APP_ID,
+    extractTitle: (_label) => {
+        const textCell = document.querySelector(
+            '[data-testid="cell-editor"][data-columntype="text"]',
+        );
+        const name = textCell?.textContent?.trim() || 'Glossary Record';
+        return buildLabel(name);
+    },
+    canonicalizeUrl: (url) => {
+        const recordId = extractRecordId(url);
+        return recordId ? `https://airtable.com/${GLOSSARY_APP_ID}/${recordId}` : url;
+    },
+};
+
+// --- URL helpers ---
+
 function extractRecordId(url: string): string | null {
     const u = new URL(url);
-
-    // Path segment: /recXXX
     const pathMatch = u.pathname.match(/\/(rec[A-Za-z0-9]+)/);
     if (pathMatch) return pathMatch[1];
-
-    // Query param value: ?anyKey=recXXX
     for (const val of u.searchParams.values()) {
         if (/^rec[A-Za-z0-9]+$/.test(val)) return val;
     }
-
     return null;
 }
 
-function buildRecordUrl(recordId: string): string {
-    return `https://airtable.com/${GLOSSARY_APP_ID}/${recordId}`;
-}
-
-const MAX_LABEL_LENGTH = 100;
+// --- Label building ---
 
 /**
  * Build the display label from the Definition field's first sentence.
  *
  * The first sentence of each glossary entry IS the expansion, sometimes
  * prefixed with "{name} stands for ..." or "{name} is/are ...".
- *
- * Examples:
- *   SSP  + "SSP stands for Single-Service Pipeline."  → "SSP: Single-Service Pipeline"
- *   ATL  + "Above the line (Director, VPs, C-suite)"  → "ATL: Above the line"
- *   ARR  + "Annual recurring revenue."                 → "ARR: Annual recurring revenue"
- *   SLA  + "service-level agreement"                   → "SLA: service-level agreement"
  *
  * Falls back to just "Airtable Glossary: {name}" when there's no definition
  * or the expanded label would exceed MAX_LABEL_LENGTH.
@@ -87,7 +82,6 @@ function extractExpansion(name: string, sentence: string): string | null {
 
     // Strip trailing period
     expansion = expansion.replace(/\.\s*$/, '');
-
     // Truncate at natural breaks (keep the part before the break)
     expansion = expansion.replace(/[,;]\s+(?:which|that|from which|where|so|but|via|see)\s.*/i, ''); // subordinate clauses
     expansion = expansion.replace(/\.\s+.*$/, ''); // second sentence fragment
@@ -104,15 +98,9 @@ function extractExpansion(name: string, sentence: string): string | null {
     return expansion || null;
 }
 
-/**
- * Find the Definition field's richText cell.
- *
- * Two DOM layouts:
- *  - Old-style (data view): .labelCellPair with .fieldLabel "Definition"
- *  - Interfaces view: a <span> "Definition" label with the cell-editor in a nearby ancestor
- */
+// --- DOM helpers ---
+
 function findDefinitionCell(): Element | null {
-    // Old-style: labelCellPair
     const pairs = document.querySelectorAll('.labelCellPair');
     for (const pair of pairs) {
         const label = pair.querySelector('.fieldLabel');
@@ -121,7 +109,6 @@ function findDefinitionCell(): Element | null {
         }
     }
 
-    // Interfaces: span label near a richText cell
     const spans = document.querySelectorAll('span');
     for (const span of spans) {
         if (span.textContent?.trim() !== 'Definition') continue;
@@ -149,22 +136,3 @@ function extractDefinitionFirstSentence(): string | null {
 function escapeRegExp(s: string): string {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-
-export const glossaryHandler: AirtableSubHandler = {
-    canHandle(url: URL): boolean {
-        return url.href.includes(GLOSSARY_APP_ID);
-    },
-
-    getFormats({url}) {
-        const recordId = extractRecordId(url);
-        const canonicalUrl = recordId ? buildRecordUrl(recordId) : url;
-
-        const textCell = document.querySelector(
-            '[data-testid="cell-editor"][data-columntype="text"]',
-        );
-        const name = textCell?.textContent?.trim() || 'Glossary Record';
-        const label = buildLabel(name);
-
-        return [linkFormat('Airtable Glossary', 35, label, canonicalUrl)];
-    },
-};

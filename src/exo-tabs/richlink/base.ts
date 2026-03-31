@@ -33,6 +33,17 @@ export function truncateWithEllipsis(s: string, max: number): string {
     return s.length > max ? s.slice(0, max - 3) + '...' : s;
 }
 
+/**
+ * Build "prefix: title" with total length capped at maxLen.
+ * The title is truncated (not the prefix) when the combined string is too long.
+ */
+export function prefixedTitle(prefix: string, title: string, maxLen: number): string {
+    const sep = ': ';
+    const remaining = maxLen - prefix.length - sep.length;
+    const truncated = remaining >= 4 ? truncateWithEllipsis(title, remaining) : title;
+    return prefix + sep + truncated;
+}
+
 /** Build a standard LinkFormat: `<a href="url">title</a>` / `title (url)`. */
 export function linkFormat(
     label: string,
