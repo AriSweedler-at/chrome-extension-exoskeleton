@@ -5,7 +5,7 @@ import {
     customDomains,
     DEFAULT_MAX_TITLE_LEN,
     defaultCanonicalizeUrl,
-} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
+} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/handler-factory';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
 function getHandler(label: string): AirtableSubHandler {

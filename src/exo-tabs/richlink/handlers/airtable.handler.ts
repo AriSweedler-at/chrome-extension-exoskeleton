@@ -8,7 +8,7 @@ import {
     defaultCanonicalizeUrl,
     registeredHandlers,
     customDomains,
-} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/registry';
+} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/handler-factory';
 
 export class AirtableHandler extends Handler {
     readonly label = 'Airtable Record';
