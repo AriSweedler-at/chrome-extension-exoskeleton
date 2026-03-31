@@ -1,11 +1,14 @@
-import {linkFormat, prefixedTitle} from '@exo/exo-tabs/richlink/base';
+import {linkFormat} from '@exo/exo-tabs/richlink/base';
 import type {
     AirtableBaseConfig,
     AirtableSubHandler,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
-import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary-config';
+import {
+    airtableBases,
+    DEFAULT_MAX_TITLE_LEN,
+} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/bases';
 
-export const DEFAULT_MAX_TITLE_LEN = 120;
+export {airtableBases, DEFAULT_MAX_TITLE_LEN};
 
 /**
  * Canonicalize an Airtable URL to a clean record permalink.
@@ -46,7 +49,8 @@ export function defaultCanonicalizeUrl(url: string): string {
     return url;
 }
 
-function defaultExtractTitle(): string | null {
+/** Default title extractor: first formula cell's heading text. */
+function defaultExtractTitle(_label: string): string | null {
     return (
         document
             .querySelector(
@@ -56,60 +60,19 @@ function defaultExtractTitle(): string | null {
     );
 }
 
+/** Create an AirtableSubHandler from a declarative config. */
 export function createSubHandler(config: AirtableBaseConfig): AirtableSubHandler {
     return {
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
             const canonicalize = config.canonicalizeUrl ?? defaultCanonicalizeUrl;
-            let rawTitle = (config.extractTitle ?? defaultExtractTitle)();
-            if (rawTitle && config.transformTitle) rawTitle = config.transformTitle(rawTitle);
-            const maxLen = config.maxTitleLen ?? DEFAULT_MAX_TITLE_LEN;
+            let title = (config.extractTitle ?? defaultExtractTitle)(config.label);
+            if (title && config.transformTitle) title = config.transformTitle(title);
 
-            let displayTitle: string;
-            if (config.usePrefix && rawTitle) {
-                displayTitle = prefixedTitle(config.label, rawTitle, maxLen);
-            } else {
-                displayTitle = rawTitle || config.label;
-            }
-
-            return [linkFormat(config.label, 35, displayTitle, canonicalize(url))];
+            return [linkFormat(config.label, 35, title || config.label, canonicalize(url))];
         },
     };
 }
-
-export const airtableBases: AirtableBaseConfig[] = [
-    {
-        label: 'Escalation',
-        appId: 'appWh5G6JXbHDKC2b',
-        domain: 'escalations.airtable.app',
-        usePrefix: true,
-    },
-    {
-        label: 'Listable Record',
-        appId: 'apptivTqaoebkrmV1',
-        transformTitle: (raw) => {
-            const i = raw.indexOf('/');
-            return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
-        },
-    },
-    {
-        label: 'Security Exception',
-        appId: 'appjBm1uPTsu1yTVU',
-        usePrefix: true,
-        extractTitle: () => {
-            const textCell = document.querySelector(
-                '[data-testid="cell-editor"][data-columntype="text"]',
-            );
-            const title = textCell?.textContent?.trim() ?? 'unknown title';
-            const dateCell = document.querySelector(
-                '[data-testid="cell-editor"][data-columntype="date"] .heading-size-default',
-            );
-            const reReviewDate = dateCell?.textContent?.trim();
-            return reReviewDate ? `${title} (re-review ${reReviewDate})` : title;
-        },
-    },
-    glossaryConfig,
-];
 
 export const registeredHandlers = airtableBases.map(createSubHandler);
 

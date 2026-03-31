@@ -6,7 +6,7 @@ const MAX_LABEL_LENGTH = 100;
 export const glossaryConfig: AirtableBaseConfig = {
     label: 'Airtable Glossary',
     appId: GLOSSARY_APP_ID,
-    extractTitle: () => {
+    extractTitle: (_label) => {
         const textCell = document.querySelector(
             '[data-testid="cell-editor"][data-columntype="text"]',
         );

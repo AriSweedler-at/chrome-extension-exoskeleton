@@ -17,14 +17,12 @@ export interface AirtableBaseConfig {
     appId: string;
     /** Custom domain (e.g. "escalations.airtable.app"). */
     domain?: string;
-    /** Extract display title from the page DOM. Default: first formula cell heading. */
-    extractTitle?: () => string | null;
+    /** Extract display title from the page DOM. Receives the label. Default: first formula cell heading. */
+    extractTitle?: (label: string) => string | null;
     /** Transform the raw extracted title. Applied after extractTitle. */
     transformTitle?: (raw: string) => string;
     /** Build the canonical URL for the link. Default: defaultCanonicalizeUrl(). */
     canonicalizeUrl?: (url: string) => string;
-    /** If true, display title is "label: title" with truncation. */
-    usePrefix?: boolean;
     /** Max length for the total link text. Uses truncateWithEllipsis. */
     maxTitleLen?: number;
 }
