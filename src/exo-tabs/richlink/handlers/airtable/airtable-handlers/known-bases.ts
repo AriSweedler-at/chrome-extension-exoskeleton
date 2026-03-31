@@ -1,6 +1,6 @@
 import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {prefixedTitle} from '@exo/exo-tabs/richlink/base';
-import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/glossary-config';
+import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-glossary';
 
 export const DEFAULT_MAX_TITLE_LEN = 120;
 
