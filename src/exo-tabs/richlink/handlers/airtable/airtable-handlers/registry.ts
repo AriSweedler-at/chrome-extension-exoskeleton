@@ -6,7 +6,7 @@ import type {
 import {
     airtableBases,
     DEFAULT_MAX_TITLE_LEN,
-} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/bases';
+} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 
 export {airtableBases, DEFAULT_MAX_TITLE_LEN};
 
