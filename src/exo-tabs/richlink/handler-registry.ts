@@ -1,4 +1,5 @@
 import {Handler, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {cleanUrl} from '@exo/exo-tabs/richlink/clean-url';
 
 export class HandlerRegistry {
     private static baseHandlers: Handler[] = [];
@@ -28,8 +29,11 @@ export class HandlerRegistry {
         } catch {
             return [];
         }
+        const cleaned = cleanUrl(url);
         const specialized = this.specializedHandlers.filter((h) => h.canHandle(parsed));
         const combined = [...specialized, ...this.baseHandlers];
-        return combined.flatMap((h) => h.getFormats({url})).sort((a, b) => a.priority - b.priority);
+        return combined
+            .flatMap((h) => h.getFormats({url: cleaned}))
+            .sort((a, b) => a.priority - b.priority);
     }
 }
