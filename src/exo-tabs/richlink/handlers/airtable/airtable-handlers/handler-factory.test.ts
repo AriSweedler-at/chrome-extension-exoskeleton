@@ -215,6 +215,26 @@ describe('Listable Record handler', () => {
             '<a href="https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recABC">Listable Record</a>',
         );
     });
+
+    it('should truncate long titles to DEFAULT_MAX_TITLE_LEN', () => {
+        const cellEditor = document.createElement('div');
+        cellEditor.setAttribute('data-testid', 'cell-editor');
+        cellEditor.setAttribute('data-columntype', 'formula');
+        const heading = document.createElement('div');
+        heading.className = 'heading-size-default';
+        heading.textContent =
+            "LTT72498/Flaky failures in alpha: ENOENT: no such file or directory, open '/var/h/deploy/airtable/h/config/github/access_token.txt'";
+        cellEditor.appendChild(heading);
+        document.body.appendChild(cellEditor);
+
+        const formats = handler.getFormats({
+            url: 'https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC',
+        });
+        const linkText = formats[0].html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText.length).toBe(DEFAULT_MAX_TITLE_LEN);
+        expect(linkText).toMatch(/^LTT72498: /);
+        expect(linkText).toMatch(/\.\.\.$/);
+    });
 });
 
 describe('Security Exception handler', () => {

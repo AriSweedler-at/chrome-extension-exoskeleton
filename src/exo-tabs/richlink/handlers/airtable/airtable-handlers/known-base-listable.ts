@@ -1,4 +1,6 @@
 import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import {truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
+import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 
 const LISTABLE_APP_ID = 'apptivTqaoebkrmV1';
 /** The "fullscreen record" page — works as a stable permalink for any record. */
@@ -26,14 +28,15 @@ export const listableConfig: AirtableBaseConfig = {
     extractTitle: () => {
         // Strategy 1: formula cell with "LTT69717/Title" (grid/detail views)
         const combined = extractCombinedFormulaTitle();
-        if (combined) return combined;
+        if (combined) return truncateWithEllipsis(combined, DEFAULT_MAX_TITLE_LEN);
 
         // Strategy 2: separate text cell + go-link formula cell (sidesheet view)
         const title = extractTextCellTitle();
         if (!title) return null;
 
         const ltt = extractLttFromGoLink();
-        return ltt ? `${ltt}: ${title}` : title;
+        const full = ltt ? `${ltt}: ${title}` : title;
+        return truncateWithEllipsis(full, DEFAULT_MAX_TITLE_LEN);
     },
 };
 
