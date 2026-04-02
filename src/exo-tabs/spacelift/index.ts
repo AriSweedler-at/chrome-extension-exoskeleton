@@ -16,11 +16,8 @@ export function isSpaceliftStackPage(url: string): boolean {
     return parseStackName(url) !== undefined;
 }
 
-export interface EnvironmentInfo {
-    env: Environment;
-    url: string;
-    current: boolean;
-}
+import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+export type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
 
 /** Returns all environments with their URLs and which is current, or undefined if not a recognized stack. */
 export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
