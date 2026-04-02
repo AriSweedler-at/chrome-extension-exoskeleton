@@ -1,6 +1,6 @@
 import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
-import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 
 const LISTABLE_APP_ID = 'apptivTqaoebkrmV1';
 /** The "fullscreen record" page — works as a stable permalink for any record. */
@@ -19,12 +19,10 @@ const FULLSCREEN_PAGE_ID = 'pagYS8GHSAS9swLLI';
 export const listableConfig: AirtableBaseConfig = {
     label: 'Listable Record',
     appId: LISTABLE_APP_ID,
-    canonicalizeUrl: (url) => {
-        const recordId = extractRecordId(url);
-        return recordId
-            ? `https://airtable.com/${LISTABLE_APP_ID}/${FULLSCREEN_PAGE_ID}/${recordId}`
-            : url;
-    },
+    canonicalizeUrl: (_url, ref) =>
+        ref
+            ? `https://airtable.com/${LISTABLE_APP_ID}/${FULLSCREEN_PAGE_ID}/${ref.recordId}`
+            : _url.href,
     extractTitle: () => {
         // Strategy 1: formula cell with "LTT69717/Title" (grid/detail views)
         const combined = extractCombinedFormulaTitle();
@@ -39,33 +37,6 @@ export const listableConfig: AirtableBaseConfig = {
         return truncateWithEllipsis(full, DEFAULT_MAX_TITLE_LEN);
     },
 };
-
-// --- URL helpers ---
-
-function extractRecordId(url: string): string | null {
-    const u = new URL(url);
-
-    // Path: /appXXX/pagXXX/recXXX
-    const pathMatch = u.pathname.match(/\/(rec[A-Za-z0-9]+)/);
-    if (pathMatch) return pathMatch[1];
-
-    // Detail panel: ?detail=base64JSON with { rowId: "recXXX" }
-    const detail = u.searchParams.get('detail');
-    if (detail) {
-        try {
-            const json = JSON.parse(globalThis.atob(detail));
-            if (json.rowId) return json.rowId;
-        } catch {
-            // fall through
-        }
-    }
-
-    // Query param value: ?someKey=recXXX
-    for (const val of u.searchParams.values()) {
-        if (/^rec[A-Za-z0-9]+$/.test(val)) return val;
-    }
-    return null;
-}
 
 // --- DOM helpers ---
 

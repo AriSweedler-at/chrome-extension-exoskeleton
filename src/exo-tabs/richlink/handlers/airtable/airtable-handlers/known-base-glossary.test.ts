@@ -94,6 +94,20 @@ describe('glossaryHandler', () => {
         );
     });
 
+    it('should extract rec ID from detail-panel URL', () => {
+        addTextCell('SSP');
+
+        const detail = globalThis.btoa(
+            JSON.stringify({pageId: 'pagXYZ', rowId: 'recK1hqBktQeDGchN'}),
+        );
+        const formats = glossaryHandler.getFormats({
+            url: `https://airtable.com/appebZJp08MytrQhs/pagListView?detail=${detail}`,
+        });
+        expect(formats[0].html).toBe(
+            '<a href="https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN">Airtable Glossary: SSP</a>',
+        );
+    });
+
     it('should include expansion from labelCellPair Definition field', () => {
         addTextCell('SSP');
         addDefinitionViaLabelCellPair(

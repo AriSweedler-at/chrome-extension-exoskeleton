@@ -5,7 +5,7 @@ import {
     customDomains,
     defaultCanonicalizeUrl,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/handler-factory';
-import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
+import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import type {AirtableSubHandler} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 
 function getHandler(label: string): AirtableSubHandler {
@@ -235,6 +235,38 @@ describe('Listable Record handler', () => {
         expect(linkText).toMatch(/^LTT72498: /);
         expect(linkText).toMatch(/\.\.\.$/);
     });
+
+    it('should extract title from text cell + LTT from go-link (sidesheet view)', () => {
+        const textCell = document.createElement('div');
+        textCell.setAttribute('data-testid', 'cell-editor');
+        textCell.setAttribute('data-columntype', 'text');
+        textCell.textContent = 'Fix the flaky test';
+        document.body.appendChild(textCell);
+
+        const formulaCell = document.createElement('div');
+        formulaCell.setAttribute('data-testid', 'cell-editor');
+        formulaCell.setAttribute('data-columntype', 'formula');
+        formulaCell.textContent = 'https://go/LTT72498';
+        document.body.appendChild(formulaCell);
+
+        const formats = handler.getFormats({
+            url: 'https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC',
+        });
+        expect(formats[0].html).toContain('>LTT72498: Fix the flaky test<');
+    });
+
+    it('should use raw title when go-link not found (sidesheet view)', () => {
+        const textCell = document.createElement('div');
+        textCell.setAttribute('data-testid', 'cell-editor');
+        textCell.setAttribute('data-columntype', 'text');
+        textCell.textContent = 'A task without an LTT number';
+        document.body.appendChild(textCell);
+
+        const formats = handler.getFormats({
+            url: 'https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC',
+        });
+        expect(formats[0].html).toContain('>A task without an LTT number<');
+    });
 });
 
 describe('Security Exception handler', () => {
@@ -375,9 +407,9 @@ describe('defaultCanonicalizeUrl', () => {
         expect(defaultCanonicalizeUrl(url)).toBe(url);
     });
 
-    it('should pass through URL unchanged when detail JSON lacks pageId', () => {
+    it('should extract record ID from detail JSON even when pageId is missing', () => {
         const detail = globalThis.btoa(JSON.stringify({rowId: 'recXYZ'}));
         const url = `https://airtable.com/appXYZ123/pagABC?detail=${detail}`;
-        expect(defaultCanonicalizeUrl(url)).toBe(url);
+        expect(defaultCanonicalizeUrl(url)).toBe('https://airtable.com/appXYZ123/recXYZ');
     });
 });

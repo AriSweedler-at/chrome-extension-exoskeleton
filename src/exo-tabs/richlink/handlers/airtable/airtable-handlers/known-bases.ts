@@ -1,9 +1,8 @@
 import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {prefixedTitle} from '@exo/exo-tabs/richlink/base';
 import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-glossary';
 import {listableConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-listable';
-
-export const DEFAULT_MAX_TITLE_LEN = 120;
 
 /**
  * Declarative registry of known Airtable bases.

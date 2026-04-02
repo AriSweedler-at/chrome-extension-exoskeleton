@@ -111,8 +111,9 @@ describe('AirtableHandler', () => {
     });
 
     it('should canonicalize detail-view URL in both Listable and generic formats', () => {
+        // Use a different pageId than FULLSCREEN_PAGE_ID to prove the two paths differ
         const detail = globalThis.btoa(
-            JSON.stringify({pageId: 'pagYS8GHSAS9swLLI', rowId: 'recrPE9CmgcEG008T'}),
+            JSON.stringify({pageId: 'pagOTHERpageId1234', rowId: 'recrPE9CmgcEG008T'}),
         );
         const detailUrl = `https://airtable.com/apptivTqaoebkrmV1/pagListPage?detail=${detail}`;
 
@@ -126,13 +127,13 @@ describe('AirtableHandler', () => {
         document.body.appendChild(cellEditor);
 
         const formats = handler.getFormats({url: detailUrl});
-        // Listable canonicalizes to fullscreen view page
+        // Listable always canonicalizes to the fullscreen view page
         expect(formats[0].html).toContain(
             'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
         );
-        // Generic Airtable uses defaultCanonicalizeUrl which keeps pageId
+        // Generic Airtable uses defaultCanonicalizeUrl which keeps the detail JSON's pageId
         expect(formats[1].html).toContain(
-            'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+            'https://airtable.com/apptivTqaoebkrmV1/pagOTHERpageId1234/recrPE9CmgcEG008T',
         );
     });
 

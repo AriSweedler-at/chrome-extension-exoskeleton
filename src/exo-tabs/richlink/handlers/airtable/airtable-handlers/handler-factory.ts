@@ -1,49 +1,42 @@
 import {linkFormat} from '@exo/exo-tabs/richlink/base';
 import type {
     AirtableBaseConfig,
+    AirtableRecordRef,
     AirtableSubHandler,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
+import {extractRecordId} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {airtableBases} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-bases';
 
 export {airtableBases};
 
 /**
- * Canonicalize an Airtable URL to a clean record permalink.
+ * Default URL canonicalization for Airtable sub-handlers.
  *
- * Handles three URL patterns:
- *  1. Detail panel: ?detail=base64JSON → extract pageId+rowId from JSON
- *  2. Interfaces:   ?someKey=recXXX    → extract recId from query param value
- *  3. Old-style:    /appXXX/.../recXXX → already canonical, return as-is
- *
- * Returns the original URL unchanged if no record ID can be extracted.
+ * Uses a pre-extracted record ref to build a clean permalink:
+ *  - detail panel ref with pageId → origin/appId/pageId/recId
+ *  - query-param ref (no pageId)  → origin/appId/recId
+ *  - path-based (no pageId)       → return URL as-is (already canonical)
+ */
+function canonicalizeWithRef(url: URL, ref: AirtableRecordRef | null): string {
+    const appId = url.pathname.split('/')[1];
+    if (!appId?.startsWith('app') || !ref) return url.href;
+
+    if (ref.pageId) {
+        return `${url.origin}/${appId}/${ref.pageId}/${ref.recordId}`;
+    }
+    // If recordId is already in the path, URL is canonical — return as-is.
+    if (url.pathname.includes(ref.recordId)) return url.href;
+    // Otherwise it came from a query param — build origin/appId/recId.
+    return `${url.origin}/${appId}/${ref.recordId}`;
+}
+
+/**
+ * String-accepting wrapper for use by airtable.handler.ts fallback.
+ * Parses the URL, extracts the record ref, and delegates to canonicalizeWithRef.
  */
 export function defaultCanonicalizeUrl(url: string): string {
     const parsed = new URL(url);
-    const appId = parsed.pathname.split('/')[1];
-    if (!appId?.startsWith('app')) return url;
-
-    // Pattern 1: ?detail=base64JSON with { pageId, rowId }
-    const detail = parsed.searchParams.get('detail');
-    if (detail) {
-        try {
-            const json = JSON.parse(globalThis.atob(detail));
-            const {pageId, rowId} = json;
-            if (pageId && rowId) {
-                return `${parsed.origin}/${appId}/${pageId}/${rowId}`;
-            }
-        } catch {
-            // fall through
-        }
-    }
-
-    // Pattern 2: Interfaces URL with ?someKey=recXXX as a query param value
-    for (const val of parsed.searchParams.values()) {
-        if (/^rec[A-Za-z0-9]+$/.test(val)) {
-            return `${parsed.origin}/${appId}/${val}`;
-        }
-    }
-
-    return url;
+    return canonicalizeWithRef(parsed, extractRecordId(parsed));
 }
 
 /** Apply defaults to a config, filling in any unset optional fields. */
@@ -51,7 +44,7 @@ function withDefaults(config: AirtableBaseConfig): Required<AirtableBaseConfig> 
     return {
         ...config,
         domain: config.domain ?? '',
-        canonicalizeUrl: config.canonicalizeUrl ?? defaultCanonicalizeUrl,
+        canonicalizeUrl: config.canonicalizeUrl ?? canonicalizeWithRef,
     };
 }
 
@@ -62,8 +55,15 @@ export function createSubHandler(raw: AirtableBaseConfig): AirtableSubHandler {
         canHandle: (url) => url.href.includes(config.appId),
         getFormats({url}) {
             const title = config.extractTitle(config.label);
+            const parsed = new URL(url);
+            const ref = extractRecordId(parsed);
             return [
-                linkFormat(config.label, 35, title || config.label, config.canonicalizeUrl(url)),
+                linkFormat(
+                    config.label,
+                    35,
+                    title || config.label,
+                    config.canonicalizeUrl(parsed, ref),
+                ),
             ];
         },
     };

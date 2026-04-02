@@ -13,23 +13,9 @@ export const glossaryConfig: AirtableBaseConfig = {
         const name = textCell?.textContent?.trim() || 'Glossary Record';
         return buildLabel(name);
     },
-    canonicalizeUrl: (url) => {
-        const recordId = extractRecordId(url);
-        return recordId ? `https://airtable.com/${GLOSSARY_APP_ID}/${recordId}` : url;
-    },
+    canonicalizeUrl: (_url, ref) =>
+        ref ? `https://airtable.com/${GLOSSARY_APP_ID}/${ref.recordId}` : _url.href,
 };
-
-// --- URL helpers ---
-
-function extractRecordId(url: string): string | null {
-    const u = new URL(url);
-    const pathMatch = u.pathname.match(/\/(rec[A-Za-z0-9]+)/);
-    if (pathMatch) return pathMatch[1];
-    for (const val of u.searchParams.values()) {
-        if (/^rec[A-Za-z0-9]+$/.test(val)) return val;
-    }
-    return null;
-}
 
 // --- Label building ---
 
