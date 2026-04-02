@@ -102,7 +102,7 @@ describe('AirtableHandler', () => {
         expect(formats[0].label).toBe('Listable Record');
         expect(formats[0].priority).toBe(35);
         expect(formats[0].html).toBe(
-            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC">LTT69717: Validate the existence of new images</a>',
+            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recABC">LTT69717: Validate the existence of new images</a>',
         );
 
         // Generic Airtable format second (priority 40)
@@ -126,12 +126,14 @@ describe('AirtableHandler', () => {
         document.body.appendChild(cellEditor);
 
         const formats = handler.getFormats({url: detailUrl});
-        const canonical =
-            'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T';
-
-        // Both formats should use the canonical URL
-        expect(formats[0].html).toContain(canonical);
-        expect(formats[1].html).toContain(canonical);
+        // Listable canonicalizes to fullscreen view page
+        expect(formats[0].html).toContain(
+            'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+        );
+        // Generic Airtable uses defaultCanonicalizeUrl which keeps pageId
+        expect(formats[1].html).toContain(
+            'https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recrPE9CmgcEG008T',
+        );
     });
 
     it('should not crash on Listable URL with malformed detail param', () => {

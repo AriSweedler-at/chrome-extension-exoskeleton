@@ -1,6 +1,7 @@
 import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {prefixedTitle} from '@exo/exo-tabs/richlink/base';
 import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-glossary';
+import {listableConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-listable';
 
 export const DEFAULT_MAX_TITLE_LEN = 120;
 
@@ -27,28 +28,7 @@ export const airtableBases: AirtableBaseConfig[] = [
             return raw ? prefixedTitle(label, raw, DEFAULT_MAX_TITLE_LEN) : null;
         },
     },
-    /** Listable task tracker — converts "LTT69717/Title" → "LTT69717: Title" */
-    {
-        label: 'Listable Record',
-        appId: 'apptivTqaoebkrmV1',
-        extractTitle: () => {
-            // Primary: formula cell with "LTT69717/Title" format (grid/detail views)
-            const formulaCell = document.querySelector(
-                '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
-            );
-            const raw = formulaCell?.textContent?.trim();
-            if (raw) {
-                const i = raw.indexOf('/');
-                return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
-            }
-
-            // Fallback: text cell with raw title (sidesheet view)
-            const textCell = document.querySelector(
-                '[data-testid="cell-editor"][data-columntype="text"]',
-            );
-            return textCell?.textContent?.trim() || null;
-        },
-    },
+    listableConfig,
     /** Security exception requests — prefixed, with optional re-review date */
     {
         label: 'Security Exception',

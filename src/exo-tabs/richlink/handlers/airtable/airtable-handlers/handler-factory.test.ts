@@ -166,7 +166,7 @@ describe('Listable Record handler', () => {
         expect(formats[0].label).toBe('Listable Record');
         expect(formats[0].priority).toBe(35);
         expect(formats[0].html).toBe(
-            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC">LTT69717: Validate the existence of new images</a>',
+            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recABC">LTT69717: Validate the existence of new images</a>',
         );
     });
 
@@ -212,7 +212,7 @@ describe('Listable Record handler', () => {
             url: 'https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC',
         });
         expect(formats[0].html).toBe(
-            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC">Listable Record</a>',
+            '<a href="https://airtable.com/apptivTqaoebkrmV1/pagYS8GHSAS9swLLI/recABC">Listable Record</a>',
         );
     });
 });
