@@ -32,13 +32,21 @@ export const airtableBases: AirtableBaseConfig[] = [
         label: 'Listable Record',
         appId: 'apptivTqaoebkrmV1',
         extractTitle: () => {
-            const cell = document.querySelector(
+            // Primary: formula cell with "LTT69717/Title" format (grid/detail views)
+            const formulaCell = document.querySelector(
                 '[data-testid="cell-editor"][data-columntype="formula"] .heading-size-default',
             );
-            const raw = cell?.textContent?.trim();
-            if (!raw) return null;
-            const i = raw.indexOf('/');
-            return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
+            const raw = formulaCell?.textContent?.trim();
+            if (raw) {
+                const i = raw.indexOf('/');
+                return i !== -1 ? `${raw.slice(0, i)}: ${raw.slice(i + 1)}` : raw;
+            }
+
+            // Fallback: text cell with raw title (sidesheet view)
+            const textCell = document.querySelector(
+                '[data-testid="cell-editor"][data-columntype="text"]',
+            );
+            return textCell?.textContent?.trim() || null;
         },
     },
     /** Security exception requests — prefixed, with optional re-review date */
