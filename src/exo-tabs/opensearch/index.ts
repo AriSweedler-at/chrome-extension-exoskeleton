@@ -1,7 +1,24 @@
+import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+
 export interface CommandParts {
     flat: string;
     display: string;
 }
+
+export const OPENSEARCH_ENVIRONMENTS = ['alpha', 'staging', 'production'] as const;
+export type OpenSearchEnvironment = (typeof OPENSEARCH_ENVIRONMENTS)[number];
+
+const HOSTNAME_TO_ENV: Record<string, OpenSearchEnvironment> = {
+    'opensearch-applogs.alpha-shadowbox.cloud': 'alpha',
+    'opensearch-applogs.staging-shadowbox.cloud': 'staging',
+    'opensearch-applogs.shadowbox.cloud': 'production',
+};
+
+const ENV_TO_HOSTNAME: Record<OpenSearchEnvironment, string> = {
+    alpha: 'opensearch-applogs.alpha-shadowbox.cloud',
+    staging: 'opensearch-applogs.staging-shadowbox.cloud',
+    production: 'opensearch-applogs.shadowbox.cloud',
+};
 
 const OPENSEARCH_DOMAINS = [
     'opensearch-applogs.shadowbox.cloud',
@@ -34,6 +51,31 @@ export function findOpenFlyout(): Element | null {
 export function getFieldValue(fieldName: string): string | null {
     const el = document.querySelector(`[data-test-subj="tableDocViewRow-${fieldName}-value"]`);
     return el?.textContent?.trim() ?? null;
+}
+
+/** Returns all environments with their URLs and which is current, or undefined if not an OpenSearch page. */
+export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
+    try {
+        const u = new URL(url);
+        const currentEnv = HOSTNAME_TO_ENV[u.hostname];
+        if (!currentEnv) return undefined;
+
+        return OPENSEARCH_ENVIRONMENTS.map((env) => {
+            const envUrl = new URL(url);
+            envUrl.hostname = ENV_TO_HOSTNAME[env];
+            return {env, url: envUrl.toString(), current: env === currentEnv};
+        });
+    } catch {
+        return undefined;
+    }
+}
+
+/** Returns the URL for the next environment in rotation, or undefined. */
+export function getNextEnvironmentUrl(url: string): string | undefined {
+    const envs = getEnvironments(url);
+    if (!envs) return undefined;
+    const currentIdx = envs.findIndex((e) => e.current);
+    return envs[(currentIdx + 1) % envs.length].url;
 }
 
 export function buildCommand(): CommandParts | null {

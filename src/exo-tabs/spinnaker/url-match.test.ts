@@ -1,5 +1,10 @@
 import {describe, it, expect} from 'vitest';
-import {isSpinnakerPage, isSpinnakerSearchPage} from '@exo/exo-tabs/spinnaker/url-match';
+import {
+    isSpinnakerPage,
+    isSpinnakerSearchPage,
+    getEnvironments,
+    getNextEnvironmentUrl,
+} from '@exo/exo-tabs/spinnaker/url-match';
 
 describe('isSpinnakerPage', () => {
     it('returns true for shadowbox Spinnaker', () => {
@@ -58,5 +63,63 @@ describe('isSpinnakerSearchPage', () => {
 
     it('returns false for invalid URLs', () => {
         expect(isSpinnakerSearchPage('not-a-url')).toBe(false);
+    });
+});
+
+describe('getEnvironments', () => {
+    it('returns 2 envs with production marked current', () => {
+        const envs = getEnvironments(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
+        );
+        expect(envs).toHaveLength(2);
+        expect(envs?.map((e) => e.env)).toEqual(['alpha', 'production']);
+        expect(envs?.find((e) => e.current)?.env).toBe('production');
+    });
+
+    it('returns 2 envs with alpha marked current', () => {
+        const envs = getEnvironments(
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions',
+        );
+        expect(envs?.find((e) => e.current)?.env).toBe('alpha');
+    });
+
+    it('preserves hash-based routing path', () => {
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig';
+        const envs = getEnvironments(url);
+        for (const env of envs!) {
+            const parsed = new URL(env.url);
+            expect(parsed.hash).toBe(
+                '#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig',
+            );
+        }
+    });
+
+    it('returns undefined for non-Spinnaker URL', () => {
+        expect(getEnvironments('https://example.com/foo')).toBeUndefined();
+    });
+
+    it('returns undefined for invalid URL', () => {
+        expect(getEnvironments('not-a-url')).toBeUndefined();
+    });
+});
+
+describe('getNextEnvironmentUrl', () => {
+    it('cycles production → alpha', () => {
+        const next = getNextEnvironmentUrl(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
+        );
+        expect(new URL(next!).hostname).toBe('spinnaker.k8s.alpha-shadowbox.cloud');
+    });
+
+    it('cycles alpha → production', () => {
+        const next = getNextEnvironmentUrl(
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions',
+        );
+        expect(new URL(next!).hostname).toBe('spinnaker.k8s.shadowbox.cloud');
+    });
+
+    it('returns undefined for non-Spinnaker URL', () => {
+        expect(getNextEnvironmentUrl('https://example.com')).toBeUndefined();
     });
 });
