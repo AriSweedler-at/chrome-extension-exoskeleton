@@ -3,7 +3,13 @@ export class Clipboard {
      * Write text and optionally HTML to the clipboard
      */
     static async write(text: string, html?: string): Promise<void> {
-        // Try modern Clipboard API first
+        // If document isn't focused (e.g. URL bar highlighted), reclaim focus
+        // and wait for the browser to process it.
+        if (!document.hasFocus()) {
+            window.focus();
+            await new Promise((r) => window.requestAnimationFrame(r));
+        }
+
         try {
             if (html) {
                 const blob = new Blob([html], {type: 'text/html'});
@@ -17,15 +23,12 @@ export class Clipboard {
                 await navigator.clipboard.writeText(text);
             }
         } catch (error) {
-            // Fallback to execCommand method when document is not focused
+            // Fallback to execCommand method
             console.log('Clipboard API failed, using fallback method:', error);
             this.fallbackCopy(text, html);
         }
     }
 
-    /**
-     * Fallback clipboard copy using execCommand (works without focus)
-     */
     private static fallbackCopy(text: string, html?: string): void {
         const listener = (e: ClipboardEvent) => {
             e.preventDefault();
