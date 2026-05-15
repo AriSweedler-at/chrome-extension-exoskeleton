@@ -397,9 +397,9 @@ describe('defaultCanonicalizeUrl', () => {
         ).toBe('https://airtable.com/appebZJp08MytrQhs/recK1hqBktQeDGchN');
     });
 
-    it('should pass through URL unchanged when no detail param and no rec param', () => {
+    it('should strip query params when recordId is in the path', () => {
         const url = 'https://airtable.com/appXYZ123/pagABC/recDEF?home=pagGHI';
-        expect(defaultCanonicalizeUrl(url)).toBe(url);
+        expect(defaultCanonicalizeUrl(url)).toBe('https://airtable.com/appXYZ123/pagABC/recDEF');
     });
 
     it('should pass through URL unchanged when detail param is malformed', () => {

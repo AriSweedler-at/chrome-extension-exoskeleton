@@ -24,8 +24,8 @@ function canonicalizeWithRef(url: URL, ref: AirtableRecordRef | null): string {
     if (ref.pageId) {
         return `${url.origin}/${appId}/${ref.pageId}/${ref.recordId}`;
     }
-    // If recordId is already in the path, URL is canonical — return as-is.
-    if (url.pathname.includes(ref.recordId)) return url.href;
+    // If recordId is already in the path, URL is canonical — drop query params.
+    if (url.pathname.includes(ref.recordId)) return `${url.origin}${url.pathname}`;
     // Otherwise it came from a query param — build origin/appId/recId.
     return `${url.origin}/${appId}/${ref.recordId}`;
 }

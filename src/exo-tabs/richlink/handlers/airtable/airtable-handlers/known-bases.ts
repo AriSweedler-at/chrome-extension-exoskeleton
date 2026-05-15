@@ -2,6 +2,8 @@ import type {AirtableBaseConfig} from '@exo/exo-tabs/richlink/handlers/airtable/
 import {DEFAULT_MAX_TITLE_LEN} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/base';
 import {prefixedTitle} from '@exo/exo-tabs/richlink/base';
 import {glossaryConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-glossary';
+import {golinkConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-golink';
+import {gridguardConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-gridguard';
 import {listableConfig} from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/known-base-listable';
 
 /**
@@ -47,4 +49,20 @@ export const airtableBases: AirtableBaseConfig[] = [
     },
     /** Airtable Glossary — custom URL canonicalization and definition expansion */
     glossaryConfig,
+    /** Go links registry — extracts slug from text cell, rewrites URL to https://go/<slug> */
+    golinkConfig,
+    /** GridGuard vulnerability tracker — prefixed "GridGuard vuln: <container> (<record-id>)" */
+    gridguardConfig,
+    /** PDC tracker — prefixed "PDC: <title>" from a text cell */
+    {
+        label: 'PDC',
+        appId: 'appYv17FFVaU415GX',
+        extractTitle: (label) => {
+            const cell = document.querySelector(
+                '[data-testid="cell-editor"][data-columntype="text"]',
+            );
+            const raw = cell?.textContent?.trim();
+            return raw ? prefixedTitle(label, raw, DEFAULT_MAX_TITLE_LEN) : null;
+        },
+    },
 ];
