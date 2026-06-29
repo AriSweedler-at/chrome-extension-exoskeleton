@@ -69,6 +69,13 @@ export const theme = {
             borderRadius: '3px',
             fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
         },
+        // Inline code-literal chip (markdown `code` spans inside a toast)
+        code: {
+            background: 'hsla(0, 0%, 0%, 0.25)',
+            padding: '1px 6px',
+            borderRadius: '3px',
+            fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
+        },
         preview: {
             fontSize: '11px',
             opacity: '0.7',

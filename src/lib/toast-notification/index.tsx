@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
+import {renderMarkdown} from '@exo/lib/toast-notification/markdown';
 import {theme} from '@exo/theme/default';
 
 const DEFAULT_DURATION_MS = 5000;
@@ -11,7 +12,10 @@ export enum NotificationType {
 }
 
 export interface NotificationOptions {
-    message: string;
+    /** Plain-text body. Used for logging even when `markdown`/`children` render the UI. */
+    message?: string;
+    /** Markdown body (a small subset). Rendered to plain DOM — safe in content scripts. */
+    markdown?: string;
     type?: NotificationType;
     duration?: number;
     replace?: boolean;
@@ -138,6 +142,7 @@ export class Notifications {
     static show(options: NotificationOptions): void {
         const {
             message,
+            markdown,
             type = NotificationType.Success,
             duration = DEFAULT_DURATION_MS,
             replace,
@@ -146,7 +151,7 @@ export class Notifications {
             onClick,
         } = options;
 
-        console.log(`[exo toast] ${message}`);
+        console.log(`[exo toast] ${markdown ?? message ?? ''}`);
 
         this.injectKeyframes();
 
@@ -169,10 +174,14 @@ export class Notifications {
         const {cssText, backgroundColor} = this.buildNotificationStyle(type, opacity);
         notification.style.cssText = cssText;
 
-        notification.appendChild(this.createMessageElement(message));
-
-        if (children) {
+        // Content body, in priority order: markdown (plain-DOM render) > React
+        // children > plain message. `message` is still used above for logging.
+        if (markdown !== undefined) {
+            notification.appendChild(renderMarkdown(markdown));
+        } else if (children) {
             this.renderChildren(notification, children);
+        } else {
+            notification.appendChild(this.createMessageElement(message ?? ''));
         }
 
         // Timer bar — CSS animation is the single source of truth for auto-dismiss
