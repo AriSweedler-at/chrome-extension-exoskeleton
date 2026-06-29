@@ -37,6 +37,14 @@ describe('KeybindingRegistry', () => {
         );
     }
 
+    function pressCtrl(key: string) {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key, ctrlKey: true, bubbles: true}));
+    }
+
+    function pressModifier(key: string) {
+        document.dispatchEvent(new KeyboardEvent('keydown', {key, shiftKey: true, bubbles: true}));
+    }
+
     it('should fire handler for simple key', async () => {
         const handler = vi.fn();
         registry.register({key: 'x', description: 'test', handler});
@@ -124,6 +132,84 @@ describe('KeybindingRegistry', () => {
         pressKey('z');
 
         expect(Notifications.show).not.toHaveBeenCalled();
+    });
+
+    describe('pass-through prefix (Ctrl+V)', () => {
+        it('passes the next keystroke through instead of firing the binding', async () => {
+            const handler = vi.fn();
+            registry.register({key: 'c', description: 'exo C', handler});
+
+            pressCtrl('v'); // arm
+            pressKey('c'); // should reach the page, not exo
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('does not let a lone modifier consume the arm (e.g. Shift in "?")', async () => {
+            const handler = vi.fn();
+            registry.register({key: 'c', description: 'exo C', handler});
+
+            pressCtrl('v'); // arm
+            pressModifier('Shift'); // lone modifier — must NOT consume the arm
+            pressKey('c'); // the real key — still passes through
+            await flushFrames();
+
+            // If Shift had consumed the arm, 'c' would have fired the binding.
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('is one-shot: only the immediately following keystroke passes through', async () => {
+            const handler = vi.fn();
+            registry.register({key: 'c', description: 'exo C', handler});
+
+            pressCtrl('v');
+            pressKey('c'); // passed through
+            pressKey('c'); // handled normally
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+
+        it('shows a banner toast with the TTL when arming', () => {
+            pressCtrl('v');
+
+            expect(Notifications.show).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    markdown: expect.stringContaining('pass'),
+                    duration: 100_000,
+                }),
+            );
+        });
+
+        it('clears the banner toast when the key is consumed', () => {
+            const dismiss = vi.fn();
+            vi.mocked(Notifications.show).mockReturnValueOnce({dismiss});
+            registry.register({key: 'c', description: 'exo C', handler: vi.fn()});
+
+            pressCtrl('v'); // arm -> show returns {dismiss}
+            pressKey('c'); // consume
+
+            expect(dismiss).toHaveBeenCalled();
+        });
+
+        it('disarms when the banner toast is dismissed (e.g. TTL expiry)', async () => {
+            const handler = vi.fn();
+            registry.register({key: 'c', description: 'exo C', handler});
+
+            let onDismiss: (() => void) | undefined;
+            vi.mocked(Notifications.show).mockImplementationOnce((opts) => {
+                onDismiss = opts.onDismiss;
+                return {dismiss: vi.fn()};
+            });
+
+            pressCtrl('v'); // arm
+            onDismiss?.(); // simulate the 100s TTL firing
+            pressKey('c'); // should now be handled normally, not passed through
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+        });
     });
 
     it('should show help overlay on ?', async () => {

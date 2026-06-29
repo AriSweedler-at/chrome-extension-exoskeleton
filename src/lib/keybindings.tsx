@@ -1,4 +1,4 @@
-import {Notifications} from '@exo/lib/toast-notification';
+import {Notifications, type ToastHandle} from '@exo/lib/toast-notification';
 import {code} from '@exo/lib/toast-notification/markdown';
 import {theme} from '@exo/theme/default';
 
@@ -46,10 +46,40 @@ export interface Keybinding {
     context?: string; // Optional grouping context (e.g., "GitHub", "Spinnaker")
 }
 
+// The "quote next keystroke" prefix: after it, the next key is passed straight
+// to the page instead of being handled by exo. Outside input fields (where we
+// don't listen anyway), Ctrl+V has no native effect, so it's free to reuse.
+const PASS_THROUGH_PREFIX = 'ctrl+v';
+
+// How long the armed pass-through waits for its key before auto-disarming.
+const PASS_THROUGH_TTL_MS = 100_000;
+
+// Lone modifier keydowns (e.g. the Shift in '?' = Shift+Slash). They must not
+// consume the one-shot pass-through — we wait for the actual key.
+const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph']);
+
+// Derive the {key, modifiers} a keydown maps to — shared by lookup and display.
+// For non-letter keys (like ? ! @ #) shift is implicit in the character itself,
+// so only treat shift as an explicit modifier for letters (a-z).
+function eventBindingParts(event: KeyboardEvent): Pick<Keybinding, 'key' | 'modifiers'> {
+    const isLetter = /^[a-zA-Z]$/.test(event.key);
+    return {
+        key: event.key,
+        modifiers: {
+            ctrl: event.ctrlKey,
+            shift: isLetter && event.shiftKey,
+            alt: event.altKey,
+            meta: event.metaKey,
+        },
+    };
+}
+
 export class KeybindingRegistry {
     private keybindings: Map<string, Keybinding> = new Map();
     private helpOverlay: HTMLElement | null = null;
     private keydownHandler: ((event: KeyboardEvent) => void) | null = null;
+    private passThrough = false; // armed by PASS_THROUGH_PREFIX, consumed by next key
+    private passThroughToast: ToastHandle | null = null;
     private helpCloseHandler: ((event?: Event) => void) | null = null;
 
     constructor() {
@@ -99,20 +129,36 @@ export class KeybindingRegistry {
                 return;
             }
 
-            // For non-letter keys (like ? ! @ #), shift is implicit in the
-            // character itself — don't include it as a modifier. Only treat
-            // shift as an explicit modifier for letter keys (a-z).
-            const isLetter = /^[a-zA-Z]$/.test(event.key);
+            const parts = eventBindingParts(event);
+            const signature = this.getKeySignature(parts);
 
-            const signature = this.getKeySignature({
-                key: event.key,
-                modifiers: {
-                    ctrl: event.ctrlKey,
-                    shift: isLetter && event.shiftKey,
-                    alt: event.altKey,
-                    meta: event.metaKey,
-                },
-            } as Keybinding);
+            // A prior prefix armed this keystroke: let it reach the page
+            // untouched (no preventDefault/stop), consuming the one-shot arm.
+            if (this.passThrough) {
+                // A lone modifier (e.g. the Shift in '?') passes through but
+                // must not consume the arm — wait for the actual key.
+                if (MODIFIER_KEYS.has(event.key)) {
+                    return;
+                }
+                const passed = this.formatKeybinding(parts);
+                this.disarmPassThrough();
+                this.notify(`passed ${code(passed)} to the page`);
+                return;
+            }
+
+            // The prefix itself: arm the next keystroke to pass through, and show
+            // a banner toast that stays until consumed or the TTL expires (which
+            // also disarms, via onDismiss).
+            if (signature === PASS_THROUGH_PREFIX) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                this.passThrough = true;
+                this.passThroughToast = this.notify(
+                    '**pass-through** — next key goes to the page',
+                    {duration: PASS_THROUGH_TTL_MS, onDismiss: () => this.disarmPassThrough()},
+                );
+                return;
+            }
 
             const keybinding = this.keybindings.get(signature);
             if (keybinding) {
@@ -120,12 +166,7 @@ export class KeybindingRegistry {
                 // over the host page's own handlers (e.g. GitHub's 'c' hotkey).
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                // The toast is best-effort and must never block the action.
-                try {
-                    this.announce(keybinding);
-                } catch (err) {
-                    console.error('[exo keybindings] failed to show toast', err);
-                }
+                this.announce(keybinding);
                 // Defer the handler past the next paint so the toast is visible
                 // even when the handler navigates to another page.
                 afterNextPaint(keybinding.handler);
@@ -144,6 +185,7 @@ export class KeybindingRegistry {
             document.removeEventListener('keydown', this.keydownHandler, true);
             this.keydownHandler = null;
         }
+        this.disarmPassThrough();
     }
 
     /**
@@ -163,27 +205,47 @@ export class KeybindingRegistry {
     }
 
     /**
+     * Show a toast. Best-effort: a rendering failure must never block the
+     * keystroke that triggered it.
+     */
+    private notify(
+        markdown: string,
+        opts: {duration?: number; onDismiss?: () => void} = {},
+    ): ToastHandle | null {
+        try {
+            return Notifications.show({markdown, ...opts});
+        } catch (err) {
+            console.error('[exo keybindings] failed to show toast', err);
+            return null;
+        }
+    }
+
+    /** Disarm pass-through and clear its banner toast (idempotent). */
+    private disarmPassThrough(): void {
+        this.passThrough = false;
+        const toast = this.passThroughToast;
+        this.passThroughToast = null;
+        toast?.dismiss();
+    }
+
+    /**
      * Show the "exo keystroke" toast for a fired binding. The keystroke is
      * rendered as an inline code chip so it reads as an interpolated value, not
      * part of the static template; the description follows when provided.
-     * `message` is the plain-text equivalent (used for logging / fallback).
      */
     private announce(keybinding: Keybinding): void {
-        const display = this.formatKeybinding(keybinding);
-        // The keystroke is a markdown `code` span so it renders as a code chip;
-        // the description (if any) follows on its own line.
-        const lines = [`exo keystroke ${code(display)}`];
+        const lines = [`exo keystroke ${code(this.formatKeybinding(keybinding))}`];
         if (keybinding.description) {
             lines.push(keybinding.description);
         }
 
-        Notifications.show({markdown: lines.join('\n')});
+        this.notify(lines.join('\n'));
     }
 
     /**
      * Format a keybinding for display
      */
-    private formatKeybinding(keybinding: Keybinding): string {
+    private formatKeybinding(keybinding: Pick<Keybinding, 'key' | 'modifiers'>): string {
         const modifiers = keybinding.modifiers || {};
         const parts: string[] = [];
 

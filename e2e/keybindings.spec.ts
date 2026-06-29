@@ -75,6 +75,30 @@ test.describe('exo keybindings (content script)', () => {
         expect(await seenKeys(page)).not.toContain('?');
     });
 
+    test('Ctrl+V passes the next keystroke through to the page', async ({context}) => {
+        const page = await openToyPr(context);
+
+        // Without the prefix, an exo shortcut is intercepted — the page never
+        // sees it.
+        await page.keyboard.press('c');
+        expect(await seenKeys(page)).not.toContain('c');
+
+        // With the prefix, a banner appears and the next keystroke is handed
+        // straight to the page.
+        await page.evaluate(() => (window.__seenKeys = []));
+        await page.keyboard.press('Control+v');
+        await expect(page.getByText('pass-through', {exact: false})).toBeVisible();
+        await page.keyboard.press('c');
+        await expect.poll(() => seenKeys(page)).toContain('c');
+
+        // A shifted key ('?' = Shift+Slash): the lone Shift must not consume the
+        // arm, so the real '?' reaches the page.
+        await page.evaluate(() => (window.__seenKeys = []));
+        await page.keyboard.press('Control+v');
+        await page.keyboard.press('?');
+        await expect.poll(() => seenKeys(page)).toContain('?');
+    });
+
     test('the f shortcut navigates to the Files changed tab', async ({context}) => {
         const page = await openToyPr(context);
         // Serve the destination so the navigation commits to a real document.

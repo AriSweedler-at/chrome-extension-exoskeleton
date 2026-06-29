@@ -22,6 +22,13 @@ export interface NotificationOptions {
     opacity?: number;
     children?: ReactNode;
     onClick?: (notification: HTMLElement) => void;
+    /** Called once when the toast is dismissed — by its timer, a click, or its handle. */
+    onDismiss?: () => void;
+}
+
+/** Handle returned by Notifications.show, letting the caller dismiss it early. */
+export interface ToastHandle {
+    dismiss: () => void;
 }
 
 /**
@@ -135,11 +142,12 @@ export class Notifications {
     private static keyframesInjected = false;
     private static pinCleanups = new WeakMap<HTMLElement, () => void>();
     private static reactRoots = new WeakMap<HTMLElement, Root>();
+    private static dismissCallbacks = new WeakMap<HTMLElement, () => void>();
 
     /**
      * Show a toast notification.
      */
-    static show(options: NotificationOptions): void {
+    static show(options: NotificationOptions): ToastHandle {
         const {
             message,
             markdown,
@@ -149,6 +157,7 @@ export class Notifications {
             opacity = 0.95,
             children,
             onClick,
+            onDismiss,
         } = options;
 
         console.log(`[exo toast] ${markdown ?? message ?? ''}`);
@@ -209,11 +218,24 @@ export class Notifications {
             colors: {base: backgroundColor, hover: hoverBg, opacity},
         });
 
+        if (onDismiss) {
+            this.dismissCallbacks.set(notification, onDismiss);
+        }
+
         this.container!.appendChild(notification);
         this.currentNotification = notification;
+
+        return {dismiss: () => this.dismiss(notification)};
     }
 
     private static dismiss(notification: HTMLElement, immediate?: boolean): void {
+        // Fire the dismiss callback exactly once (timer, click, or handle).
+        const onDismiss = this.dismissCallbacks.get(notification);
+        if (onDismiss) {
+            this.dismissCallbacks.delete(notification);
+            onDismiss();
+        }
+
         // Stop timer bar animation to prevent animationend from re-firing
         const timerBar = notification.querySelector('.exo-toast-timer-bar') as HTMLElement | null;
         if (timerBar) timerBar.style.animation = 'none';

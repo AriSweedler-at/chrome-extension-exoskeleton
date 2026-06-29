@@ -68,6 +68,48 @@ describe('Notifications', () => {
             vi.useRealTimers();
         });
 
+        it('returns a handle that dismisses the toast early', () => {
+            vi.useFakeTimers();
+
+            const handle = Notifications.show({message: 'Test', duration: 100_000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            expect(notification.parentNode).toBeTruthy();
+
+            handle.dismiss();
+            vi.advanceTimersByTime(300);
+            expect(notification.parentNode).toBeFalsy();
+
+            vi.useRealTimers();
+        });
+
+        it('calls onDismiss exactly once, however it is dismissed', () => {
+            vi.useFakeTimers();
+
+            const onDismiss = vi.fn();
+            const handle = Notifications.show({message: 'Test', duration: 100_000, onDismiss});
+
+            handle.dismiss();
+            handle.dismiss(); // second dismiss must not re-fire
+            expect(onDismiss).toHaveBeenCalledTimes(1);
+
+            vi.advanceTimersByTime(300);
+            vi.useRealTimers();
+        });
+
+        it('calls onDismiss when the timer bar expires', () => {
+            vi.useFakeTimers();
+
+            const onDismiss = vi.fn();
+            Notifications.show({message: 'Test', duration: 2000, onDismiss});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            finishTimerBar(notification);
+            expect(onDismiss).toHaveBeenCalledTimes(1);
+
+            vi.advanceTimersByTime(300);
+            vi.useRealTimers();
+        });
+
         it('should create container automatically if not present', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Notifications as any).container = null;
