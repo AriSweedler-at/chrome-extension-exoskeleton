@@ -1,3 +1,5 @@
+import {Notifications} from '@exo/lib/toast-notification';
+import {code} from '@exo/lib/toast-notification/markdown';
 import {theme} from '@exo/theme/default';
 
 /**
@@ -7,6 +9,7 @@ import {theme} from '@exo/theme/default';
  * Features:
  * - Register keybindings as objects with key, description, and handler
  * - Automatic event listener setup
+ * - Automatic "exo keystroke" toast on every fired binding
  * - Auto-generated help overlay with '?' key
  * - Context-aware filtering (skips INPUT/TEXTAREA elements)
  */
@@ -15,6 +18,19 @@ const INPUT_TAG_NAMES = ['INPUT', 'TEXTAREA'] as const;
 
 function isTypingInInputField(target: HTMLElement): boolean {
     return INPUT_TAG_NAMES.some((tag) => target.tagName === tag) || target.isContentEditable;
+}
+
+/**
+ * Run a callback after the next paint. Lets the keystroke toast render before a
+ * handler that navigates away tears down the page. Falls back to setTimeout
+ * where requestAnimationFrame is unavailable.
+ */
+function afterNextPaint(fn: () => void): void {
+    if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(fn));
+    } else {
+        setTimeout(fn, 0);
+    }
 }
 
 export interface Keybinding {
@@ -100,12 +116,24 @@ export class KeybindingRegistry {
 
             const keybinding = this.keybindings.get(signature);
             if (keybinding) {
+                // Capture phase + stopImmediatePropagation so our shortcut wins
+                // over the host page's own handlers (e.g. GitHub's 'c' hotkey).
                 event.preventDefault();
-                keybinding.handler();
+                event.stopImmediatePropagation();
+                // The toast is best-effort and must never block the action.
+                try {
+                    this.announce(keybinding);
+                } catch (err) {
+                    console.error('[exo keybindings] failed to show toast', err);
+                }
+                // Defer the handler past the next paint so the toast is visible
+                // even when the handler navigates to another page.
+                afterNextPaint(keybinding.handler);
             }
         };
 
-        document.addEventListener('keydown', this.keydownHandler);
+        // Capture phase: intercept before the page's bubble-phase listeners.
+        document.addEventListener('keydown', this.keydownHandler, true);
     }
 
     /**
@@ -113,7 +141,7 @@ export class KeybindingRegistry {
      */
     unlisten(): void {
         if (this.keydownHandler) {
-            document.removeEventListener('keydown', this.keydownHandler);
+            document.removeEventListener('keydown', this.keydownHandler, true);
             this.keydownHandler = null;
         }
     }
@@ -132,6 +160,24 @@ export class KeybindingRegistry {
         parts.push(keybinding.key.toLowerCase());
 
         return parts.join('+');
+    }
+
+    /**
+     * Show the "exo keystroke" toast for a fired binding. The keystroke is
+     * rendered as an inline code chip so it reads as an interpolated value, not
+     * part of the static template; the description follows when provided.
+     * `message` is the plain-text equivalent (used for logging / fallback).
+     */
+    private announce(keybinding: Keybinding): void {
+        const display = this.formatKeybinding(keybinding);
+        // The keystroke is a markdown `code` span so it renders as a code chip;
+        // the description (if any) follows on its own line.
+        const lines = [`exo keystroke ${code(display)}`];
+        if (keybinding.description) {
+            lines.push(keybinding.description);
+        }
+
+        Notifications.show({markdown: lines.join('\n')});
     }
 
     /**
