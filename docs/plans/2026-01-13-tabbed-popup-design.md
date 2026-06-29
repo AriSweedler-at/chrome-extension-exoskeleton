@@ -1,5 +1,9 @@
 # Tabbed Popup System Design
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 **Date:** 2026-01-13
 **Status:** Approved
 

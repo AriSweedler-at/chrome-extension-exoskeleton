@@ -1,5 +1,9 @@
 # Tabbed Popup System Implementation Plan
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Implement priority-based tab system with context-aware tabs, starting with SO SPRINT tab for Airtable pages.

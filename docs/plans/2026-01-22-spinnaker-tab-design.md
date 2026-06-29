@@ -1,5 +1,9 @@
 # Spinnaker Tab Design
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 ## Overview
 
 Add a new tab to the Chrome extension for Spinnaker pages that provides keyboard shortcuts and UI buttons to interact with Spinnaker executions and stages.

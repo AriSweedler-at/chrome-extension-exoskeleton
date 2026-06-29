@@ -1,5 +1,9 @@
 # Split Tab Feature Implementation Plan
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add keyboard shortcut (Ctrl+Shift+=) and UI button to open split screen tabs with blank homepage

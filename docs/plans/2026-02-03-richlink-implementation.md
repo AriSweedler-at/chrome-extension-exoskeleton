@@ -1,5 +1,9 @@
 # Rich Link Integration Implementation Plan
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Integrate chrome-extension-richlink as a tab with keyboard shortcut support

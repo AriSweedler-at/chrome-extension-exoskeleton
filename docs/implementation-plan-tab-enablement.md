@@ -1,5 +1,9 @@
 # Tab Enablement Library - Implementation Plan
 
+> [!NOTE]
+> Historical document. Describes the codebase at the time of writing; file
+> paths and structure have since changed.
+
 ## Overview
 
 Create a reusable tab enablement library feature that allows any tab in the Chrome extension to opt into auto-run enablement with a single configuration line: `enablementToggle: true`. This will refactor GitHub autoscroll's manual enablement code into a centralized library feature.
