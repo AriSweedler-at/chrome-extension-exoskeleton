@@ -8,6 +8,7 @@
         "build": "tsc -p tsconfig.build.json && vite build",
         "preview": "vite preview",
         "test": "vitest",
+        "test:run": "vitest run",
         "test:ui": "vitest --ui",
         "test:coverage": "vitest --coverage",
         "test-handler-html": "vite-node --config vite-cli.config.ts src/exo-tabs/richlink/handlers/test-with-html.ts --",
