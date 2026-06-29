@@ -118,8 +118,6 @@ function initializeMessageHandlers() {
                 if (typeof window.__ghAutoScrollStop === 'function') {
                     // Stop autoscroll
                     window.__ghAutoScrollStop();
-                    // autoscroll's stop() calls unlisten(); re-attach our shortcuts
-                    syncPRTabShortcuts();
                     Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
                     sendResponse({active: false});
                 } else {

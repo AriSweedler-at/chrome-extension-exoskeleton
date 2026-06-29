@@ -1,5 +1,4 @@
 import {scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
-import {keybindings} from '@exo/lib/keybindings';
 import {theme} from '@exo/theme/default';
 
 interface GitHubPR {
@@ -226,48 +225,6 @@ function findNextUnviewedAfter(currentFile: HTMLElement | null): HTMLElement | n
 }
 
 /**
- * Find the previous unviewed file before the given element
- */
-function findPreviousUnviewedBefore(currentFile: HTMLElement | null): HTMLElement | null {
-    const files = getFiles();
-
-    if (files.length === 0) {
-        return null;
-    }
-
-    // If no current file, return last unviewed
-    if (!currentFile) {
-        for (let i = files.length - 1; i >= 0; i--) {
-            if (!isViewed(files[i])) {
-                return files[i];
-            }
-        }
-        return null;
-    }
-
-    // Find index of current file
-    const currentIndex = files.indexOf(currentFile);
-    if (currentIndex === -1) {
-        // Return last unviewed
-        for (let i = files.length - 1; i >= 0; i--) {
-            if (!isViewed(files[i])) {
-                return files[i];
-            }
-        }
-        return null;
-    }
-
-    // Find previous unviewed file before current
-    for (let i = currentIndex - 1; i >= 0; i--) {
-        if (!isViewed(files[i])) {
-            return files[i];
-        }
-    }
-
-    return null;
-}
-
-/**
  * Add flash animation to file element
  */
 function flashFile(fileElement: HTMLElement, timers: number[]): void {
@@ -399,126 +356,6 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
 }
 
 /**
- * Find the file element currently in view (closest to top of viewport)
- */
-function getCurrentFileInView(): HTMLElement | null {
-    const files = getFiles();
-    if (files.length === 0) return null;
-
-    // Find file whose top edge is closest to our target scroll position (100px from top)
-    const targetY = 100;
-    let closestFile: HTMLElement | null = null;
-    let closestDistance = Infinity;
-
-    for (const file of files) {
-        const rect = file.getBoundingClientRect();
-        const distance = Math.abs(rect.top - targetY);
-
-        if (distance < closestDistance) {
-            closestDistance = distance;
-            closestFile = file;
-        }
-    }
-
-    return closestFile;
-}
-
-/**
- * Find the file element currently in view for previous navigation
- * This is more lenient - includes files whose body is visible even if header is scrolled off
- */
-function getCurrentFileForPrevious(): HTMLElement | null {
-    const files = getFiles();
-    if (files.length === 0) return null;
-
-    // Find the first file whose bottom is below the top of the viewport
-    // This means we're currently viewing this file (or past it)
-    for (const file of files) {
-        const rect = file.getBoundingClientRect();
-        // If the file extends below the top of viewport (even if header is above)
-        if (rect.bottom > 0) {
-            return file;
-        }
-    }
-
-    return files[files.length - 1]; // Default to last file
-}
-
-/**
- * Mark the current file as viewed by clicking its "Viewed" button
- */
-function markCurrentFileAsViewed(debug: boolean): void {
-    const currentFile = getCurrentFileInView();
-    if (!currentFile) {
-        if (debug) {
-            console.log('[GitHub AutoScroll] No file in view to mark as viewed');
-        }
-        return;
-    }
-
-    // Find the "Viewed" button for this file
-    const button =
-        currentFile.querySelector('button[aria-pressed]') ||
-        currentFile.closest('div')?.querySelector('button[aria-pressed]') ||
-        currentFile.parentElement?.querySelector('button[aria-pressed]');
-
-    if (button && button.textContent?.includes('Viewed')) {
-        if (debug) {
-            console.log('[GitHub AutoScroll] Marking file as viewed:', getFileName(currentFile));
-        }
-        (button as HTMLButtonElement).click();
-    } else {
-        if (debug) {
-            console.log(
-                '[GitHub AutoScroll] Could not find Viewed button for:',
-                getFileName(currentFile),
-            );
-        }
-    }
-}
-
-/**
- * Navigate to the next unviewed file
- */
-function goToNextUnviewed(timers: number[], debug: boolean): void {
-    const currentFile = getCurrentFileInView();
-    const nextFile = findNextUnviewedAfter(currentFile);
-
-    if (nextFile) {
-        scrollElementTop(nextFile, {offsetTop: 0});
-        flashFile(nextFile, timers);
-        if (debug) {
-            console.log('[GitHub AutoScroll] Next unviewed:', getFileName(nextFile));
-        }
-    } else {
-        if (debug) {
-            console.log('[GitHub AutoScroll] No more unviewed files after current');
-        }
-    }
-}
-
-/**
- * Navigate to the previous unviewed file
- */
-function goToPreviousUnviewed(timers: number[], debug: boolean): void {
-    const currentFile = getCurrentFileForPrevious();
-    const previousFile = findPreviousUnviewedBefore(currentFile);
-
-    if (previousFile) {
-        // Scroll to show top of file with less offset (20px) to show more of the body
-        scrollElementTop(previousFile, {offsetTop: 20});
-        flashFile(previousFile, timers);
-        if (debug) {
-            console.log('[GitHub AutoScroll] Previous unviewed:', getFileName(previousFile));
-        }
-    } else {
-        if (debug) {
-            console.log('[GitHub AutoScroll] No unviewed files before current');
-        }
-    }
-}
-
-/**
  * Initialize autoscroll functionality
  * Returns a function to stop/cleanup, or null if no files found
  * @param debug - Enable debug console logging (default: false)
@@ -561,29 +398,6 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
     const clickHandler = (e: Event) => onButtonClick(e, timers, debug);
     document.addEventListener('click', clickHandler, true);
 
-    // Register keybindings
-    keybindings.registerAll([
-        {
-            key: 'v',
-            description: 'Mark current file as viewed',
-            handler: () => markCurrentFileAsViewed(debug),
-            context: 'GitHub PR',
-        },
-        {
-            key: 'n',
-            description: 'Navigate to next unviewed file',
-            handler: () => goToNextUnviewed(timers, debug),
-            context: 'GitHub PR',
-        },
-        {
-            key: 'p',
-            description: 'Navigate to previous unviewed file',
-            handler: () => goToPreviousUnviewed(timers, debug),
-            context: 'GitHub PR',
-        },
-    ]);
-    keybindings.listen();
-
     // Check for files
     const files = getFiles();
     if (files.length === 0) {
@@ -622,12 +436,6 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
 
         // Remove document-level listeners
         document.removeEventListener('click', clickHandler, true);
-
-        // Unregister keybindings
-        keybindings.unregister('v');
-        keybindings.unregister('n');
-        keybindings.unregister('p');
-        keybindings.unlisten();
 
         // Remove CSS - use direct reference to the style element we created
         if (style && style.parentNode) {

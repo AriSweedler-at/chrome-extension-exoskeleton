@@ -6,7 +6,6 @@ import {
     isGitHubPRChangesPage,
     isGitHubPRPage,
 } from '@exo/exo-tabs/github-autoscroll';
-
 describe('isGitHubPRChangesPage', () => {
     it('returns true for valid GitHub PR changes URL', () => {
         const url = 'https://github.com/owner/repo/pull/123/changes';
