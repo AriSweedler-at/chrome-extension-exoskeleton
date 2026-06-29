@@ -2,40 +2,81 @@ import {scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {theme} from '@exo/theme/default';
 
+interface GitHubPR {
+    owner: string;
+    repo: string;
+    prNumber: string;
+    tab: string | undefined; // sub-tab after the PR number, e.g. 'changes', 'commits'
+}
+
 /**
- * Check if URL is a GitHub PR changes page
+ * Parse a GitHub pull request URL into its owner/repo/number/tab parts.
+ * Returns null if the URL is not a GitHub pull request page.
  */
-export function isGitHubPRChangesPage(url: string): boolean {
+function parseGitHubPRUrl(url: string): GitHubPR | null {
     try {
         const urlObj = new URL(url);
 
         // Check hostname (support both github.com and www.github.com)
         const hostname = urlObj.hostname.toLowerCase();
         if (hostname !== 'github.com' && hostname !== 'www.github.com') {
-            return false;
+            return null;
         }
 
         // Parse pathname (ignoring query params and fragments)
+        // Expected format: owner/repo/pull/{number}[/tab]
         const pathParts = urlObj.pathname.split('/').filter((part) => part !== '');
-
-        // Expected format: owner/repo/pull/{number}/changes
-        if (pathParts.length < 5) {
-            return false;
+        if (pathParts.length < 4 || pathParts[2] !== 'pull' || !/^\d+$/.test(pathParts[3])) {
+            return null;
         }
 
-        // Check pattern: pathParts[2] === 'pull', pathParts[3] === PR number, pathParts[4] === 'changes'
-        const isPullRequest = pathParts[2] === 'pull';
-        const prNumber = pathParts[3];
-        const isChangesPage = pathParts[4] === 'changes';
-
-        // Validate PR number is purely numeric using regex
-        const isPRNumberValid = /^\d+$/.test(prNumber);
-
-        return isPullRequest && isPRNumberValid && isChangesPage;
+        return {owner: pathParts[0], repo: pathParts[1], prNumber: pathParts[3], tab: pathParts[4]};
     } catch {
         // Invalid URL
-        return false;
+        return null;
     }
+}
+
+/**
+ * Check if URL is any GitHub pull request page (any tab, including the PR root)
+ */
+export function isGitHubPRPage(url: string): boolean {
+    return parseGitHubPRUrl(url) !== null;
+}
+
+/**
+ * Check if URL is a GitHub PR changes page
+ */
+export function isGitHubPRChangesPage(url: string): boolean {
+    return parseGitHubPRUrl(url)?.tab === 'changes';
+}
+
+/**
+ * Navigate to a tab of the current GitHub PR. The Conversation tab is the PR
+ * root, so pass '' for it; other tabs ('changes', 'commits', 'checks') are the
+ * path suffix. No-op when not on a PR page or already on the target tab.
+ */
+function navigateToPRTab(targetTab: '' | 'changes'): void {
+    const pr = parseGitHubPRUrl(window.location.href);
+    if (!pr || (pr.tab ?? '') === targetTab) {
+        return;
+    }
+    const base = `/${pr.owner}/${pr.repo}/pull/${pr.prNumber}`;
+    window.location.href = targetTab ? `${base}/${targetTab}` : base;
+}
+
+/**
+ * Navigate to the "Conversation" tab (PR root) of the current GitHub PR.
+ */
+export function goToConversation(): void {
+    navigateToPRTab('');
+}
+
+/**
+ * Navigate to the "Files changed" (changes) tab of the current GitHub PR.
+ */
+export function goToChangedFiles(): void {
+    navigateToPRTab('changes');
 }
 
 /**

@@ -1,4 +1,11 @@
-import {initializeAutoScroll, isGitHubPRChangesPage} from '@exo/exo-tabs/github-autoscroll';
+import {
+    goToChangedFiles,
+    goToConversation,
+    initializeAutoScroll,
+    isGitHubPRChangesPage,
+    isGitHubPRPage,
+} from '@exo/exo-tabs/github-autoscroll';
+import {keybindings} from '@exo/lib/keybindings';
 import {Storage} from '@exo/lib/storage';
 import {Notifications} from '@exo/lib/toast-notification';
 
@@ -30,6 +37,38 @@ async function tryAutoRunAutoscroll() {
 }
 
 /**
+ * Register the PR tab-navigation keybindings on any GitHub PR page and remove
+ * them when navigating away. Scoped per-page because the content script runs on
+ * <all_urls> — we must not swallow keystrokes on unrelated sites.
+ */
+function syncPRTabShortcuts() {
+    if (isGitHubPRPage(window.location.href)) {
+        keybindings.registerAll([
+            {
+                key: 'c',
+                description: 'Go to Conversation tab',
+                handler: goToConversation,
+                context: 'GitHub PR',
+            },
+            {
+                key: 'f',
+                description: 'Go to Files changed tab',
+                handler: goToChangedFiles,
+                context: 'GitHub PR',
+            },
+        ]);
+        keybindings.listen();
+    } else {
+        keybindings.unregister('c');
+        keybindings.unregister('f');
+        // Leave the listener attached only while autoscroll still needs it.
+        if (typeof window.__ghAutoScrollStop !== 'function') {
+            keybindings.unlisten();
+        }
+    }
+}
+
+/**
  * Setup SPA navigation listener for GitHub
  */
 function setupSPANavigationListener() {
@@ -49,6 +88,9 @@ function setupSPANavigationListener() {
             ) {
                 window.__ghAutoScrollStop();
             }
+
+            // Keep the PR tab-navigation shortcuts in sync with the new URL
+            syncPRTabShortcuts();
 
             // If we entered a PR changes page, maybe start autoscroll
             setTimeout(tryAutoRunAutoscroll, 500); // Wait for GitHub to render
@@ -76,6 +118,8 @@ function initializeMessageHandlers() {
                 if (typeof window.__ghAutoScrollStop === 'function') {
                     // Stop autoscroll
                     window.__ghAutoScrollStop();
+                    // autoscroll's stop() calls unlisten(); re-attach our shortcuts
+                    syncPRTabShortcuts();
                     Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
                     sendResponse({active: false});
                 } else {
@@ -107,6 +151,9 @@ function initializeMessageHandlers() {
 function initialize(): void {
     initializeMessageHandlers();
     setupSPANavigationListener();
+
+    // Register the PR tab-navigation shortcuts if we loaded onto a PR page
+    syncPRTabShortcuts();
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

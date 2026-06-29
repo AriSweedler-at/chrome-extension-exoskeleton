@@ -1,5 +1,11 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {isGitHubPRChangesPage, initializeAutoScroll} from '@exo/exo-tabs/github-autoscroll';
+import {
+    goToChangedFiles,
+    goToConversation,
+    initializeAutoScroll,
+    isGitHubPRChangesPage,
+    isGitHubPRPage,
+} from '@exo/exo-tabs/github-autoscroll';
 
 describe('isGitHubPRChangesPage', () => {
     it('returns true for valid GitHub PR changes URL', () => {
@@ -40,6 +46,111 @@ describe('isGitHubPRChangesPage', () => {
     it('returns true for URL with www subdomain', () => {
         const url = 'https://www.github.com/owner/repo/pull/123/changes';
         expect(isGitHubPRChangesPage(url)).toBe(true);
+    });
+});
+
+describe('isGitHubPRPage', () => {
+    it('returns true for the PR root (no tab)', () => {
+        expect(isGitHubPRPage('https://github.com/owner/repo/pull/123')).toBe(true);
+    });
+
+    it('returns true for any PR sub-tab', () => {
+        expect(isGitHubPRPage('https://github.com/owner/repo/pull/123/files')).toBe(true);
+        expect(isGitHubPRPage('https://github.com/owner/repo/pull/123/commits')).toBe(true);
+        expect(isGitHubPRPage('https://github.com/owner/repo/pull/123/changes')).toBe(true);
+    });
+
+    it('returns true with query params, hash, and www subdomain', () => {
+        expect(isGitHubPRPage('https://www.github.com/owner/repo/pull/123?foo=bar#x')).toBe(true);
+    });
+
+    it('returns false for non-PR GitHub URLs', () => {
+        expect(isGitHubPRPage('https://github.com/owner/repo')).toBe(false);
+        expect(isGitHubPRPage('https://github.com/owner/repo/issues/123')).toBe(false);
+    });
+
+    it('returns false for invalid PR number', () => {
+        expect(isGitHubPRPage('https://github.com/owner/repo/pull/abc')).toBe(false);
+    });
+
+    it('returns false for non-GitHub URLs', () => {
+        expect(isGitHubPRPage('https://gitlab.com/owner/repo/merge_requests/123')).toBe(false);
+    });
+});
+
+describe('goToChangedFiles', () => {
+    const originalLocation = window.location;
+
+    function setLocation(href: string): {href: string} {
+        const location = {href};
+        Object.defineProperty(window, 'location', {writable: true, value: location});
+        return location;
+    }
+
+    afterEach(() => {
+        Object.defineProperty(window, 'location', {writable: true, value: originalLocation});
+    });
+
+    it('navigates to the changes tab from the PR conversation page', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123');
+        goToChangedFiles();
+        expect(location.href).toBe('/owner/repo/pull/123/changes');
+    });
+
+    it('navigates to the changes tab from another sub-tab', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123/commits');
+        goToChangedFiles();
+        expect(location.href).toBe('/owner/repo/pull/123/changes');
+    });
+
+    it('does nothing when already on the changes tab', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123/changes');
+        goToChangedFiles();
+        expect(location.href).toBe('https://github.com/owner/repo/pull/123/changes');
+    });
+
+    it('does nothing when not on a PR page', () => {
+        const location = setLocation('https://github.com/owner/repo');
+        goToChangedFiles();
+        expect(location.href).toBe('https://github.com/owner/repo');
+    });
+});
+
+describe('goToConversation', () => {
+    const originalLocation = window.location;
+
+    function setLocation(href: string): {href: string} {
+        const location = {href};
+        Object.defineProperty(window, 'location', {writable: true, value: location});
+        return location;
+    }
+
+    afterEach(() => {
+        Object.defineProperty(window, 'location', {writable: true, value: originalLocation});
+    });
+
+    it('navigates to the PR root from the changes tab', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123/changes');
+        goToConversation();
+        expect(location.href).toBe('/owner/repo/pull/123');
+    });
+
+    it('navigates to the PR root from the commits tab', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123/commits');
+        goToConversation();
+        expect(location.href).toBe('/owner/repo/pull/123');
+    });
+
+    it('does nothing when already on the conversation (root) tab', () => {
+        const location = setLocation('https://github.com/owner/repo/pull/123');
+        goToConversation();
+        expect(location.href).toBe('https://github.com/owner/repo/pull/123');
+    });
+
+    it('does nothing when not on a PR page', () => {
+        const location = setLocation('https://github.com/owner/repo');
+        goToConversation();
+        expect(location.href).toBe('https://github.com/owner/repo');
     });
 });
 
