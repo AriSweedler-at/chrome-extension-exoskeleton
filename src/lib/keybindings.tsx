@@ -255,7 +255,7 @@ export class KeybindingRegistry {
         if (modifiers.shift) parts.push('Shift');
         if (modifiers.alt) parts.push('Alt');
         if (modifiers.meta) parts.push('⌘');
-        parts.push(keybinding.key.toUpperCase());
+        parts.push(keybinding.key);
 
         return parts.join(' + ');
     }

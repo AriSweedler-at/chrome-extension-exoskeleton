@@ -55,6 +55,21 @@ describe('KeybindingRegistry', () => {
         expect(handler).toHaveBeenCalledOnce();
     });
 
+    it('displays keys as registered in the help overlay, not uppercased', () => {
+        registry.register({
+            key: 'e',
+            description: 'Toggle',
+            handler: vi.fn(),
+            context: 'Spinnaker',
+        });
+        registry.showHelp();
+
+        const kbds = Array.from(document.querySelectorAll('kbd')).map((el) => el.textContent);
+        expect(kbds).toContain('e');
+        expect(kbds).not.toContain('E');
+        registry.hideHelp();
+    });
+
     it('should fire handler for ? key (requires shift)', async () => {
         const handler = vi.fn();
         registry.register({key: '?', description: 'test', handler});
@@ -114,7 +129,7 @@ describe('KeybindingRegistry', () => {
         // Toast fires synchronously, before the handler is deferred. The
         // keystroke is a markdown `code` span; the description is on its own line.
         expect(Notifications.show).toHaveBeenCalledWith(
-            expect.objectContaining({markdown: 'exo keystroke `X`\nDo the thing'}),
+            expect.objectContaining({markdown: 'exo keystroke `x`\nDo the thing'}),
         );
     });
 
@@ -124,7 +139,7 @@ describe('KeybindingRegistry', () => {
         pressKey('x');
 
         expect(Notifications.show).toHaveBeenCalledWith(
-            expect.objectContaining({markdown: 'exo keystroke `X`'}),
+            expect.objectContaining({markdown: 'exo keystroke `x`'}),
         );
     });
 
