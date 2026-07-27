@@ -19,8 +19,9 @@ E2E tests load the built extension into a real Chromium browser and verify it wo
 
 ```bash
 npm run test:e2e         # build + run headless
-npm run test:e2e:headed  # build + run with visible browser
+npm run test:e2e:quick   # run headless without rebuilding
 npm run test:e2e:ui      # build + Playwright UI mode
+npm run demo             # build + narrated headed walkthrough (not a test)
 ```
 
 E2E tests live in `e2e/` and use a custom fixture (`e2e/fixtures.ts`) that:
