@@ -9,18 +9,28 @@ interface GitHubPR {
 }
 
 /**
+ * Check if URL is on the GitHub host (support both github.com and www.github.com)
+ */
+export function isGitHubHost(url: string): boolean {
+    try {
+        const hostname = new URL(url).hostname.toLowerCase();
+        return hostname === 'github.com' || hostname === 'www.github.com';
+    } catch {
+        // Invalid URL
+        return false;
+    }
+}
+
+/**
  * Parse a GitHub pull request URL into its owner/repo/number/tab parts.
  * Returns null if the URL is not a GitHub pull request page.
  */
 function parseGitHubPRUrl(url: string): GitHubPR | null {
+    if (!isGitHubHost(url)) {
+        return null;
+    }
     try {
         const urlObj = new URL(url);
-
-        // Check hostname (support both github.com and www.github.com)
-        const hostname = urlObj.hostname.toLowerCase();
-        if (hostname !== 'github.com' && hostname !== 'www.github.com') {
-            return null;
-        }
 
         // Parse pathname (ignoring query params and fragments)
         // Expected format: owner/repo/pull/{number}[/tab]
@@ -365,6 +375,16 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
         console.log('[GitHub AutoScroll] Initializing...');
     }
 
+    // Check for files before attaching any listeners or styles, so a failed
+    // init leaves no behavior behind
+    const files = getFiles();
+    if (files.length === 0) {
+        if (debug) {
+            console.log('[GitHub AutoScroll] No files found');
+        }
+        return null;
+    }
+
     // Track all setTimeout IDs for cleanup
     const timers: number[] = [];
 
@@ -397,15 +417,6 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
     // Add click listener at document level with capture phase
     const clickHandler = (e: Event) => onButtonClick(e, timers, debug);
     document.addEventListener('click', clickHandler, true);
-
-    // Check for files
-    const files = getFiles();
-    if (files.length === 0) {
-        if (debug) {
-            console.log('[GitHub AutoScroll] No files found');
-        }
-        return null;
-    }
 
     if (debug) {
         console.log(`[GitHub AutoScroll] Monitoring ${files.length} files`);

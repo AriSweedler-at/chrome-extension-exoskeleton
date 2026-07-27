@@ -90,7 +90,7 @@ export abstract class Action<_TPayload, _TResult> {
         payload: TPayload,
     ): Promise<TResult> {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-        if (!tab.id) {
+        if (!tab?.id) {
             throw new Error('No active tab found');
         }
         return this.sendToTab(tab.id, payload);

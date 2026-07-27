@@ -25,6 +25,9 @@ describe('GitHubHandler', () => {
         expect(
             handler.canHandle(new URL('https://github.com/user/repo/pull/123?tab=overview')),
         ).toBe(true);
+        expect(
+            handler.canHandle(new URL('https://github.com/user/repo/pull/123#issuecomment-999')),
+        ).toBe(true);
         expect(handler.canHandle(new URL('https://github.com/user/repo'))).toBe(false);
         expect(handler.canHandle(new URL('https://github.com/user/repo/issues/123'))).toBe(false);
         expect(handler.canHandle(new URL('https://example.com'))).toBe(false);
@@ -96,6 +99,38 @@ describe('GitHubHandler', () => {
         );
         expect(format.text).toBe(
             'feat(escalation_agent): Add thread context to agent prompts (#200045) (https://github.com/anthropics/escalation/pull/200045)',
+        );
+
+        document.body.removeChild(mockTitle);
+    });
+
+    it('should extract the PR number from comment permalink URLs with a fragment', () => {
+        const format = handler.getFormats({
+            url: 'https://github.com/user/repo/pull/123#issuecomment-999',
+        })[0];
+        expect(format.html).toBe('<a href="https://github.com/user/repo/pull/123">GitHub PR</a>');
+    });
+
+    it('should keep the canonical URL intact when the query contains a slash', () => {
+        const format = handler.getFormats({
+            url: 'https://github.com/user/repo/pull/123?base=ariSweedler/fix',
+        })[0];
+        expect(format.html).toBe('<a href="https://github.com/user/repo/pull/123">GitHub PR</a>');
+        expect(format.text).toBe('GitHub PR (https://github.com/user/repo/pull/123)');
+    });
+
+    it('should escape HTML in the PR title', () => {
+        const mockTitle = document.createElement('span');
+        mockTitle.className = 'markdown-title';
+        mockTitle.textContent = 'Handle <input> events & "edge" cases';
+        document.body.appendChild(mockTitle);
+
+        const format = handler.getFormats({url: 'https://github.com/user/repo/pull/123'})[0];
+        expect(format.html).toBe(
+            '<a href="https://github.com/user/repo/pull/123">Handle &lt;input&gt; events &amp; &quot;edge&quot; cases (#123)</a>',
+        );
+        expect(format.text).toBe(
+            'Handle <input> events & "edge" cases (#123) (https://github.com/user/repo/pull/123)',
         );
 
         document.body.removeChild(mockTitle);

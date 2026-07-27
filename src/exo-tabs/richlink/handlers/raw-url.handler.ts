@@ -1,4 +1,9 @@
-import {Handler, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {
+    escapeHtml,
+    Handler,
+    type FormatContext,
+    type LinkFormat,
+} from '@exo/exo-tabs/richlink/base';
 
 export class RawUrlHandler extends Handler {
     readonly label = 'Raw URL';
@@ -20,7 +25,7 @@ export class RawUrlHandler extends Handler {
                 label: this.label,
                 priority: this.priority,
                 isFallback: true,
-                html: ctx.url,
+                html: escapeHtml(ctx.url),
                 text: ctx.url,
             },
         ];

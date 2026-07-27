@@ -1,5 +1,5 @@
-import {describe, it, expect} from 'vitest';
-import {getEnvironments, getNextEnvironmentUrl} from '@exo/exo-tabs/opensearch';
+import {describe, it, expect, beforeEach} from 'vitest';
+import {buildCommand, getEnvironments, getNextEnvironmentUrl} from '@exo/exo-tabs/opensearch';
 
 describe('getEnvironments', () => {
     it('returns all 3 envs with production marked current', () => {
@@ -75,5 +75,82 @@ describe('getNextEnvironmentUrl', () => {
 
     it('returns undefined for non-OpenSearch URL', () => {
         expect(getNextEnvironmentUrl('https://example.com')).toBeUndefined();
+    });
+});
+
+describe('buildCommand', () => {
+    function setField(fieldName: string, value: string) {
+        const el = document.createElement('div');
+        el.setAttribute('data-test-subj', `tableDocViewRow-${fieldName}-value`);
+        el.textContent = value;
+        document.body.appendChild(el);
+    }
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('returns null when hostname is missing', () => {
+        setField('msg', 'some log line');
+        expect(buildCommand()).toBeNull();
+    });
+
+    it('returns null when msg is missing', () => {
+        setField('agent.hostname', 'host-1');
+        expect(buildCommand()).toBeNull();
+    });
+
+    it('builds a command with all fields present', () => {
+        setField('agent.hostname', 'host-1');
+        setField('kubernetesClusterName', 'cluster-a');
+        setField('kubernetesPodName', 'pod-x');
+        setField('msg', 'hello world');
+
+        expect(buildCommand()?.flat).toBe(
+            'grunt admin:log_fetch:fetchMatchingLogMessageFromHost' +
+                " --hostname=host-1 --cluster=cluster-a --pod=pod-x --search='hello world'",
+        );
+    });
+
+    it('omits cluster and pod args when those fields are absent', () => {
+        setField('host.hostname', 'host-2');
+        setField('msg', 'plain message');
+
+        expect(buildCommand()?.flat).toBe(
+            "grunt admin:log_fetch:fetchMatchingLogMessageFromHost --hostname=host-2 --search='plain message'",
+        );
+    });
+
+    it('escapes single quotes in msg with the POSIX idiom', () => {
+        setField('agent.hostname', 'host-1');
+        setField('msg', "can't acquire lock on row");
+
+        expect(buildCommand()?.flat).toBe(
+            'grunt admin:log_fetch:fetchMatchingLogMessageFromHost' +
+                " --hostname=host-1 --search='can'\\''t acquire lock on row'",
+        );
+    });
+
+    it('quotes and escapes hostname, cluster, and pod when they contain unsafe characters', () => {
+        setField('agent.hostname', "host'1");
+        setField('kubernetesClusterName', 'cluster a');
+        setField('kubernetesPodName', 'pod$x');
+        setField('msg', 'msg');
+
+        expect(buildCommand()?.flat).toBe(
+            'grunt admin:log_fetch:fetchMatchingLogMessageFromHost' +
+                " --hostname='host'\\''1' --cluster='cluster a' --pod='pod$x' --search='msg'",
+        );
+    });
+
+    it('produces a display form with one indented arg per line', () => {
+        setField('agent.hostname', 'host-1');
+        setField('msg', "can't stop");
+
+        expect(buildCommand()?.display).toBe(
+            'grunt admin:log_fetch:fetchMatchingLogMessageFromHost\n' +
+                '  --hostname=host-1\n' +
+                "  --search='can'\\''t stop'",
+        );
     });
 });

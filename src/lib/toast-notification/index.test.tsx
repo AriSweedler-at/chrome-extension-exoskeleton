@@ -216,6 +216,71 @@ describe('Notifications', () => {
         });
     });
 
+    describe('showPayload', () => {
+        it('renders the message without detail', async () => {
+            Notifications.showPayload({message: 'Copied!'});
+
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            expect(notification.textContent).toContain('Copied!');
+        });
+
+        it('renders the message headline alongside the detail block', async () => {
+            Notifications.showPayload({
+                message: 'No primary action available',
+                detail: 'Tried: OpenSearch, Rich Link',
+            });
+
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+            await vi.waitFor(() => {
+                expect(notification.textContent).toContain('No primary action available');
+                expect(notification.textContent).toContain('Tried: OpenSearch, Rich Link');
+            });
+            expect(notification.querySelector('pre')?.textContent).toBe(
+                'Tried: OpenSearch, Rich Link',
+            );
+        });
+    });
+
+    describe('dismissal is final', () => {
+        it('hover during click dismissal does not revive the toast or orphan a spacer', () => {
+            vi.useFakeTimers();
+
+            Notifications.show({message: 'Click me', duration: 10000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            notification.click();
+            notification.dispatchEvent(new Event('mouseenter'));
+
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+            expect(notification.style.opacity).toBe('0');
+
+            vi.advanceTimersByTime(300);
+            expect(notification.parentNode).toBeFalsy();
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+
+            vi.useRealTimers();
+        });
+
+        it('hover during handle dismissal does not revive the toast or orphan a spacer', () => {
+            vi.useFakeTimers();
+
+            const handle = Notifications.show({message: 'Handled', duration: 10000});
+            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
+
+            handle.dismiss();
+            notification.dispatchEvent(new Event('mouseenter'));
+
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+            expect(notification.style.opacity).toBe('0');
+
+            vi.advanceTimersByTime(300);
+            expect(notification.parentNode).toBeFalsy();
+            expect(container.querySelector('.exo-toast-spacer')).toBeFalsy();
+
+            vi.useRealTimers();
+        });
+    });
+
     describe('hover pinning', () => {
         it('should insert spacer and pin notification on hover', () => {
             Notifications.show({message: 'Pin me', duration: 10000});

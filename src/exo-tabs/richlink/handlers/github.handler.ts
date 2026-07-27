@@ -4,12 +4,12 @@ export class GitHubHandler extends Handler {
     readonly label: string = 'GitHub PR';
     readonly priority: number = 10;
 
-    // URL segment index for the PR number in github.com/org/repo/pull/{number}
-    protected static readonly PR_NUMBER_INDEX = 6;
+    // Path segment index for the PR number in /org/repo/pull/{number}
+    protected static readonly PR_NUMBER_INDEX = 4;
 
     /** Extract the PR number from a GitHub PR URL, or undefined if not found. */
     protected parsePrNumber(url: string): string | undefined {
-        const raw = url.split('/')[GitHubHandler.PR_NUMBER_INDEX]?.split('?')[0];
+        const raw = new URL(url).pathname.split('/')[GitHubHandler.PR_NUMBER_INDEX];
         return raw && /^\d+$/.test(raw) ? raw : undefined;
     }
 
@@ -23,11 +23,14 @@ export class GitHubHandler extends Handler {
         return parts[2] === 'pull' && !!this.parsePrNumber(url.href);
     }
 
-    /** Strip sub-pages (/files, /changes, /commits, /checks, etc.) from GitHub PR URLs. */
+    /** Strip sub-pages (/files, /changes, /commits, /checks, etc.), query, and fragment from GitHub PR URLs. */
     protected override getUrl({url}: FormatContext): string {
-        const parts = url.split('/');
-        // Keep: https://github.com/org/repo/pull/number (indices 0–6)
-        return parts.slice(0, 7).join('/');
+        const canonical = new URL(url);
+        // Keep: /org/repo/pull/number (path segments 0–4)
+        canonical.pathname = canonical.pathname.split('/').slice(0, 5).join('/');
+        canonical.search = '';
+        canonical.hash = '';
+        return canonical.toString();
     }
 
     extractLinkText({url}: FormatContext): string {

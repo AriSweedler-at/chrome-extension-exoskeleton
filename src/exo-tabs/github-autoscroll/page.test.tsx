@@ -287,4 +287,51 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             expect(window.__ghAutoScrollStop).toBe(existingStopFn);
         });
     });
+
+    describe('Shared keybinding registry safety', () => {
+        it("does not tear down other modules' keybindings on SPA navigation on non-GitHub sites", async () => {
+            const location = {href: 'https://example.com/app'};
+            vi.stubGlobal('location', location);
+
+            await import('@exo/index');
+            const {keybindings} = await import('@exo/lib/keybindings');
+
+            // Another page module registers a binding and starts listening
+            keybindings.register({key: 'c', description: 'test binding', handler: vi.fn()});
+            keybindings.listen();
+
+            // Simulate an in-page (SPA) navigation: URL change + DOM mutation
+            location.href = 'https://example.com/app/other';
+            document.body.appendChild(document.createElement('div'));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'c',
+                cancelable: true,
+                bubbles: true,
+            });
+            document.body.dispatchEvent(event);
+            expect(event.defaultPrevented).toBe(true);
+
+            keybindings.unregister('c');
+            keybindings.unlisten();
+        });
+
+        it('registers the PR tab shortcuts when loaded on a GitHub PR page', async () => {
+            vi.stubGlobal('location', {href: 'https://github.com/owner/repo/pull/123'});
+
+            await import('@exo/index');
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'c',
+                cancelable: true,
+                bubbles: true,
+            });
+            document.body.dispatchEvent(event);
+            expect(event.defaultPrevented).toBe(true);
+
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
+    });
 });

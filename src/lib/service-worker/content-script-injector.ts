@@ -4,7 +4,15 @@ import {Tabs} from '@exo/lib/service-worker/tabs';
  * Utilities for injecting content scripts into tabs
  */
 
-export const CONTENT_SCRIPT_PATH = 'src/content/index.tsx';
+/**
+ * Content script file as declared in the manifest. Compiled builds rewrite
+ * the file name, so derive it at runtime instead of hardcoding a path.
+ */
+export function getContentScriptPathFromManifest(): string | undefined {
+    return chrome.runtime.getManifest()?.content_scripts?.[0]?.js?.[0];
+}
+
+export const CONTENT_SCRIPT_PATH: string = getContentScriptPathFromManifest() ?? 'src/index.tsx';
 
 /**
  * Check if content script is injected in a tab

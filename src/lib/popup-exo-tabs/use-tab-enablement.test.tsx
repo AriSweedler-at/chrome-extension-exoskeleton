@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {renderHook, waitFor, act} from '@testing-library/react';
-import {useTabEnablement} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
+import {isTabEnabled, useTabEnablement} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 
 describe('useTabEnablement', () => {
     beforeEach(() => {
@@ -61,5 +61,45 @@ describe('useTabEnablement', () => {
             expect.any(Function),
         );
         expect(result.current.enabled).toBe(false);
+    });
+});
+
+describe('isTabEnabled', () => {
+    function stubStorageGet(values: Record<string, unknown>) {
+        chrome.storage.local.get = vi.fn(
+            (_key: string, callback: (result: Record<string, unknown>) => void) => {
+                callback(values);
+            },
+        ) as unknown as typeof chrome.storage.local.get;
+    }
+
+    beforeEach(() => {
+        vi.stubGlobal('chrome', {
+            storage: {
+                local: {
+                    get: vi.fn((_key, callback) => {
+                        callback({});
+                    }),
+                },
+            },
+        });
+    });
+
+    it('defaults to true when no storage value exists', async () => {
+        await expect(isTabEnabled('test-tab')).resolves.toBe(true);
+        expect(chrome.storage.local.get).toHaveBeenCalledWith(
+            'exorun-test-tab',
+            expect.any(Function),
+        );
+    });
+
+    it('returns false when the tab is disabled in storage', async () => {
+        stubStorageGet({'exorun-test-tab': false});
+        await expect(isTabEnabled('test-tab')).resolves.toBe(false);
+    });
+
+    it('returns true when the tab is enabled in storage', async () => {
+        stubStorageGet({'exorun-test-tab': true});
+        await expect(isTabEnabled('test-tab')).resolves.toBe(true);
     });
 });

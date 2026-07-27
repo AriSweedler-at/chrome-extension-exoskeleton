@@ -2,6 +2,7 @@ import {
     goToChangedFiles,
     goToConversation,
     initializeAutoScroll,
+    isGitHubHost,
     isGitHubPRChangesPage,
     isGitHubPRPage,
 } from '@exo/exo-tabs/github-autoscroll';
@@ -38,8 +39,10 @@ async function tryAutoRunAutoscroll() {
 
 /**
  * Register the PR tab-navigation keybindings on any GitHub PR page and remove
- * them when navigating away. Scoped per-page because the content script runs on
- * <all_urls> — we must not swallow keystrokes on unrelated sites.
+ * them when navigating to a non-PR GitHub page — we must not swallow those
+ * keystrokes elsewhere on the site. Never calls keybindings.unlisten(): the
+ * listener is a singleton shared by every page module, and an attached
+ * listener with no matching bindings is harmless.
  */
 function syncPRTabShortcuts() {
     if (isGitHubPRPage(window.location.href)) {
@@ -61,10 +64,6 @@ function syncPRTabShortcuts() {
     } else {
         keybindings.unregister('c');
         keybindings.unregister('f');
-        // Leave the listener attached only while autoscroll still needs it.
-        if (typeof window.__ghAutoScrollStop !== 'function') {
-            keybindings.unlisten();
-        }
     }
 }
 
@@ -148,6 +147,12 @@ function initializeMessageHandlers() {
  */
 function initialize(): void {
     initializeMessageHandlers();
+
+    // The content script runs on <all_urls>; everything past message handling
+    // is GitHub-only, so touch nothing (especially the shared keybinding
+    // registry) on other sites.
+    if (!isGitHubHost(window.location.href)) return;
+
     setupSPANavigationListener();
 
     // Register the PR tab-navigation shortcuts if we loaded onto a PR page

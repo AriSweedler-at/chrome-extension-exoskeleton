@@ -78,6 +78,18 @@ export function getNextEnvironmentUrl(url: string): string | undefined {
     return envs[(currentIdx + 1) % envs.length].url;
 }
 
+/** Wraps a value in single quotes, escaping embedded single quotes with the POSIX `'\''` idiom. */
+function shellQuote(value: string): string {
+    return `'${value.replaceAll("'", `'\\''`)}'`;
+}
+
+const SHELL_SAFE = /^[\w./:=-]+$/;
+
+/** Quotes a value only when it contains characters a shell would interpret. */
+function shellQuoteIfNeeded(value: string): string {
+    return SHELL_SAFE.test(value) ? value : shellQuote(value);
+}
+
 export function buildCommand(): CommandParts | null {
     const hostname = getFieldValue('agent.hostname') || getFieldValue('host.hostname');
     if (!hostname) return null;
@@ -89,10 +101,10 @@ export function buildCommand(): CommandParts | null {
     const pod = getFieldValue('kubernetesPodName');
 
     const base = 'grunt admin:log_fetch:fetchMatchingLogMessageFromHost';
-    const args: string[] = [`--hostname=${hostname}`];
-    if (cluster) args.push(`--cluster=${cluster}`);
-    if (pod) args.push(`--pod=${pod}`);
-    args.push(`--search='${msg}'`);
+    const args: string[] = [`--hostname=${shellQuoteIfNeeded(hostname)}`];
+    if (cluster) args.push(`--cluster=${shellQuoteIfNeeded(cluster)}`);
+    if (pod) args.push(`--pod=${shellQuoteIfNeeded(pod)}`);
+    args.push(`--search=${shellQuote(msg)}`);
 
     return {
         flat: `${base} ${args.join(' ')}`,

@@ -207,6 +207,22 @@ describe('initializeAutoScroll', () => {
         expect(style).toBeNull();
     });
 
+    it('leaves no listener, styles, or stop function behind when no files are found', () => {
+        document.body.innerHTML = '';
+        const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+
+        const result = initializeAutoScroll();
+
+        expect(result).toBeNull();
+        expect(document.getElementById('gh-autoscroll-styles')).toBeNull();
+        const clickListeners = addEventListenerSpy.mock.calls.filter(([type]) => type === 'click');
+        expect(clickListeners).toHaveLength(0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((window as any).__ghAutoScrollStop).toBeUndefined();
+
+        addEventListenerSpy.mockRestore();
+    });
+
     describe('core autoscroll behavior', () => {
         beforeEach(() => {
             // Setup DOM with multiple files

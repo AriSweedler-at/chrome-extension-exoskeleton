@@ -31,4 +31,11 @@ describe('RawUrlHandler', () => {
             .text;
         expect(text).toBe('https://example.com/page?query=test#anchor');
     });
+
+    it('should escape HTML entities in the html field but not the text field', () => {
+        const url = 'https://example.com/page?a=1&copy=2';
+        const format = handler.getFormats({url})[0];
+        expect(format.html).toBe('https://example.com/page?a=1&amp;copy=2');
+        expect(format.text).toBe(url);
+    });
 });

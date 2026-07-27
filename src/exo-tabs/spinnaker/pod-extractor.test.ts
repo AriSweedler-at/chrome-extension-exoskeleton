@@ -110,6 +110,46 @@ describe('pod-extractor', () => {
             expect(result).toEqual([]);
         });
 
+        it('should extract name when nested objects precede it in metadata', () => {
+            const errorHtml = `
+                {"kind":"Pod","metadata":{"labels":{"app":"hyperbase"},"name":"my-pod-123","namespace":"prod"}}
+            `;
+
+            const result = extractPodNames(errorHtml);
+
+            expect(result).toEqual(['my-pod-123']);
+        });
+
+        it('should extract name from k8s-realistic alphabetical field order', () => {
+            const errorHtml = `
+                {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{"kubernetes.io/psp":"restricted"},"creationTimestamp":"2026-07-27T00:00:00Z","labels":{"app":"hyperbase","pod-template-hash":"5b8e"},"managedFields":[{"apiVersion":"v1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:labels":{}}}}],"name":"h-bg-provision-step-0-5b8e-jqqt","namespace":"production"},"status":{"phase":"Failed"}}
+            `;
+
+            const result = extractPodNames(errorHtml);
+
+            expect(result).toEqual(['h-bg-provision-step-0-5b8e-jqqt']);
+        });
+
+        it('should not mistake a nested name key for the pod name', () => {
+            const errorHtml = `
+                {"metadata":{"labels":{"name":"label-value"},"name":"real-pod-abc"}}
+            `;
+
+            const result = extractPodNames(errorHtml);
+
+            expect(result).toEqual(['real-pod-abc']);
+        });
+
+        it('should ignore name keys that only appear in nested objects', () => {
+            const errorHtml = `
+                {"metadata":{"labels":{"name":"label-value"},"namespace":"default"}}
+            `;
+
+            const result = extractPodNames(errorHtml);
+
+            expect(result).toEqual([]);
+        });
+
         it('should deduplicate pod names', () => {
             const errorHtml = `
                 {"metadata":{"name":"duplicate-pod"}}

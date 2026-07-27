@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
+import type {ShowToastPayload} from '@exo/lib/actions/show-toast.action';
 import {renderMarkdown} from '@exo/lib/toast-notification/markdown';
 import {theme} from '@exo/theme/default';
 
@@ -143,6 +144,7 @@ export class Notifications {
     private static pinCleanups = new WeakMap<HTMLElement, () => void>();
     private static reactRoots = new WeakMap<HTMLElement, Root>();
     private static dismissCallbacks = new WeakMap<HTMLElement, () => void>();
+    private static dismissing = new WeakSet<HTMLElement>();
 
     /**
      * Show a toast notification.
@@ -228,7 +230,36 @@ export class Notifications {
         return {dismiss: () => this.dismiss(notification)};
     }
 
+    /**
+     * Show a toast for a ShowToast action payload: the message headline,
+     * plus an optional preformatted detail block.
+     */
+    static showPayload(payload: ShowToastPayload): ToastHandle {
+        return this.show({
+            message: payload.message,
+            type: payload.type,
+            children: payload.detail ? (
+                <>
+                    <div style={{fontWeight: 500}}>{payload.message}</div>
+                    <pre
+                        style={{
+                            ...theme.toast.detail,
+                            margin: '8px 0 0 0',
+                            whiteSpace: 'pre',
+                            lineHeight: '1.5',
+                        }}
+                    >
+                        {payload.detail}
+                    </pre>
+                </>
+            ) : undefined,
+        });
+    }
+
     private static dismiss(notification: HTMLElement, immediate?: boolean): void {
+        // Mark as dismissing so hover handlers cannot revive the toast.
+        this.dismissing.add(notification);
+
         // Fire the dismiss callback exactly once (timer, click, or handle).
         const onDismiss = this.dismissCallbacks.get(notification);
         if (onDismiss) {
@@ -363,12 +394,10 @@ export class Notifications {
         notification: HTMLElement,
         timerBar: HTMLElement,
     ): {isDismissing: () => boolean} {
-        let dismissing = false;
         timerBar.addEventListener('animationend', () => {
-            dismissing = true;
             this.dismiss(notification);
         });
-        return {isDismissing: () => dismissing};
+        return {isDismissing: () => this.dismissing.has(notification)};
     }
 
     private static renderChildren(notification: HTMLElement, children: ReactNode): void {

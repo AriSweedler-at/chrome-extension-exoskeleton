@@ -14,15 +14,23 @@ export function initializeCommandHandlers(): void {
 
         switch (command) {
             case 'copy-rich-link': {
-                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-                if (!tab.id || !tab.url) return;
-                await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url});
+                try {
+                    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+                    if (!tab?.id || !tab.url) return;
+                    await CopyRichLinkAction.sendToTab(tab.id, {url: tab.url});
+                } catch (error) {
+                    console.error('copy-rich-link command failed:', error);
+                }
                 break;
             }
             case 'primary-action': {
-                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-                if (!tab.id || !tab.url) return;
-                await TabRegistry.dispatchPrimaryAction(tab.id, tab.url);
+                try {
+                    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+                    if (!tab?.id || !tab.url) return;
+                    await TabRegistry.dispatchPrimaryAction(tab.id, tab.url);
+                } catch (error) {
+                    console.error('primary-action command failed:', error);
+                }
                 break;
             }
         }

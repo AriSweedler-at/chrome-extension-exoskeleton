@@ -1,4 +1,5 @@
 import {keybindings} from '@exo/lib/keybindings';
+import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 import {
     toggleExecution,
     displayActiveExecution,
@@ -8,7 +9,10 @@ import {
 } from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
 
-if (isSpinnakerPage(window.location.href)) {
+async function initialize() {
+    if (!isSpinnakerPage(window.location.href)) return;
+    if (!(await isTabEnabled('spinnaker'))) return;
+
     keybindings.registerAll([
         {
             key: 'e',
@@ -43,3 +47,5 @@ if (isSpinnakerPage(window.location.href)) {
     ]);
     keybindings.listen();
 }
+
+initialize();

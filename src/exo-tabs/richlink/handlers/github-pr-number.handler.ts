@@ -1,4 +1,4 @@
-import {type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
+import {escapeHtml, type FormatContext, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 import {GitHubHandler} from '@exo/exo-tabs/richlink/handlers/github.handler';
 
 export class GitHubPrNumberHandler extends GitHubHandler {
@@ -17,7 +17,7 @@ export class GitHubPrNumberHandler extends GitHubHandler {
             {
                 label: this.label,
                 priority: this.priority,
-                html: `<a href="${url}">${text}</a>`,
+                html: `<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>`,
                 text,
             },
         ];

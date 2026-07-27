@@ -33,6 +33,16 @@ export function truncateWithEllipsis(s: string, max: number): string {
     return s.length > max ? s.slice(0, max - 3) + '...' : s;
 }
 
+/** Escape a string for safe interpolation into HTML markup or attribute values. */
+export function escapeHtml(s: string): string {
+    return s
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
 /**
  * Build "prefix: title" with total length capped at maxLen.
  * The title is truncated (not the prefix) when the combined string is too long.
@@ -56,7 +66,7 @@ export function linkFormat(
         label,
         priority,
         ...(isFallback && {isFallback}),
-        html: `<a href="${url}">${title}</a>`,
+        html: `<a href="${escapeHtml(url)}">${escapeHtml(title)}</a>`,
         text: `${title} (${url})`,
     };
 }

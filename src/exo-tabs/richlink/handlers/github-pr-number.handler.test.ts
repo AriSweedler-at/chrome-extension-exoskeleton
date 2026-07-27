@@ -35,4 +35,12 @@ describe('GitHubPrNumberHandler', () => {
         })[0];
         expect(format.html).toBe('<a href="https://github.com/user/repo/pull/99">#99</a>');
     });
+
+    it('extracts the PR number from comment permalink URLs with a fragment', () => {
+        const format = handler.getFormats({
+            url: 'https://github.com/user/repo/pull/42#issuecomment-999',
+        })[0];
+        expect(format.text).toBe('#42');
+        expect(format.html).toBe('<a href="https://github.com/user/repo/pull/42">#42</a>');
+    });
 });

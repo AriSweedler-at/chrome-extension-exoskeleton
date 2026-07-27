@@ -193,6 +193,34 @@ describe('KeybindingRegistry', () => {
             expect(dismiss).toHaveBeenCalled();
         });
 
+        it('is consumed by a key typed in an input field (it already went to the page)', async () => {
+            const handler = vi.fn();
+            registry.register({key: 'c', description: 'exo C', handler});
+
+            pressCtrl('v'); // arm
+            const input = document.createElement('input');
+            document.body.appendChild(input);
+            input.dispatchEvent(new KeyboardEvent('keydown', {key: 'a', bubbles: true}));
+            input.remove();
+            pressKey('c'); // arm was consumed in the input — handled normally
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+        });
+
+        it('clears the banner toast when the arm is consumed inside an input field', () => {
+            const dismiss = vi.fn();
+            vi.mocked(Notifications.show).mockReturnValueOnce({dismiss});
+
+            pressCtrl('v'); // arm -> show returns {dismiss}
+            const input = document.createElement('input');
+            document.body.appendChild(input);
+            input.dispatchEvent(new KeyboardEvent('keydown', {key: 'a', bubbles: true}));
+            input.remove();
+
+            expect(dismiss).toHaveBeenCalled();
+        });
+
         it('disarms when the banner toast is dismissed (e.g. TTL expiry)', async () => {
             const handler = vi.fn();
             registry.register({key: 'c', description: 'exo C', handler});

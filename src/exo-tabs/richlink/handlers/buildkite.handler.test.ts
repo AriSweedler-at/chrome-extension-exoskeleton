@@ -49,6 +49,27 @@ describe('BuildkiteHandler', () => {
         expect(linkText).toBe('BuildKite');
     });
 
+    it('should not treat organization pages as pipelines', () => {
+        const url = 'https://buildkite.com/organizations/airtable/analytics';
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText).toBe('BuildKite');
+    });
+
+    it('should not treat user settings pages as pipelines', () => {
+        const url = 'https://buildkite.com/user/settings';
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText).toBe('BuildKite');
+    });
+
+    it('should decode percent-encoded pipeline names', () => {
+        const url = 'https://buildkite.com/airtable/my%20pipeline/builds/7';
+        const format = handler.getFormats({url})[0];
+        const linkText = format.html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        expect(linkText).toBe('BuildKite: my pipeline (#7)');
+    });
+
     it('should produce correct format with build number', () => {
         const url = 'https://buildkite.com/airtable/deploy-prod/builds/100';
         const format = handler.getFormats({url})[0];

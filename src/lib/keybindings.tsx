@@ -124,16 +124,13 @@ export class KeybindingRegistry {
         }
 
         this.keydownHandler = (event: KeyboardEvent) => {
-            // Skip if user is typing in an input field
-            if (isTypingInInputField(event.target as HTMLElement)) {
-                return;
-            }
-
             const parts = eventBindingParts(event);
             const signature = this.getKeySignature(parts);
 
             // A prior prefix armed this keystroke: let it reach the page
             // untouched (no preventDefault/stop), consuming the one-shot arm.
+            // Checked before the input-field skip — a key typed into an input
+            // has already gone to the page, so it consumes the arm too.
             if (this.passThrough) {
                 // A lone modifier (e.g. the Shift in '?') passes through but
                 // must not consume the arm — wait for the actual key.
@@ -143,6 +140,11 @@ export class KeybindingRegistry {
                 const passed = this.formatKeybinding(parts);
                 this.disarmPassThrough();
                 this.notify(`passed ${code(passed)} to the page`);
+                return;
+            }
+
+            // Skip if user is typing in an input field
+            if (isTypingInInputField(event.target as HTMLElement)) {
                 return;
             }
 

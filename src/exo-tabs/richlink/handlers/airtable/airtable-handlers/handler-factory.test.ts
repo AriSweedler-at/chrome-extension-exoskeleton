@@ -230,7 +230,9 @@ describe('Listable Record handler', () => {
         const formats = handler.getFormats({
             url: 'https://airtable.com/apptivTqaoebkrmV1/pagXYZ/recABC',
         });
-        const linkText = formats[0].html.match(/>([^<]+)<\/a>/)?.[1] ?? '';
+        const container = document.createElement('div');
+        container.innerHTML = formats[0].html;
+        const linkText = container.querySelector('a')?.textContent ?? '';
         expect(linkText.length).toBe(DEFAULT_MAX_TITLE_LEN);
         expect(linkText).toMatch(/^LTT72498: /);
         expect(linkText).toMatch(/\.\.\.$/);

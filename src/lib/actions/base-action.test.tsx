@@ -198,6 +198,14 @@ describe('Action', () => {
                 'No active tab found',
             );
         });
+
+        it('should throw if the query returns no tabs at all', async () => {
+            chrome.tabs.query.resolves([]);
+
+            await expect(AnotherAction.sendToActiveTab('test')).rejects.toThrow(
+                'No active tab found',
+            );
+        });
     });
 
     describe('sendToTab', () => {
