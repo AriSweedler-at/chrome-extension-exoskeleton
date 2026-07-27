@@ -6,8 +6,8 @@ import {
     readClipboardText,
     seenKeys,
     resetSeenKeys,
-    KEYLOGGER_SNIPPET,
 } from './helpers';
+import {SPINNAKER_URL, SPINNAKER_HTML, EXECUTION_ID, POD_NAME} from './fixture-pages';
 
 /**
  * Drives the Spinnaker page-tab keybindings (e/x/s/j/p) end-to-end against a
@@ -15,35 +15,6 @@ import {
  * the iteration loop for the Spinnaker tab: change an action, save real
  * Spinnaker DOM into the fixture, re-run.
  */
-
-const EXECUTION_ID = '01HPN64GE091GK831P0XG2JQQT';
-const SPINNAKER_URL =
-    `https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions/${EXECUTION_ID}` +
-    `?stage=1&step=0&details=deployStatus`;
-
-// A k8s manifest dump with metadata fields in real (alphabetical) order —
-// labels precede name, which the pod extractor must tolerate.
-const ERROR_BODY = `Exception ( Wait For Manifest To Stabilize )
-{"kind":"Pod","metadata":{"labels":{"app":"hyperbase"},"name":"h-bg-provision-step-0-abc12","namespace":"prod"},"status":{"phase":"Failed"}}`;
-
-const SPINNAKER_HTML = `<!doctype html>
-<html>
-  <head><meta charset="utf-8"><title>myapp - executions - Spinnaker</title></head>
-  <body>
-    <div class="execution-group">
-      <a class="clickable" id="exec-details-link">Execution Details</a>
-      <div class="execution-details-container">
-        <div class="alert alert-danger"><pre>${ERROR_BODY}</pre></div>
-      </div>
-    </div>
-    <script>
-      window.__clicks = [];
-      document.getElementById('exec-details-link')
-        .addEventListener('click', () => window.__clicks.push('exec-details'));
-    </script>
-    ${KEYLOGGER_SNIPPET}
-  </body>
-</html>`;
 
 const openSpinnaker = (context: BrowserContext): Promise<Page> =>
     openFixturePage(context, SPINNAKER_URL, SPINNAKER_HTML);
@@ -79,8 +50,8 @@ test.describe('spinnaker keybindings (content script)', () => {
     test('p extracts the pod name from the error and copies it', async ({context}) => {
         const page = await openSpinnaker(context);
 
-        await pressAndExpectToast(page, 'p', 'Copied pod name: h-bg-provision-step-0-abc12');
-        expect(await readClipboardText(page)).toBe('h-bg-provision-step-0-abc12');
+        await pressAndExpectToast(page, 'p', `Copied pod name: ${POD_NAME}`);
+        expect(await readClipboardText(page)).toBe(POD_NAME);
     });
 
     test('p reports when there is no error container', async ({context}) => {

@@ -22,10 +22,7 @@ declare global {
  * keydown the main-world page sees, so tests can assert exo keystrokes are
  * hidden from the page while ordinary keys pass through.
  */
-export const KEYLOGGER_SNIPPET = `<script>
-  window.__seenKeys = [];
-  window.addEventListener('keydown', (e) => { window.__seenKeys.push(e.key); });
-</script>`;
+export {KEYLOGGER_SNIPPET} from './fixture-pages';
 
 /** Keys the main-world page has seen since load (or the last reset). */
 export const seenKeys = (page: Page) => page.evaluate(() => window.__seenKeys ?? []);

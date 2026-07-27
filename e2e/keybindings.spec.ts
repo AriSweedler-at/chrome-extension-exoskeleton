@@ -1,6 +1,7 @@
 import {test, expect} from './fixtures';
 import type {BrowserContext, Page} from '@playwright/test';
-import {openFixturePage, seenKeys, resetSeenKeys, KEYLOGGER_SNIPPET} from './helpers';
+import {openFixturePage, seenKeys, resetSeenKeys} from './helpers';
+import {PR_URL, PR_HTML} from './fixture-pages';
 
 /**
  * These tests exercise the real content script in Chromium to prove two things
@@ -15,19 +16,8 @@ import {openFixturePage, seenKeys, resetSeenKeys, KEYLOGGER_SNIPPET} from './hel
  * every keydown its own (main-world) window listener sees.
  */
 
-const PR_URL = 'https://github.com/exo-test/repo/pull/1';
-
-const TOY_HTML = `<!doctype html>
-<html>
-  <head><meta charset="utf-8"><title>toy app</title></head>
-  <body>
-    <h1 id="app">toy app</h1>
-    ${KEYLOGGER_SNIPPET}
-  </body>
-</html>`;
-
 const openToyPr = (context: BrowserContext): Promise<Page> =>
-    openFixturePage(context, PR_URL, TOY_HTML);
+    openFixturePage(context, PR_URL, PR_HTML);
 
 test.describe('exo keybindings (content script)', () => {
     test('fires its own shortcut and hides that keystroke from the page', async ({context}) => {

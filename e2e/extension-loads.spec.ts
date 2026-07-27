@@ -15,8 +15,6 @@ test('extension ID is extractable', async ({extensionId}) => {
 
 test('extension popup page is accessible', async ({context, extensionId}) => {
     const page = await context.newPage();
-    const response = await page.goto(
-        `chrome-extension://${extensionId}/src/popup/index.html`,
-    );
+    const response = await page.goto(`chrome-extension://${extensionId}/src/popup/index.html`);
     expect(response?.status()).toBe(200);
 });

@@ -11,6 +11,9 @@ export const test = base.extend<{
     context: async ({}, use) => {
         const context = await chromium.launchPersistentContext('', {
             channel: 'chromium',
+            // SLOWMO=400 npm run test:e2e:headed — slows every action so a
+            // human can follow along.
+            slowMo: process.env.SLOWMO ? Number(process.env.SLOWMO) : 0,
             args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
