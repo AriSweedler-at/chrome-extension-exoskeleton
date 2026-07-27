@@ -5,9 +5,9 @@ import {
     type GetFormatsPayload,
 } from '@exo/exo-tabs/richlink/action';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
-import {FormatRefusalError, truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
+import {truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
 import {Clipboard} from '@exo/lib/clipboard';
-import {Notifications, NotificationType} from '@exo/lib/toast-notification';
+import {Notifications} from '@exo/lib/toast-notification';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
 import {
     CACHE_EXPIRY_MS,
@@ -22,17 +22,7 @@ export async function handleCopyRichLink(
     _sender: chrome.runtime.MessageSender,
     _context: void,
 ) {
-    let formats;
-    try {
-        formats = HandlerRegistry.getAllFormats(payload.url);
-    } catch (error) {
-        // A refusing handler decides the whole copy: toast the reason here
-        // (the keyboard-shortcut path has no other user-visible surface).
-        if (error instanceof FormatRefusalError) {
-            Notifications.show({message: error.message, type: NotificationType.Error});
-        }
-        throw error;
-    }
+    const formats = HandlerRegistry.getAllFormats(payload.url);
     const cycling = isCycling();
 
     // Get format index

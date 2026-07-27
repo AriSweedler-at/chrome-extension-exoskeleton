@@ -2,6 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {
     getPipelineFilters,
     getIsolatedPipeline,
+    getApplicationName,
     isExecutionsView,
     setPipelineFilter,
 } from '@exo/exo-tabs/spinnaker/filters';
@@ -43,6 +44,25 @@ describe('spinnaker filters', () => {
 
         it('returns null with multiple filters', () => {
             expect(getIsolatedPipeline(`${BASE}?pipeline=One&pipeline=Two`)).toBeNull();
+        });
+    });
+
+    describe('getApplicationName', () => {
+        it('extracts the application from an executions URL', () => {
+            expect(getApplicationName(BASE)).toBe('hyperbase-deploy');
+        });
+
+        it('decodes percent-encoded application names', () => {
+            expect(
+                getApplicationName(
+                    'https://spinnaker.k8s.shadowbox.cloud/#/applications/my%20app/executions',
+                ),
+            ).toBe('my app');
+        });
+
+        it('returns null when no application segment exists', () => {
+            expect(getApplicationName('https://spinnaker.k8s.shadowbox.cloud/#/search')).toBeNull();
+            expect(getApplicationName('not-a-url')).toBeNull();
         });
     });
 

@@ -29,6 +29,17 @@ export function getIsolatedPipeline(url: string): string | null {
     return filters.length === 1 ? filters[0] : null;
 }
 
+/** Application name from an application-scoped URL (#/applications/<app>/...). */
+export function getApplicationName(url: string): string | null {
+    try {
+        const segments = new URL(url).hash.split('?')[0].split('/');
+        const i = segments.indexOf('applications');
+        return i !== -1 && segments[i + 1] ? decodeURIComponent(segments[i + 1]) : null;
+    } catch {
+        return null;
+    }
+}
+
 /** Is this an executions view (the pages where pipeline filters apply)? */
 export function isExecutionsView(url: string): boolean {
     try {

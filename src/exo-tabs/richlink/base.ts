@@ -7,14 +7,6 @@ export interface LinkFormat {
 }
 
 /**
- * Thrown by a handler that matches the URL but refuses to produce formats
- * until the page is in a copyable state (e.g. Spinnaker executions view
- * without a single pipeline isolated). The copy flow surfaces the message
- * as an error toast instead of copying anything.
- */
-export class FormatRefusalError extends Error {}
-
-/**
  * Context passed to getFormats().
  *
  * Handlers run in two contexts: the page (content script) and the popup.

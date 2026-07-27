@@ -3,7 +3,6 @@ import {render} from '@testing-library/react';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
-import {FormatRefusalError} from '@exo/exo-tabs/richlink/base';
 import {handleCopyRichLink} from '@exo/exo-tabs/richlink/page';
 
 /**
@@ -97,20 +96,23 @@ describe('popup/page format parity', () => {
         }
     });
 
-    it('Spinnaker executions view without isolation: copy fails with an error toast', async () => {
+    it('Spinnaker executions view without isolation: no pipeline format, application copies fine', async () => {
         const url =
             'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2';
 
-        await expect(handleCopyRichLink({url}, dummySender, undefined as void)).rejects.toThrow(
-            FormatRefusalError,
+        const popupFormats = HandlerRegistry.getAllFormats(url);
+        expect(popupFormats.map((f) => f.label)).not.toContain('Spinnaker Pipeline');
+
+        const result = await handleCopyRichLink(
+            {url, formatIndex: 0},
+            dummySender,
+            undefined as void,
         );
 
-        expect(Clipboard.write).not.toHaveBeenCalled();
-        expect(Notifications.show).toHaveBeenCalledWith(
-            expect.objectContaining({
-                message: expect.stringContaining("press 'i'"),
-                type: 'error',
-            }),
+        expect(result.success).toBe(true);
+        expect(Clipboard.write).toHaveBeenCalledWith(
+            expect.stringContaining('Spinnaker: hyperbase-deploy'),
+            expect.stringContaining('Spinnaker: hyperbase-deploy'),
         );
     });
 

@@ -3,7 +3,6 @@ import {
     SpinnakerHandler,
     formatSpinnakerTitle,
 } from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
-import {FormatRefusalError} from '@exo/exo-tabs/richlink/base';
 
 describe('formatSpinnakerTitle', () => {
     describe('deploy pipelines — single service (Deploy {service} {ENV} {number})', () => {
@@ -198,13 +197,17 @@ describe('SpinnakerHandler', () => {
         const EXECUTIONS_URL =
             'https://spinnaker.k8s.shadowbox.cloud/#/applications/internal-tool-service/executions/01KM0S3TAN23A4NWAF8BRSKMTP';
 
-        it('should format the isolated pipeline from the URL filter', () => {
+        it('should offer the isolated pipeline (from the URL filter) plus the application', () => {
             const url = `${EXECUTIONS_URL}?pipeline=Deploy%20internal-tool-service%20PRODUCTION`;
-            const format = handler.getFormats({url})[0];
-            expect(format.label).toBe('Spinnaker Pipeline');
-            expect(format.text).toBe(
+            const formats = handler.getFormats({url});
+
+            expect(formats).toHaveLength(2);
+            expect(formats[0].label).toBe('Spinnaker Pipeline');
+            expect(formats[0].text).toBe(
                 `Spinnaker: deploy PRODUCTION: internal-tool-service (${url})`,
             );
+            expect(formats[1].label).toBe('Spinnaker Application');
+            expect(formats[1].text).toBe(`Spinnaker: internal-tool-service (${url})`);
         });
 
         it('should ignore the DOM when isolated — the filter param is the source of truth', () => {
@@ -220,21 +223,25 @@ describe('SpinnakerHandler', () => {
             document.body.removeChild(el);
         });
 
-        it('should refuse when no pipeline is isolated', () => {
+        it('should offer only the application when no pipeline is isolated', () => {
             const el = document.createElement('h3');
             el.className = 'execution-group-title';
             el.textContent = 'Deploy internal-tool-service PRODUCTION 1';
             document.body.appendChild(el);
 
-            expect(() => handler.getFormats({url: EXECUTIONS_URL})).toThrow(FormatRefusalError);
-            expect(() => handler.getFormats({url: EXECUTIONS_URL})).toThrow(/press 'i'/);
+            const formats = handler.getFormats({url: EXECUTIONS_URL});
+            expect(formats).toHaveLength(1);
+            expect(formats[0].label).toBe('Spinnaker Application');
+            expect(formats[0].text).toBe(`Spinnaker: internal-tool-service (${EXECUTIONS_URL})`);
 
             document.body.removeChild(el);
         });
 
-        it('should refuse when multiple pipelines are filtered', () => {
+        it('should offer only the application when multiple pipelines are filtered', () => {
             const url = `${EXECUTIONS_URL}?pipeline=One&pipeline=Two`;
-            expect(() => handler.getFormats({url})).toThrow(FormatRefusalError);
+            const formats = handler.getFormats({url});
+            expect(formats).toHaveLength(1);
+            expect(formats[0].label).toBe('Spinnaker Application');
         });
     });
 

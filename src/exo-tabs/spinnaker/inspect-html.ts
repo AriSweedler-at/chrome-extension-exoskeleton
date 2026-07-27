@@ -103,12 +103,12 @@ if (errorContainer) {
     console.log(`Error container ('p'): none (no failed stage open in this snapshot)`);
 }
 
-console.log('\nRich link (Cmd+Shift+C) verdict:');
-try {
-    const format = new SpinnakerHandler().getFormats({url})[0];
-    console.log(`  label: ${format.label}`);
-    console.log(`  text:  ${format.text}`);
-} catch (error) {
-    console.log(`  REFUSED: ${(error as Error).message}`);
+console.log('\nRich link (Cmd+Shift+C) formats:');
+const linkFormats = new SpinnakerHandler().getFormats({url});
+if (linkFormats.length === 0) {
+    console.log('  (none — spinnaker handler contributes nothing for this URL)');
+}
+for (const format of linkFormats) {
+    console.log(`  - [${format.label}] ${format.text}`);
 }
 console.log('');
