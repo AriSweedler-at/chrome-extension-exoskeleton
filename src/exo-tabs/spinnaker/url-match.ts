@@ -1,4 +1,5 @@
 import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+import {clearPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
 export const SPINNAKER_ENVIRONMENTS = ['alpha', 'production'] as const;
 export type SpinnakerEnvironment = (typeof SPINNAKER_ENVIRONMENTS)[number];
@@ -53,7 +54,14 @@ export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
         return SPINNAKER_ENVIRONMENTS.map((env) => {
             const envUrl = new URL(url);
             envUrl.hostname = ENV_TO_HOSTNAME[env];
-            return {env, url: envUrl.toString(), current: env === currentEnv};
+            const current = env === currentEnv;
+            // Pipeline names are env-specific — a carried-over filter would
+            // match nothing in the other environment.
+            return {
+                env,
+                url: current ? envUrl.toString() : clearPipelineFilter(envUrl.toString()),
+                current,
+            };
         });
     } catch {
         return undefined;

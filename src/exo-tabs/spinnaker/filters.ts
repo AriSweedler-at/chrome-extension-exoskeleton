@@ -63,3 +63,18 @@ export function setPipelineFilter(url: string, pipelineName: string): string {
     urlObj.hash = `${hashPath}?${params.toString().replace(/\+/g, '%20')}`;
     return urlObj.toString();
 }
+
+/**
+ * Drop every pipeline filter, preserving the other params. Pipeline names
+ * are environment-specific ("... PRODUCTION"), so carrying the filter
+ * across an environment switch would match nothing.
+ */
+export function clearPipelineFilter(url: string): string {
+    const urlObj = new URL(url);
+    const [hashPath, hashQuery = ''] = urlObj.hash.split('?');
+    const params = new URLSearchParams(hashQuery);
+    params.delete('pipeline');
+    const query = params.toString().replace(/\+/g, '%20');
+    urlObj.hash = query ? `${hashPath}?${query}` : hashPath;
+    return urlObj.toString();
+}

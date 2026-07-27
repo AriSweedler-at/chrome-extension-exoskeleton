@@ -5,6 +5,7 @@ import {
     getApplicationName,
     isExecutionsView,
     setPipelineFilter,
+    clearPipelineFilter,
 } from '@exo/exo-tabs/spinnaker/filters';
 
 const BASE =
@@ -108,6 +109,23 @@ describe('spinnaker filters', () => {
             expect(result).toContain('pipeline=New');
             expect(result).not.toContain('pipeline=One');
             expect(result).not.toContain('pipeline=Two');
+        });
+    });
+
+    describe('clearPipelineFilter', () => {
+        it('removes the pipeline filter, preserving other params', () => {
+            expect(
+                clearPipelineFilter(`${BASE}?pipeline=Rollback%20PRODUCTION&stage=0&step=0`),
+            ).toBe(`${BASE}?stage=0&step=0`);
+        });
+
+        it('removes every pipeline filter', () => {
+            expect(clearPipelineFilter(`${BASE}?pipeline=One&pipeline=Two`)).toBe(BASE);
+        });
+
+        it('leaves URLs without a filter untouched', () => {
+            expect(clearPipelineFilter(`${BASE}?stage=2`)).toBe(`${BASE}?stage=2`);
+            expect(clearPipelineFilter(BASE)).toBe(BASE);
         });
     });
 });

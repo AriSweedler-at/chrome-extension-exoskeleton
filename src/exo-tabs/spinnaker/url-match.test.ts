@@ -122,4 +122,22 @@ describe('getNextEnvironmentUrl', () => {
     it('returns undefined for non-Spinnaker URL', () => {
         expect(getNextEnvironmentUrl('https://example.com')).toBeUndefined();
     });
+
+    it('drops the env-specific pipeline filter when switching environments', () => {
+        const next = getNextEnvironmentUrl(
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?pipeline=Rollback%20Pipeline%20Group%20Non-App%20Worker%20PRODUCTION&stage=0&step=0&details=evaluateVariablesConfig',
+        );
+        expect(next).toBe(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?stage=0&step=0&details=evaluateVariablesConfig',
+        );
+    });
+
+    it('preserves other hash params when switching environments', () => {
+        const next = getNextEnvironmentUrl(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions?stage=2',
+        );
+        expect(next).toBe(
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions?stage=2',
+        );
+    });
 });
