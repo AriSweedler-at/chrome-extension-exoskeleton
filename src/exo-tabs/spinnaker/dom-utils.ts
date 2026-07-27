@@ -1,9 +1,3 @@
-export interface StageInfo {
-    stage: number;
-    step: number;
-    details: string;
-}
-
 /**
  * Extract execution ID from Spinnaker URL
  * Pattern: /executions/01HPN64GE091GK831P0XG2JQQT
@@ -21,37 +15,26 @@ export function isExecutionOpen(url: string = window.location.href): boolean {
 }
 
 /**
- * Parse stage information from URL query params
+ * Find the pipeline name that owns an execution: locate the execution's DOM
+ * node, walk up to its .execution-group, and read the group's title. Falls
+ * back to the page's only group title when the execution node isn't found
+ * (a permalinked execution renders just its own group).
  */
-export function getActiveStageFromUrl(url: string = window.location.href): StageInfo | null {
-    try {
-        const urlObj = new URL(url);
-        const queryString = urlObj.search || urlObj.hash.split('?')[1] || '';
-        const params = new URLSearchParams(queryString);
-
-        const stage = params.get('stage');
-        const step = params.get('step');
-        const details = params.get('details');
-
-        if (stage && step && details) {
-            const stageNum = parseInt(stage, 10);
-            const stepNum = parseInt(step, 10);
-
-            if (isNaN(stageNum) || isNaN(stepNum)) {
-                return null;
-            }
-
-            return {
-                stage: stageNum,
-                step: stepNum,
-                details,
-            };
-        }
-
-        return null;
-    } catch {
-        return null;
+export function findPipelineNameForExecution(executionId: string): string | null {
+    const executionEl =
+        document.getElementById(`execution-${executionId}`) ??
+        document.querySelector(`a[href*="${executionId}"]`);
+    const group = executionEl?.closest('.execution-group');
+    if (group) {
+        const name = group.querySelector('.execution-group-title')?.textContent?.trim();
+        if (name) return name;
     }
+
+    const titles = document.querySelectorAll('.execution-group-title');
+    if (titles.length === 1) {
+        return titles[0].textContent?.trim() || null;
+    }
+    return null;
 }
 
 /**

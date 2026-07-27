@@ -35,6 +35,8 @@ export const SPINNAKER_URL =
 
 export const POD_NAME = 'h-bg-provision-step-0-abc12';
 
+export const PIPELINE_NAME = 'Blue Green Provisioning PRODUCTION';
+
 // A k8s manifest dump with metadata fields in real (alphabetical) order —
 // labels precede name, which the pod extractor must tolerate.
 const ERROR_BODY = `Exception ( Wait For Manifest To Stabilize )
@@ -55,9 +57,12 @@ export const SPINNAKER_HTML = `<!doctype html>
   <body>
     <h2>myapp &rsaquo; executions &rsaquo; ${EXECUTION_ID}</h2>
     <div class="execution-group">
-      <a class="clickable" id="exec-details-link">Execution Details</a>
-      <div class="execution-details-container">
-        <div class="alert alert-danger"><pre>${ERROR_BODY}</pre></div>
+      <h4 class="execution-group-title">${PIPELINE_NAME}</h4>
+      <div class="execution" id="execution-${EXECUTION_ID}">
+        <a class="clickable" id="exec-details-link">Execution Details</a>
+        <div class="execution-details-container">
+          <div class="alert alert-danger"><pre>${ERROR_BODY}</pre></div>
+        </div>
       </div>
     </div>
     <script>

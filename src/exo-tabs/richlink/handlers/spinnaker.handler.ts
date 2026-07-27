@@ -1,9 +1,11 @@
 import {
     Handler,
     linkFormat,
+    FormatRefusalError,
     type FormatContext,
     type LinkFormat,
 } from '@exo/exo-tabs/richlink/base';
+import {isExecutionsView, getIsolatedPipeline} from '@exo/exo-tabs/spinnaker/filters';
 
 const DEPLOY_GROUP_PATTERN =
     /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
@@ -79,10 +81,26 @@ export class SpinnakerHandler extends Handler {
         return formatSpinnakerTitle(this.extractRawTitle()).title;
     }
 
-    /** Override to use the formatted label from formatSpinnakerTitle. */
+    /**
+     * On executions views the page lists many pipelines, so a pipeline link
+     * is only meaningful in isolation mode (exactly one pipeline filter,
+     * what the spinnaker tab's 'i' keybinding produces). The isolated
+     * pipeline's name comes from the URL filter itself — no DOM guessing.
+     * Anywhere else, fall back to DOM-extracted titles.
+     */
     override getFormats(ctx: FormatContext): LinkFormat[] {
-        const raw = this.extractRawTitle();
-        const {label, title} = formatSpinnakerTitle(raw);
+        if (isExecutionsView(ctx.url)) {
+            const isolated = getIsolatedPipeline(ctx.url);
+            if (!isolated) {
+                throw new FormatRefusalError(
+                    "No pipeline isolated — press 'i' on an execution to isolate its pipeline, then copy",
+                );
+            }
+            const {label, title} = formatSpinnakerTitle(isolated);
+            return [linkFormat(label, this.priority, title, ctx.url)];
+        }
+
+        const {label, title} = formatSpinnakerTitle(this.extractRawTitle());
         return [linkFormat(label, this.priority, title, ctx.url)];
     }
 }

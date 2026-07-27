@@ -7,10 +7,16 @@ import {
     seenKeys,
     resetSeenKeys,
 } from './helpers';
-import {SPINNAKER_URL, SPINNAKER_HTML, EXECUTION_ID, POD_NAME} from './fixture-pages';
+import {
+    SPINNAKER_URL,
+    SPINNAKER_HTML,
+    EXECUTION_ID,
+    POD_NAME,
+    PIPELINE_NAME,
+} from './fixture-pages';
 
 /**
- * Drives the Spinnaker page-tab keybindings (e/x/s/j/p) end-to-end against a
+ * Drives the Spinnaker page-tab keybindings (e/x/i/j/p) end-to-end against a
  * fixture that mimics the execution-details DOM the actions target. This is
  * the iteration loop for the Spinnaker tab: change an action, save real
  * Spinnaker DOM into the fixture, re-run.
@@ -41,10 +47,13 @@ test.describe('spinnaker keybindings (content script)', () => {
         expect(await seenKeys(page)).not.toContain('x');
     });
 
-    test('s shows the active stage from the hash query params', async ({context}) => {
+    test('i isolates the pipeline by adding the pipeline filter to the URL', async ({context}) => {
         const page = await openSpinnaker(context);
 
-        await pressAndExpectToast(page, 's', 'Stage 1: deployStatus');
+        await pressAndExpectToast(page, 'i', `Isolated pipeline: ${PIPELINE_NAME}`);
+        expect(page.url()).toContain('pipeline=Blue%20Green%20Provisioning%20PRODUCTION');
+        // The rest of the hash query is preserved.
+        expect(page.url()).toContain('stage=1&step=0&details=deployStatus');
     });
 
     test('p extracts the pod name from the error and copies it', async ({context}) => {

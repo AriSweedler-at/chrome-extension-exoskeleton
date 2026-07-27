@@ -2,7 +2,7 @@ import type {CSSProperties} from 'react';
 import {
     toggleExecution,
     displayActiveExecution,
-    displayActiveStage,
+    isolatePipeline,
     jumpToExecution,
     extractPodNames,
 } from '@exo/exo-tabs/spinnaker/actions';
@@ -32,7 +32,7 @@ const kbdStyle: CSSProperties = {
 const ACTIONS = [
     {label: 'Toggle Execution Details', key: 'e', handler: toggleExecution},
     {label: 'Show Active Execution', key: 'x', handler: displayActiveExecution},
-    {label: 'Show Active Stage', key: 's', handler: displayActiveStage},
+    {label: 'Isolate Pipeline', key: 'i', handler: isolatePipeline},
     {label: 'Jump to Execution', key: 'j', handler: jumpToExecution},
     {label: 'Extract Pod Names', key: 'p', handler: () => extractPodNames()},
 ] as const;

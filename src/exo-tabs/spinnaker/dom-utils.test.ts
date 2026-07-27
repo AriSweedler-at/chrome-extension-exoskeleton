@@ -2,9 +2,9 @@ import {describe, it, expect, beforeEach, afterEach} from 'vitest';
 import {
     getExecutionIdFromUrl,
     isExecutionOpen,
-    getActiveStageFromUrl,
     findExecutionDetailsLink,
     findErrorContainer,
+    findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
@@ -33,41 +33,6 @@ describe('Spinnaker DOM Utils - URL Parsing', () => {
             const url =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT';
             expect(isExecutionOpen(url)).toBe(false);
-        });
-    });
-
-    describe('getActiveStageFromUrl', () => {
-        it('extracts stage info from URL', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig';
-            const result = getActiveStageFromUrl(url);
-            expect(result).toEqual({
-                stage: 2,
-                step: 0,
-                details: 'runJobConfig',
-            });
-        });
-
-        it('returns null when no stage params present', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT';
-            expect(getActiveStageFromUrl(url)).toBeNull();
-        });
-
-        it('returns null for malformed URLs', () => {
-            expect(getActiveStageFromUrl('not-a-url')).toBeNull();
-        });
-
-        it('returns null when stage is non-numeric', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/01HPN64GE091GK831P0XG2JQQT?stage=abc&step=0&details=config';
-            expect(getActiveStageFromUrl(url)).toBeNull();
-        });
-
-        it('returns null when step is non-numeric', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=xyz&details=config';
-            expect(getActiveStageFromUrl(url)).toBeNull();
         });
     });
 });
@@ -100,6 +65,67 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
         it('returns null when link not found', () => {
             document.body.innerHTML = '<div>No execution details</div>';
             expect(findExecutionDetailsLink()).toBeNull();
+        });
+    });
+
+    describe('findPipelineNameForExecution', () => {
+        const EXEC_ID = '01HPN5GWDEJ5088Y9QZ4JPG2C0';
+
+        it('reads the group title for an execution found by element id', () => {
+            document.body.innerHTML = `
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Blue Green Provisioning PRODUCTION</h4>
+                    <div class="execution" id="execution-${EXEC_ID}"></div>
+                </div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBe(
+                'Blue Green Provisioning PRODUCTION',
+            );
+        });
+
+        it('reads the group title for an execution found by permalink href', () => {
+            document.body.innerHTML = `
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Deploy Canary</h4>
+                    <div class="execution">
+                        <a href="/#/applications/app/executions/${EXEC_ID}">permalink</a>
+                    </div>
+                </div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBe('Deploy Canary');
+        });
+
+        it('picks the right group when several pipelines are listed', () => {
+            document.body.innerHTML = `
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Other Pipeline</h4>
+                    <div class="execution" id="execution-OTHER"></div>
+                </div>
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Blue Green Provisioning PRODUCTION</h4>
+                    <div class="execution" id="execution-${EXEC_ID}"></div>
+                </div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBe(
+                'Blue Green Provisioning PRODUCTION',
+            );
+        });
+
+        it('falls back to the only group title when the execution node is missing', () => {
+            document.body.innerHTML = `
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Lone Pipeline</h4>
+                </div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBe('Lone Pipeline');
+        });
+
+        it('returns null when the execution node is missing and titles are ambiguous', () => {
+            document.body.innerHTML = `
+                <div class="execution-group"><h4 class="execution-group-title">A</h4></div>
+                <div class="execution-group"><h4 class="execution-group-title">B</h4></div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBeNull();
         });
     });
 

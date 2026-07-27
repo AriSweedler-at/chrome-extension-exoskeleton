@@ -28,15 +28,19 @@ Displays the current execution ID and its open/closed status via notification.
 - Press `x` or click "Show Active Execution"
 - Notification shows: "Execution: 01HPN64GE091GK831P0XG2JQQT (open)"
 
-### 3. Show Active Stage (kbd: `s`)
-Displays the current stage number and details from URL parameters.
+### 3. Isolate Pipeline (kbd: `i`)
+Filters the executions view down to the open execution's pipeline by adding
+`?pipeline=<name>` to the URL. The pipeline name is read from the execution's
+group heading in the page.
 
-**When to use:** Check which stage you're currently viewing.
+**When to use:** An application lists many pipelines and you want to see only
+the one your execution belongs to.
 
 **Example:**
-- On URL: `...executions/01H...?stage=2&step=0&details=runJobConfig`
-- Press `s` or click "Show Active Stage"
-- Notification shows: "Stage 2: runJobConfig"
+- On URL: `...executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&step=0&details=runJobConfig`
+- Press `i` or click "Isolate Pipeline"
+- URL becomes: `...?stage=2&step=0&details=runJobConfig&pipeline=Blue%20Green%20Provisioning%20PRODUCTION`
+- Notification shows: "Isolated pipeline: Blue Green Provisioning PRODUCTION"
 
 ### 4. Jump to Execution (kbd: `j`)
 Alias for "Toggle Execution Details". Provides semantic clarity.
@@ -67,7 +71,7 @@ All keyboard shortcuts work globally in the browser tab, except when typing in i
 |-----|--------|
 | `e` | Toggle Execution Details |
 | `x` | Show Active Execution |
-| `s` | Show Active Stage |
+| `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline) |
 | `j` | Jump to Execution |
 | `p` | Extract Pod Names |
 
@@ -85,17 +89,16 @@ The Spinnaker tab automatically appears when your URL contains "spinnaker" (case
 ### Debugging a Failed Pipeline
 
 1. Open your Spinnaker execution page
-2. Press `x` to confirm which execution you're viewing
+2. Press `i` to isolate the pipeline you're debugging
 3. Press `e` to expand execution details if needed
 4. Navigate to the failed stage
-5. Press `s` to confirm you're on the correct stage
-6. Press `p` to extract the pod name
-7. Open terminal and run: `kubectl logs <paste-pod-name>`
+5. Press `p` to extract the pod name
+6. Open terminal and run: `kubectl logs <paste-pod-name>`
 
 ### Quick Navigation
 
 1. Use `e` or `j` to quickly toggle execution details open/closed
-2. Use `s` to verify which stage parameters are in the URL
+2. Use `i` to hide every other pipeline in a busy application
 3. Use `x` to double-check the execution ID
 
 ## Troubleshooting
@@ -106,8 +109,11 @@ The "Execution Details" link is not present on the current page. Make sure you'r
 ### "No execution found in URL"
 You're not viewing a specific execution. Navigate to an execution details page first.
 
-### "No stage open"
-The URL doesn't contain stage parameters. Click on a stage in the execution timeline.
+### "Could not determine the pipeline for this execution"
+Isolate couldn't find the execution's group heading in the page
+(`.execution-group-title`). If this happens on a real Spinnaker page, save the
+DOM and update the selectors in `dom-utils.ts` (see `e2e/spinnaker.spec.ts`
+for the iteration loop).
 
 ### "No error container found"
 There's no error displayed in the current stage. The Extract Pod Names feature only works when viewing a stage with errors.
@@ -120,17 +126,21 @@ The error message doesn't contain Kubernetes metadata with pod names. This typic
 ### DOM Selectors
 - Execution Details link: `a.clickable` containing "Execution Details" text
 - Error container: `.alert.alert-danger` within `.execution-details-container`
+- Pipeline name: `.execution-group-title` within the execution's `.execution-group`
+  (execution located by `#execution-<id>` or a permalink `a[href*="<id>"]`)
 
 ### URL Parsing
 - Execution ID: Extracted from `/executions/{ID}` pattern
-- Stage info: Parsed from query params `stage`, `step`, and `details`
+- Isolate: sets the `pipeline` param in the hash query, preserving other params
 
 ### Pod Name Extraction
-Uses regex pattern: `/"metadata":\s*\{[^}]*"name"\s*:\s*"([^"]+)"/g`
+Locates each `"metadata": {...}` object, takes its brace-balanced top-level
+content (string-aware, so nested objects like `labels` don't break it), and
+matches top-level `"name": "..."` within it.
 
 Handles:
 - Flexible whitespace in JSON
-- Additional fields in metadata object
+- Nested objects before `name` (k8s serializes metadata alphabetically)
 - Multiple pod names (deduplicates and returns array)
 
 ## Integration

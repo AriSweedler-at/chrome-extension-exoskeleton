@@ -3,6 +3,7 @@ import {
     SpinnakerHandler,
     formatSpinnakerTitle,
 } from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
+import {FormatRefusalError} from '@exo/exo-tabs/richlink/base';
 
 describe('formatSpinnakerTitle', () => {
     describe('deploy pipelines — single service (Deploy {service} {ENV} {number})', () => {
@@ -193,36 +194,48 @@ describe('SpinnakerHandler', () => {
         expect(handler.isFallback).toBe(false);
     });
 
-    it('should format deploy pipeline from DOM', () => {
-        const el = document.createElement('h3');
-        el.className = 'execution-group-title';
-        el.textContent = 'Deploy internal-tool-service PRODUCTION 1';
-        document.body.appendChild(el);
-
-        const url =
+    describe('executions views (isolation-gated)', () => {
+        const EXECUTIONS_URL =
             'https://spinnaker.k8s.shadowbox.cloud/#/applications/internal-tool-service/executions/01KM0S3TAN23A4NWAF8BRSKMTP';
-        const format = handler.getFormats({url})[0];
-        expect(format.label).toBe('Spinnaker Pipeline');
-        expect(format.html).toBe(
-            `<a href="${url}">Spinnaker: deploy PRODUCTION: internal-tool-service</a>`,
-        );
-        expect(format.text).toBe(`Spinnaker: deploy PRODUCTION: internal-tool-service (${url})`);
 
-        document.body.removeChild(el);
-    });
+        it('should format the isolated pipeline from the URL filter', () => {
+            const url = `${EXECUTIONS_URL}?pipeline=Deploy%20internal-tool-service%20PRODUCTION`;
+            const format = handler.getFormats({url})[0];
+            expect(format.label).toBe('Spinnaker Pipeline');
+            expect(format.text).toBe(
+                `Spinnaker: deploy PRODUCTION: internal-tool-service (${url})`,
+            );
+        });
 
-    it('should format non-deploy pipeline from DOM', () => {
-        const el = document.createElement('h3');
-        el.className = 'execution-group-title';
-        el.textContent = 'Canary Release 5';
-        document.body.appendChild(el);
+        it('should ignore the DOM when isolated — the filter param is the source of truth', () => {
+            const el = document.createElement('h3');
+            el.className = 'execution-group-title';
+            el.textContent = 'Some Other Pipeline 5';
+            document.body.appendChild(el);
 
-        const url = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions';
-        const format = handler.getFormats({url})[0];
-        expect(format.html).toBe(`<a href="${url}">Spinnaker Pipeline: Canary Release</a>`);
-        expect(format.text).toBe(`Spinnaker Pipeline: Canary Release (${url})`);
+            const url = `${EXECUTIONS_URL}?pipeline=Canary%20Release`;
+            const format = handler.getFormats({url})[0];
+            expect(format.text).toBe(`Spinnaker Pipeline: Canary Release (${url})`);
 
-        document.body.removeChild(el);
+            document.body.removeChild(el);
+        });
+
+        it('should refuse when no pipeline is isolated', () => {
+            const el = document.createElement('h3');
+            el.className = 'execution-group-title';
+            el.textContent = 'Deploy internal-tool-service PRODUCTION 1';
+            document.body.appendChild(el);
+
+            expect(() => handler.getFormats({url: EXECUTIONS_URL})).toThrow(FormatRefusalError);
+            expect(() => handler.getFormats({url: EXECUTIONS_URL})).toThrow(/press 'i'/);
+
+            document.body.removeChild(el);
+        });
+
+        it('should refuse when multiple pipelines are filtered', () => {
+            const url = `${EXECUTIONS_URL}?pipeline=One&pipeline=Two`;
+            expect(() => handler.getFormats({url})).toThrow(FormatRefusalError);
+        });
     });
 
     it('should handle missing pipeline name (fallback)', () => {

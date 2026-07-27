@@ -3,7 +3,7 @@ import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 import {
     toggleExecution,
     displayActiveExecution,
-    displayActiveStage,
+    isolatePipeline,
     jumpToExecution,
     extractPodNames,
 } from '@exo/exo-tabs/spinnaker/actions';
@@ -27,9 +27,9 @@ async function initialize() {
             context: 'Spinnaker',
         },
         {
-            key: 's',
-            description: 'Show active stage',
-            handler: displayActiveStage,
+            key: 'i',
+            description: 'Isolate pipeline',
+            handler: isolatePipeline,
             context: 'Spinnaker',
         },
         {

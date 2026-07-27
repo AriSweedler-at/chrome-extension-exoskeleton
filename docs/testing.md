@@ -67,6 +67,26 @@ Helper notes:
 - Embed `KEYLOGGER_SNIPPET` in the fixture to assert interception via
   `seenKeys` / `resetSeenKeys`.
 
+## Spinnaker DOM Tools
+
+The spinnaker tab's DOM logic iterates against saved real Spinnaker snapshots
+in `src/exo-tabs/spinnaker/examples/*.html` (gitignored — machine-local; save
+one with `pbpaste > src/exo-tabs/spinnaker/examples/<name>.html`).
+
+```bash
+npm run spinnaker-html <htmlFile> [url]
+```
+
+Prints everything the helpers resolve from that DOM: execution → pipeline
+mapping, isolate URLs, the Execution Details link, extracted pod names, and
+the rich-link verdict (including the isolation-mode refusal). Bare filenames
+resolve from `examples/`; any path works too, so it's always usable.
+
+`src/exo-tabs/spinnaker/examples.test.ts` runs the same helpers over every
+saved snapshot as part of `npm test` — data-driven, no hardcoded ids. When no
+snapshots are saved it skips with a hint (committed tests never depend on
+gitignored files).
+
 ## Rich Link Handler Tools
 
 Two CLI scripts help develop rich link handlers by loading saved HTML files into JSDOM.

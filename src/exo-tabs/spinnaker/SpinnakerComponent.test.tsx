@@ -7,7 +7,7 @@ import * as actions from '@exo/exo-tabs/spinnaker/actions';
 vi.mock('./actions', () => ({
     toggleExecution: vi.fn(),
     displayActiveExecution: vi.fn(),
-    displayActiveStage: vi.fn(),
+    isolatePipeline: vi.fn(),
     jumpToExecution: vi.fn(),
     extractPodNames: vi.fn(() => Promise.resolve()),
 }));
@@ -28,7 +28,7 @@ describe('SpinnakerComponent', () => {
 
             expect(screen.getByText('Toggle Execution Details')).toBeInTheDocument();
             expect(screen.getByText('Show Active Execution')).toBeInTheDocument();
-            expect(screen.getByText('Show Active Stage')).toBeInTheDocument();
+            expect(screen.getByText('Isolate Pipeline')).toBeInTheDocument();
             expect(screen.getByText('Jump to Execution')).toBeInTheDocument();
             expect(screen.getByText('Extract Pod Names')).toBeInTheDocument();
         });
@@ -38,7 +38,7 @@ describe('SpinnakerComponent', () => {
 
             expect(screen.getByText('e')).toBeInTheDocument();
             expect(screen.getByText('x')).toBeInTheDocument();
-            expect(screen.getByText('s')).toBeInTheDocument();
+            expect(screen.getByText('i')).toBeInTheDocument();
             expect(screen.getByText('j')).toBeInTheDocument();
             expect(screen.getByText('p')).toBeInTheDocument();
         });
@@ -63,13 +63,13 @@ describe('SpinnakerComponent', () => {
             expect(actions.displayActiveExecution).toHaveBeenCalledTimes(1);
         });
 
-        it('should call displayActiveStage when Show Stage button clicked', () => {
+        it('should call isolatePipeline when Isolate button clicked', () => {
             render(<SpinnakerContent />);
-            const button = screen.getByText('Show Active Stage');
+            const button = screen.getByText('Isolate Pipeline');
 
             fireEvent.click(button);
 
-            expect(actions.displayActiveStage).toHaveBeenCalledTimes(1);
+            expect(actions.isolatePipeline).toHaveBeenCalledTimes(1);
         });
 
         it('should call jumpToExecution when Jump button clicked', () => {

@@ -6,6 +6,7 @@ coverage
 extension.zip
 .worktrees
 src/exo-tabs/richlink/handlers/**/examples/*.html
+src/exo-tabs/spinnaker/examples/*.html
 
 # Playwright
 /test-results/

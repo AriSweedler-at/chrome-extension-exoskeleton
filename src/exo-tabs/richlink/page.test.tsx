@@ -1,6 +1,8 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {Clipboard} from '@exo/lib/clipboard';
+import {Notifications} from '@exo/lib/toast-notification';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
+import {FormatRefusalError} from '@exo/exo-tabs/richlink/base';
 import {handleCopyRichLink} from '@exo/exo-tabs/richlink/page';
 
 /**
@@ -18,6 +20,7 @@ vi.mock('@exo/lib/clipboard', () => ({
 }));
 vi.mock('@exo/lib/toast-notification', () => ({
     Notifications: {show: vi.fn()},
+    NotificationType: {Success: 'success', Error: 'error'},
 }));
 vi.mock('@exo/exo-tabs/richlink/copy-counter', () => ({
     CopyCounter: {increment: vi.fn(), getCount: vi.fn().mockResolvedValue(0)},
@@ -91,6 +94,40 @@ describe('popup/page format parity', () => {
                 popupFormats[i].html,
             );
         }
+    });
+
+    it('Spinnaker executions view without isolation: copy fails with an error toast', async () => {
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2';
+
+        await expect(handleCopyRichLink({url}, dummySender, undefined as void)).rejects.toThrow(
+            FormatRefusalError,
+        );
+
+        expect(Clipboard.write).not.toHaveBeenCalled();
+        expect(Notifications.show).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: expect.stringContaining("press 'i'"),
+                type: 'error',
+            }),
+        );
+    });
+
+    it('Spinnaker executions view with an isolated pipeline: copies the pipeline link', async () => {
+        const url =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?pipeline=Blue%20Green%20Provisioning%20PRODUCTION';
+
+        const result = await handleCopyRichLink(
+            {url, formatIndex: 0},
+            dummySender,
+            undefined as void,
+        );
+
+        expect(result.success).toBe(true);
+        expect(Clipboard.write).toHaveBeenCalledWith(
+            expect.stringContaining('Spinnaker Pipeline: Blue Green Provisioning PRODUCTION'),
+            expect.stringContaining('Spinnaker Pipeline: Blue Green Provisioning PRODUCTION'),
+        );
     });
 
     it('plain URL (no specialized handler): fallback formats match', async () => {

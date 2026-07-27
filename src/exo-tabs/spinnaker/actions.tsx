@@ -4,7 +4,7 @@
  * Implements five core actions for interacting with Spinnaker UI:
  * - Toggle execution details
  * - Display active execution info
- * - Display active stage info
+ * - Isolate the open execution's pipeline
  * - Jump to execution (alias)
  * - Extract pod names from errors
  */
@@ -13,9 +13,10 @@ import {
     findExecutionDetailsLink,
     getExecutionIdFromUrl,
     isExecutionOpen,
-    getActiveStageFromUrl,
     findErrorContainer,
+    findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
+import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 import {extractPodNames as extractPodNamesFromHtml} from '@exo/exo-tabs/spinnaker/pod-extractor';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -58,17 +59,25 @@ export function displayActiveExecution(): void {
 }
 
 /**
- * Display information about the currently active stage
- * Shows stage number and details parameter
+ * Isolate the open execution's pipeline: read the pipeline name from the
+ * execution's group heading and set the `pipeline` filter param in the URL,
+ * so the executions view shows only that pipeline.
  */
-export function displayActiveStage(): void {
-    const stageInfo = getActiveStageFromUrl();
-    if (!stageInfo) {
-        showNotification('No stage open');
+export function isolatePipeline(): void {
+    const executionId = getExecutionIdFromUrl();
+    if (!executionId) {
+        showNotification('No execution found in URL');
         return;
     }
 
-    showNotification(`Stage ${stageInfo.stage}: ${stageInfo.details}`);
+    const pipelineName = findPipelineNameForExecution(executionId);
+    if (!pipelineName) {
+        showNotification('Could not determine the pipeline for this execution');
+        return;
+    }
+
+    window.location.href = setPipelineFilter(window.location.href, pipelineName);
+    showNotification(`Isolated pipeline: ${pipelineName}`);
 }
 
 /**

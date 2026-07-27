@@ -2,7 +2,7 @@ import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {
     toggleExecution,
     displayActiveExecution,
-    displayActiveStage,
+    isolatePipeline,
     jumpToExecution,
     extractPodNames,
 } from '@exo/exo-tabs/spinnaker/actions';
@@ -94,28 +94,54 @@ describe('spinnaker actions', () => {
         });
     });
 
-    describe('displayActiveStage', () => {
-        it('should display stage information when found', () => {
-            vi.spyOn(domUtils, 'getActiveStageFromUrl').mockReturnValue({
-                stage: 2,
-                step: 0,
-                details: 'runJobConfig',
-            });
+    describe('isolatePipeline', () => {
+        const EXECUTION_URL =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&step=0&details=runJobConfig';
 
-            displayActiveStage();
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
 
+        it('should navigate to the pipeline-filtered URL and notify', () => {
+            vi.stubGlobal('location', {href: EXECUTION_URL});
+            vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(
+                'Blue Green Provisioning PRODUCTION',
+            );
+
+            isolatePipeline();
+
+            expect(domUtils.findPipelineNameForExecution).toHaveBeenCalledWith(
+                '01HPN5GWDEJ5088Y9QZ4JPG2C0',
+            );
+            expect(window.location.href).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&step=0&details=runJobConfig&pipeline=Blue%20Green%20Provisioning%20PRODUCTION',
+            );
             expect(Notifications.show).toHaveBeenCalledWith({
-                message: 'Stage 2: runJobConfig',
+                message: 'Isolated pipeline: Blue Green Provisioning PRODUCTION',
             });
         });
 
-        it('should show "No stage open" when no stage found', () => {
-            vi.spyOn(domUtils, 'getActiveStageFromUrl').mockReturnValue(null);
+        it('should show "No execution found" when the URL has no execution', () => {
+            vi.stubGlobal('location', {
+                href: 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions',
+            });
 
-            displayActiveStage();
+            isolatePipeline();
 
             expect(Notifications.show).toHaveBeenCalledWith({
-                message: 'No stage open',
+                message: 'No execution found in URL',
+            });
+        });
+
+        it('should show an error when the pipeline name cannot be found', () => {
+            vi.stubGlobal('location', {href: EXECUTION_URL});
+            vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(null);
+
+            isolatePipeline();
+
+            expect(window.location.href).toBe(EXECUTION_URL);
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Could not determine the pipeline for this execution',
             });
         });
     });
