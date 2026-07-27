@@ -80,6 +80,13 @@ export const theme = {
             fontSize: '11px',
             opacity: '0.7',
         },
+        // Format-label chip inside the "Next: A → B" cycle preview
+        previewChip: {
+            background: 'hsla(0, 0%, 100%, 0.18)',
+            padding: '1px 6px',
+            borderRadius: '3px',
+            fontWeight: '600',
+        },
         closeBtnFontSize: '16px',
         containerTop: '16px',
         containerRight: '16px',

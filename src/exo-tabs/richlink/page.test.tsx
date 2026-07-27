@@ -133,7 +133,7 @@ describe('popup/page format parity', () => {
         );
     });
 
-    it('copy toast shows the copied title, not the raw clipboard text', async () => {
+    it('copy toast: Copier and Next metadata as chips, copied title as the data line below', async () => {
         document.title = 'Example Page';
         const url = 'https://example.com/some-page';
 
@@ -141,9 +141,20 @@ describe('popup/page format parity', () => {
 
         const calls = vi.mocked(Notifications.show).mock.calls;
         const toast = calls[calls.length - 1]?.[0];
-        const {container} = render(<>{toast?.children}</>);
+        const {container, getByText} = render(<>{toast?.children}</>);
+
+        // Metadata: the copier's label and each Next label are standalone chips.
+        expect(container.textContent).toContain('Copier:');
+        expect(getByText('Page Title')).toBeInTheDocument();
+        expect(container.textContent).toContain('Next:');
+        expect(getByText('Raw URL')).toBeInTheDocument();
+
+        // Data: the copied title (not the raw "title (url)" clipboard string),
+        // rendered below the metadata lines.
         expect(container.textContent).toContain('Example Page');
         expect(container.textContent).not.toContain(url);
+        const lines = Array.from(container.querySelectorAll(':scope > div'));
+        expect(lines[lines.length - 1]?.textContent).toBe('Example Page');
     });
 
     it('plain URL (no specialized handler): fallback formats match', async () => {

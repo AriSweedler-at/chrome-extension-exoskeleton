@@ -54,16 +54,16 @@ export async function handleCopyRichLink(
             nextFormats.push(formats[nextIndex].label);
         }
     }
-    const preview = nextFormats.length > 0 ? `Next: ${nextFormats.join(' \u2192 ')}` : undefined;
-
     const isFallback = format.isFallback ?? false;
     const opacity = isFallback ? 0.9 : 1;
 
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
-    const message = `Copied${formatInfo}\n${format.label}`;
+    const message = `Copied${formatInfo}`;
 
     // The title of what's on the clipboard, not just which format produced it.
     const copied = truncateWithEllipsis(format.title, 120);
+
+    const chip = (label: string) => <span style={theme.toast.previewChip}>{label}</span>;
 
     Notifications.show({
         message,
@@ -72,8 +72,21 @@ export async function handleCopyRichLink(
         opacity,
         children: (
             <>
+                {/* Metadata first (which copier ran, what cycling copies next)... */}
+                <div style={{marginTop: '4px'}}>Copier: {chip(format.label)}</div>
+                {nextFormats.length > 0 && (
+                    <div style={{...theme.toast.preview, marginTop: '4px'}}>
+                        Next:{' '}
+                        {nextFormats.map((label, i) => (
+                            <span key={`${label}-${i}`}>
+                                {i > 0 && ' \u2192 '}
+                                {chip(label)}
+                            </span>
+                        ))}
+                    </div>
+                )}
+                {/* ...then the data: the title now on the clipboard. */}
                 <div style={{...theme.toast.preview, marginTop: '4px'}}>{copied}</div>
-                {preview && <div style={{...theme.toast.preview, marginTop: '4px'}}>{preview}</div>}
             </>
         ),
     });
