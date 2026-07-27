@@ -34,6 +34,38 @@ Key constraints:
 - **No toolbar interaction** — popup is tested by navigating to `chrome-extension://<id>/src/popup/index.html`
 - **Sequential execution** — persistent context means 1 worker, no parallel isolation
 
+### Iterating on a page tab (the fixture-page pattern)
+
+`e2e/helpers.ts` is the toolkit for driving a tab's page-side behavior without
+access to the real site. The trick: route-intercept a real production URL and
+serve fixture HTML there — the content script injects based on the URL alone,
+so its page modules register keybindings against your fixture DOM.
+
+```ts
+const page = await openFixturePage(context, SPINNAKER_URL, FIXTURE_HTML);
+await pressAndExpectToast(page, 'p', 'Copied pod name: my-pod');
+expect(await readClipboardText(page)).toBe('my-pod');
+```
+
+The loop for improving a tab's actions (see `e2e/spinnaker.spec.ts`):
+1. Save a slice of the real site's DOM into the spec's fixture HTML (only the
+   elements the actions' selectors target).
+2. Assert what each keybinding should do (toast text, clicks recorded by the
+   fixture's instrumentation, clipboard contents).
+3. `npm run test:e2e:quick -- e2e/spinnaker.spec.ts` after each change
+   (`test:e2e:quick` skips the rebuild — run `npm run build` first whenever
+   `src/` changed).
+
+Helper notes:
+- `openFixturePage` routes the **whole origin**, so in-page navigations keep
+  resolving to the fixture.
+- Page modules register bindings after an async storage read; a keystroke sent
+  too early is lost. `pressAndExpectToast` retries the press, so only use it
+  with idempotent shortcuts — and re-press after it settles before asserting
+  the page never saw the key.
+- Embed `KEYLOGGER_SNIPPET` in the fixture to assert interception via
+  `seenKeys` / `resetSeenKeys`.
+
 ## Rich Link Handler Tools
 
 Two CLI scripts help develop rich link handlers by loading saved HTML files into JSDOM.
