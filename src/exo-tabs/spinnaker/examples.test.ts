@@ -53,14 +53,16 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             expect(executions.length).toBeGreaterThan(0);
 
             const groupTitles = Array.from(document.querySelectorAll('.execution-group-title')).map(
-                (el) => el.textContent?.trim(),
+                (el) => el.textContent?.trim() ?? '',
             );
 
             for (const el of executions) {
                 const executionId = el.id.replace('execution-', '');
                 const pipeline = findPipelineNameForExecution(executionId);
                 expect(pipeline, `execution ${executionId}`).toBeTruthy();
-                expect(groupTitles).toContain(pipeline);
+                // startsWith, not equality: titles may carry badge suffixes
+                // (running count) that are not part of the pipeline name.
+                expect(groupTitles.some((t) => t.startsWith(pipeline as string))).toBe(true);
 
                 const isolated = setPipelineFilter(SPINNAKER_URL, pipeline as string);
                 expect(isolated).toContain('pipeline=');

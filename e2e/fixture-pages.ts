@@ -57,7 +57,7 @@ export const SPINNAKER_HTML = `<!doctype html>
   <body>
     <h2>myapp &rsaquo; executions &rsaquo; ${EXECUTION_ID}</h2>
     <div class="execution-group">
-      <h4 class="execution-group-title">${PIPELINE_NAME}</h4>
+      <h4 class="execution-group-title">${PIPELINE_NAME}<span> <span class="badge">1</span></span></h4>
       <div class="execution" id="execution-${EXECUTION_ID}">
         <a class="clickable" id="exec-details-link">Execution Details</a>
         <div class="execution-details-container">

@@ -15,6 +15,21 @@ export function isExecutionOpen(url: string = window.location.href): boolean {
 }
 
 /**
+ * The pipeline name is the title element's own text; child elements are
+ * badges (e.g. <span><span class="badge">1</span></span>, the running
+ * count), not part of the name.
+ */
+function pipelineNameFromTitle(title: Element | null): string | null {
+    if (!title) return null;
+    const name = Array.from(title.childNodes)
+        .filter((node) => node.nodeType === node.TEXT_NODE)
+        .map((node) => node.textContent)
+        .join('')
+        .trim();
+    return name || null;
+}
+
+/**
  * Find the pipeline name that owns an execution: locate the execution's DOM
  * node, walk up to its .execution-group, and read the group's title. Falls
  * back to the page's only group title when the execution node isn't found
@@ -26,13 +41,13 @@ export function findPipelineNameForExecution(executionId: string): string | null
         document.querySelector(`a[href*="${executionId}"]`);
     const group = executionEl?.closest('.execution-group');
     if (group) {
-        const name = group.querySelector('.execution-group-title')?.textContent?.trim();
+        const name = pipelineNameFromTitle(group.querySelector('.execution-group-title'));
         if (name) return name;
     }
 
     const titles = document.querySelectorAll('.execution-group-title');
     if (titles.length === 1) {
-        return titles[0].textContent?.trim() || null;
+        return pipelineNameFromTitle(titles[0]);
     }
     return null;
 }

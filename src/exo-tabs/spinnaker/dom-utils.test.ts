@@ -95,6 +95,18 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
             expect(findPipelineNameForExecution(EXEC_ID)).toBe('Deploy Canary');
         });
 
+        it('excludes badge children from the pipeline name', () => {
+            document.body.innerHTML = `
+                <div class="execution-group">
+                    <h4 class="execution-group-title">Continuously deploy shared dogfood PRODUCTION<span> <span class="badge">1</span></span></h4>
+                    <div class="execution" id="execution-${EXEC_ID}"></div>
+                </div>
+            `;
+            expect(findPipelineNameForExecution(EXEC_ID)).toBe(
+                'Continuously deploy shared dogfood PRODUCTION',
+            );
+        });
+
         it('picks the right group when several pipelines are listed', () => {
             document.body.innerHTML = `
                 <div class="execution-group">
