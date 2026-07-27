@@ -2,6 +2,7 @@ export interface LinkFormat {
     label: string; // Button text in the popup format picker: "GitHub PR", "Page Title", "Raw URL"
     priority: number; // Lower numbers appear first in the format picker
     isFallback?: boolean; // True for fallback formats (e.g. Page Title, Raw URL); used by UI for styling
+    title: string; // The human-readable link text: "Fix auth flow (#42)" — shown in the copy toast
     html: string; // HTML to copy: "<a href='...'>text</a>"
     text: string; // Plain text: "text (url)"
 }
@@ -66,6 +67,7 @@ export function linkFormat(
         label,
         priority,
         ...(isFallback && {isFallback}),
+        title,
         html: `<a href="${escapeHtml(url)}">${escapeHtml(title)}</a>`,
         text: `${title} (${url})`,
     };

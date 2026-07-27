@@ -133,17 +133,17 @@ describe('popup/page format parity', () => {
         );
     });
 
-    it('copy toast shows the copied text, not just the format label', async () => {
+    it('copy toast shows the copied title, not the raw clipboard text', async () => {
         document.title = 'Example Page';
         const url = 'https://example.com/some-page';
-        const popupFormats = HandlerRegistry.getAllFormats(url);
 
         await handleCopyRichLink({url, formatIndex: 0}, dummySender, undefined as void);
 
         const calls = vi.mocked(Notifications.show).mock.calls;
         const toast = calls[calls.length - 1]?.[0];
         const {container} = render(<>{toast?.children}</>);
-        expect(container.textContent).toContain(popupFormats[0].text);
+        expect(container.textContent).toContain('Example Page');
+        expect(container.textContent).not.toContain(url);
     });
 
     it('plain URL (no specialized handler): fallback formats match', async () => {

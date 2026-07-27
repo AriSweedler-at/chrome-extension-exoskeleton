@@ -25,6 +25,7 @@ export class RawUrlHandler extends Handler {
                 label: this.label,
                 priority: this.priority,
                 isFallback: true,
+                title: ctx.url,
                 html: escapeHtml(ctx.url),
                 text: ctx.url,
             },

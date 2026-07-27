@@ -17,6 +17,7 @@ export class GitHubPrNumberHandler extends GitHubHandler {
             {
                 label: this.label,
                 priority: this.priority,
+                title: text,
                 html: `<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>`,
                 text,
             },

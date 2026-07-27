@@ -22,6 +22,7 @@ describe('Handler', () => {
         expect(format).toEqual({
             label: 'Test Handler',
             priority: 10,
+            title: 'Test Page',
             html: `<a href="${url}">Test Page</a>`,
             text: `Test Page (${url})`,
         });

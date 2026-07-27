@@ -62,8 +62,8 @@ export async function handleCopyRichLink(
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
     const message = `Copied${formatInfo}\n${format.label}`;
 
-    // What's on the clipboard right now, not just which format produced it.
-    const copied = truncateWithEllipsis(format.text, 120);
+    // The title of what's on the clipboard, not just which format produced it.
+    const copied = truncateWithEllipsis(format.title, 120);
 
     Notifications.show({
         message,
