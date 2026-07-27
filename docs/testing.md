@@ -78,10 +78,9 @@ npm run spinnaker-html <htmlFile> [url]
 ```
 
 Prints everything the helpers resolve from that DOM: execution → pipeline
-mapping, isolate URLs, the Execution Details link, extracted pod names, and
-the rich-link formats (pipeline only in isolation mode; application
-otherwise). Bare filenames resolve from `examples/`; any path works too, so
-it's always usable.
+mapping, isolate URLs, the Execution Details link, and the rich-link formats
+(pipeline only in isolation mode; application otherwise). Bare filenames
+resolve from `examples/`; any path works too, so it's always usable.
 
 `src/exo-tabs/spinnaker/examples.test.ts` runs the same helpers over every
 saved snapshot as part of `npm test` — data-driven, no hardcoded ids. When no

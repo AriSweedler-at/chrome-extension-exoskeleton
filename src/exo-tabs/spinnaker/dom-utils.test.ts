@@ -1,9 +1,7 @@
 import {describe, it, expect, beforeEach, afterEach} from 'vitest';
 import {
     getExecutionIdFromUrl,
-    isExecutionOpen,
     findExecutionDetailsLink,
-    findErrorContainer,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
@@ -19,20 +17,6 @@ describe('Spinnaker DOM Utils - URL Parsing', () => {
             const url =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions';
             expect(getExecutionIdFromUrl(url)).toBeNull();
-        });
-    });
-
-    describe('isExecutionOpen', () => {
-        it('returns true when URL has stage params', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT?stage=2&step=0&details=runJobConfig';
-            expect(isExecutionOpen(url)).toBe(true);
-        });
-
-        it('returns false when URL has no stage params', () => {
-            const url =
-                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT';
-            expect(isExecutionOpen(url)).toBe(false);
         });
     });
 });
@@ -138,25 +122,6 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
                 <div class="execution-group"><h4 class="execution-group-title">B</h4></div>
             `;
             expect(findPipelineNameForExecution(EXEC_ID)).toBeNull();
-        });
-    });
-
-    describe('findErrorContainer', () => {
-        it('finds error container in execution details', () => {
-            document.body.innerHTML = `
-                <div class="execution-details-container">
-                    <div class="alert alert-danger">Error message</div>
-                </div>
-            `;
-
-            const container = findErrorContainer();
-            expect(container).toBeTruthy();
-            expect(container?.textContent).toBe('Error message');
-        });
-
-        it('returns null when no error container', () => {
-            document.body.innerHTML = '<div>No errors</div>';
-            expect(findErrorContainer()).toBeNull();
         });
     });
 });

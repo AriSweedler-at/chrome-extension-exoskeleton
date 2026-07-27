@@ -8,13 +8,6 @@ export function getExecutionIdFromUrl(url: string = window.location.href): strin
 }
 
 /**
- * Check if execution details are open (has stage params)
- */
-export function isExecutionOpen(url: string = window.location.href): boolean {
-    return url.includes('stage=') && url.includes('details=');
-}
-
-/**
  * The pipeline name is the title element's own text; child elements are
  * badges (e.g. <span><span class="badge">1</span></span>, the running
  * count), not part of the name.
@@ -63,15 +56,4 @@ export function findExecutionDetailsLink(): HTMLElement | null {
         }
     }
     return null;
-}
-
-/**
- * Find error container within execution details
- */
-export function findErrorContainer(): HTMLElement | null {
-    const detailsContainer = document.querySelector('.execution-details-container');
-    if (!detailsContainer) {
-        return null;
-    }
-    return detailsContainer.querySelector('.alert.alert-danger') as HTMLElement | null;
 }

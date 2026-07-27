@@ -24,9 +24,7 @@ import {
 import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
-    findErrorContainer,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
-import {extractPodNames} from '@exo/exo-tabs/spinnaker/pod-extractor';
 import {
     getPipelineFilters,
     getIsolatedPipeline,
@@ -93,15 +91,6 @@ for (const el of executions) {
 
 const detailsLink = findExecutionDetailsLink();
 console.log(`\nExecution Details link ('e'): ${detailsLink ? 'found' : 'NOT FOUND'}`);
-
-const errorContainer = findErrorContainer();
-if (errorContainer) {
-    const pods = extractPodNames(errorContainer.innerHTML);
-    console.log(`Error container ('p'): found, ${pods.length} pod name(s):`);
-    pods.forEach((p) => console.log(`  - ${p}`));
-} else {
-    console.log(`Error container ('p'): none (no failed stage open in this snapshot)`);
-}
 
 console.log('\nRich link (Cmd+Shift+C) formats:');
 const linkFormats = new SpinnakerHandler().getFormats({url});

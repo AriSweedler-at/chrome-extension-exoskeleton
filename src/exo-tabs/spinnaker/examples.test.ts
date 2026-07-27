@@ -7,9 +7,7 @@ import {
 import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
-    findErrorContainer,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
-import {extractPodNames} from '@exo/exo-tabs/spinnaker/pod-extractor';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
 /**
@@ -72,13 +70,6 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
         it('finds the Execution Details link', () => {
             installDom();
             expect(findExecutionDetailsLink()).not.toBeNull();
-        });
-
-        it('extracts at least one pod name when an error alert is present', () => {
-            installDom();
-            const container = findErrorContainer();
-            if (!container) return; // snapshot has no failed stage open — nothing to assert
-            expect(extractPodNames(container.innerHTML).length).toBeGreaterThan(0);
         });
     });
 });

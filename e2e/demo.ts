@@ -103,24 +103,13 @@ async function main() {
     page = await openFixture(context, SPINNAKER_URL, SPINNAKER_HTML);
     await narrate(
         page,
-        `Scene 2 · A (toy) Spinnaker execution page for ${EXECUTION_ID}, with a failed-manifest error. Keys: e x i j p.`,
+        `Scene 2 · A (toy) Spinnaker execution page for ${EXECUTION_ID}, with a failed-manifest error. Keys: e i.`,
     );
     await press(page, 'Shift+Slash', 'the help overlay now lists the Spinnaker bindings');
     await press(page, 'e', 'clicks the "Execution Details" link — watch the error panel toggle');
     await press(page, 'e', 'toggles it back');
-    await press(
-        page,
-        'x',
-        'toasts the execution id parsed from the URL, and whether details are open',
-    );
     await press(page, 'i', 'isolates this pipeline — watch the URL gain ?pipeline=<name>');
     await narrate(page, `URL is now: ${page.url()}`);
-    await press(page, 'p', 'extracts the pod name from the error JSON and copies it');
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
-        origin: new URL(SPINNAKER_URL).origin,
-    });
-    const clipboard = await page.evaluate(() => navigator.clipboard.readText());
-    await narrate(page, `Clipboard now contains: "${clipboard}"`);
 
     await narrate(page, 'Demo complete — closing in a few seconds. Re-run with: npm run demo');
     await sleep(4000);

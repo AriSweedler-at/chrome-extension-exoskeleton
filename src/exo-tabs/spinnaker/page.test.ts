@@ -9,10 +9,7 @@ vi.mock('@exo/lib/keybindings', () => ({
 }));
 vi.mock('@exo/exo-tabs/spinnaker/actions', () => ({
     toggleExecution: vi.fn(),
-    displayActiveExecution: vi.fn(),
     isolatePipeline: vi.fn(),
-    jumpToExecution: vi.fn(),
-    extractPodNames: vi.fn(),
 }));
 
 const SPINNAKER_URL = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions';
@@ -55,7 +52,7 @@ describe('spinnaker page module', () => {
 
         expect(keybindings.registerAll).toHaveBeenCalledTimes(1);
         const bindings = vi.mocked(keybindings.registerAll).mock.calls[0][0];
-        expect(bindings.map((b: {key: string}) => b.key)).toEqual(['e', 'x', 'i', 'j', 'p']);
+        expect(bindings.map((b: {key: string}) => b.key)).toEqual(['e', 'i']);
         expect(keybindings.listen).toHaveBeenCalled();
     });
 
