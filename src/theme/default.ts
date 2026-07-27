@@ -59,12 +59,12 @@ export const theme = {
         padding: '12px 16px',
         marginBottom: '8px',
         borderRadius: '4px',
-        fontSize: '14px',
+        fontSize: '18px',
         lineHeight: '1.4',
         fadeMs: 300,
         detail: {
             background: 'hsla(0, 0%, 0%, 0.3)',
-            fontSize: '11px',
+            fontSize: '16px',
             padding: '8px',
             borderRadius: '3px',
             fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
@@ -77,7 +77,7 @@ export const theme = {
             fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
         },
         preview: {
-            fontSize: '11px',
+            fontSize: '14px',
             opacity: '0.7',
         },
         // Format-label chip inside the "Next: A → B" cycle preview
