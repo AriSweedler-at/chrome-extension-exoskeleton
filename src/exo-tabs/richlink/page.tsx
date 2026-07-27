@@ -5,7 +5,7 @@ import {
     type GetFormatsPayload,
 } from '@exo/exo-tabs/richlink/action';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
-import {FormatRefusalError} from '@exo/exo-tabs/richlink/base';
+import {FormatRefusalError, truncateWithEllipsis} from '@exo/exo-tabs/richlink/base';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications, NotificationType} from '@exo/lib/toast-notification';
 import {CopyCounter} from '@exo/exo-tabs/richlink/copy-counter';
@@ -72,14 +72,20 @@ export async function handleCopyRichLink(
     const formatInfo = formats.length > 1 ? ` [${formatIndex + 1}/${formats.length}]` : '';
     const message = `Copied${formatInfo}\n${format.label}`;
 
+    // What's on the clipboard right now, not just which format produced it.
+    const copied = truncateWithEllipsis(format.text, 120);
+
     Notifications.show({
         message,
         duration: CACHE_EXPIRY_MS,
         replace: cycling,
         opacity,
-        children: preview ? (
-            <div style={{...theme.toast.preview, marginTop: '4px'}}>{preview}</div>
-        ) : undefined,
+        children: (
+            <>
+                <div style={{...theme.toast.preview, marginTop: '4px'}}>{copied}</div>
+                {preview && <div style={{...theme.toast.preview, marginTop: '4px'}}>{preview}</div>}
+            </>
+        ),
     });
 
     if (payload.formatIndex === undefined) {

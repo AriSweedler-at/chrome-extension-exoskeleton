@@ -1,4 +1,5 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {render} from '@testing-library/react';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
@@ -128,6 +129,19 @@ describe('popup/page format parity', () => {
             expect.stringContaining('Spinnaker Pipeline: Blue Green Provisioning PRODUCTION'),
             expect.stringContaining('Spinnaker Pipeline: Blue Green Provisioning PRODUCTION'),
         );
+    });
+
+    it('copy toast shows the copied text, not just the format label', async () => {
+        document.title = 'Example Page';
+        const url = 'https://example.com/some-page';
+        const popupFormats = HandlerRegistry.getAllFormats(url);
+
+        await handleCopyRichLink({url, formatIndex: 0}, dummySender, undefined as void);
+
+        const calls = vi.mocked(Notifications.show).mock.calls;
+        const toast = calls[calls.length - 1]?.[0];
+        const {container} = render(<>{toast?.children}</>);
+        expect(container.textContent).toContain(popupFormats[0].text);
     });
 
     it('plain URL (no specialized handler): fallback formats match', async () => {
