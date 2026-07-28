@@ -12,12 +12,16 @@ export enum NotificationType {
     Default = 'default',
 }
 
+/** Toast size preset — sets the root font size; all inner text scales with it. */
+export type ToastSize = keyof typeof theme.toast.fontSize;
+
 export interface NotificationOptions {
     /** Plain-text body. Used for logging even when `markdown`/`children` render the UI. */
     message?: string;
     /** Markdown body (a small subset). Rendered to plain DOM — safe in content scripts. */
     markdown?: string;
     type?: NotificationType;
+    size?: ToastSize;
     duration?: number;
     replace?: boolean;
     opacity?: number;
@@ -118,7 +122,7 @@ function createPauseToggle(
                 position: absolute;
                 bottom: 4px;
                 right: 8px;
-                font-size: 10px;
+                font-size: 0.6em;
                 color: hsla(0, 0%, 100%, 1);
                 pointer-events: none;
             `;
@@ -154,6 +158,7 @@ export class Notifications {
             message,
             markdown,
             type = NotificationType.Success,
+            size = 'normal',
             duration = DEFAULT_DURATION_MS,
             replace,
             opacity = 0.95,
@@ -182,7 +187,7 @@ export class Notifications {
         const notification = document.createElement('div');
         notification.className = 'chrome-ext-notification';
 
-        const {cssText, backgroundColor} = this.buildNotificationStyle(type, opacity);
+        const {cssText, backgroundColor} = this.buildNotificationStyle(type, opacity, size);
         notification.style.cssText = cssText;
 
         // Content body, in priority order: markdown (plain-DOM render) > React
@@ -363,6 +368,7 @@ export class Notifications {
     private static buildNotificationStyle(
         type: NotificationType,
         opacity: number,
+        size: ToastSize,
     ): {cssText: string; backgroundColor: string} {
         let backgroundColor = theme.toast.bg[type] as string;
         if (opacity !== 1) {
@@ -377,7 +383,7 @@ export class Notifications {
                 background: ${backgroundColor};
                 color: ${theme.text.white};
                 border-radius: ${theme.toast.borderRadius};
-                font-size: ${theme.toast.fontSize};
+                font-size: ${theme.toast.fontSize[size]};
                 box-shadow: ${theme.shadow.sm};
                 line-height: ${theme.toast.lineHeight};
                 transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;

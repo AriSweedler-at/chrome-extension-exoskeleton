@@ -36,6 +36,17 @@ describe('Notifications', () => {
             expect(notification?.textContent).toBe('Test message');
         });
 
+        it('sizes the toast via the size preset, defaulting to normal', () => {
+            Notifications.show({message: 'default'});
+            Notifications.show({message: 'small', size: 'small'});
+            Notifications.show({message: 'large', size: 'large'});
+
+            const sizes = Array.from(container.querySelectorAll('.chrome-ext-notification')).map(
+                (el) => (el as HTMLElement).style.fontSize,
+            );
+            expect(sizes).toEqual(['18px', '14px', '22px']);
+        });
+
         it('should set timer bar animation with specified duration', () => {
             Notifications.show({message: 'Test', duration: 2000});
             const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;

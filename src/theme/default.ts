@@ -59,12 +59,19 @@ export const theme = {
         padding: '12px 16px',
         marginBottom: '8px',
         borderRadius: '4px',
-        fontSize: '18px',
+        // Root font size per toast size ('normal' is the default). All inner
+        // text (detail, preview, chips, close button) is em-relative, so one
+        // size choice scales the whole toast.
+        fontSize: {
+            small: '14px',
+            normal: '18px',
+            large: '22px',
+        },
         lineHeight: '1.4',
         fadeMs: 300,
         detail: {
             background: 'hsla(0, 0%, 0%, 0.3)',
-            fontSize: '16px',
+            fontSize: '0.9em',
             padding: '8px',
             borderRadius: '3px',
             fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
@@ -77,7 +84,7 @@ export const theme = {
             fontFamily: "'SF Mono', Monaco, 'Cascadia Code', monospace",
         },
         preview: {
-            fontSize: '14px',
+            fontSize: '0.8em',
             opacity: '0.7',
         },
         // Format-label chip inside the "Next: A → B" cycle preview
@@ -87,7 +94,7 @@ export const theme = {
             borderRadius: '3px',
             fontWeight: '600',
         },
-        closeBtnFontSize: '16px',
+        closeBtnFontSize: '0.9em',
         containerTop: '16px',
         containerRight: '16px',
         containerZIndex: 10000,
