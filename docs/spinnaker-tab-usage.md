@@ -51,9 +51,11 @@ always works.
 
 ## Environment switching (Cmd+Shift+X)
 
-The primary action flips between production and alpha by rewriting the
-hostname. The `pipeline` filter is dropped in the process — pipeline names
-are environment-specific, so a carried-over filter would match nothing.
+The primary action cycles alpha → staging → production by rewriting the
+hostname; the popup also shows one button per environment. Pipeline filters
+are carried across and retargeted: the environment token inside the pipeline
+name is swapped (`?pipeline=Continuous Migration PRODUCTION` becomes
+`?pipeline=Continuous Migration ALPHA` on the alpha URL).
 
 ## URL Patterns
 

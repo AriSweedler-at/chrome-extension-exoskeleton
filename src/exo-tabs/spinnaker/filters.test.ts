@@ -5,7 +5,7 @@ import {
     getApplicationName,
     isExecutionsView,
     setPipelineFilter,
-    clearPipelineFilter,
+    transformPipelineFilters,
 } from '@exo/exo-tabs/spinnaker/filters';
 
 const BASE =
@@ -112,20 +112,23 @@ describe('spinnaker filters', () => {
         });
     });
 
-    describe('clearPipelineFilter', () => {
-        it('removes the pipeline filter, preserving other params', () => {
+    describe('transformPipelineFilters', () => {
+        const upper = (name: string) => name.toUpperCase();
+
+        it('rewrites the filter value, preserving other params', () => {
             expect(
-                clearPipelineFilter(`${BASE}?pipeline=Rollback%20PRODUCTION&stage=0&step=0`),
-            ).toBe(`${BASE}?stage=0&step=0`);
+                transformPipelineFilters(`${BASE}?pipeline=Deploy%20web&stage=0&step=0`, upper),
+            ).toBe(`${BASE}?stage=0&step=0&pipeline=DEPLOY%20WEB`);
         });
 
-        it('removes every pipeline filter', () => {
-            expect(clearPipelineFilter(`${BASE}?pipeline=One&pipeline=Two`)).toBe(BASE);
+        it('rewrites every filter when several are checked', () => {
+            const result = transformPipelineFilters(`${BASE}?pipeline=One&pipeline=Two`, upper);
+            expect(getPipelineFilters(result)).toEqual(['ONE', 'TWO']);
         });
 
         it('leaves URLs without a filter untouched', () => {
-            expect(clearPipelineFilter(`${BASE}?stage=2`)).toBe(`${BASE}?stage=2`);
-            expect(clearPipelineFilter(BASE)).toBe(BASE);
+            expect(transformPipelineFilters(`${BASE}?stage=2`, upper)).toBe(`${BASE}?stage=2`);
+            expect(transformPipelineFilters(BASE, upper)).toBe(BASE);
         });
     });
 });

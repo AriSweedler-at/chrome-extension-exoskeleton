@@ -67,20 +67,27 @@ describe('isSpinnakerSearchPage', () => {
 });
 
 describe('getEnvironments', () => {
-    it('returns 2 envs with production marked current', () => {
+    it('returns 3 envs with production marked current', () => {
         const envs = getEnvironments(
             'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
         );
-        expect(envs).toHaveLength(2);
-        expect(envs?.map((e) => e.env)).toEqual(['alpha', 'production']);
+        expect(envs).toHaveLength(3);
+        expect(envs?.map((e) => e.env)).toEqual(['alpha', 'staging', 'production']);
         expect(envs?.find((e) => e.current)?.env).toBe('production');
     });
 
-    it('returns 2 envs with alpha marked current', () => {
+    it('returns 3 envs with alpha marked current', () => {
         const envs = getEnvironments(
             'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions',
         );
         expect(envs?.find((e) => e.current)?.env).toBe('alpha');
+    });
+
+    it('marks staging current on the staging host', () => {
+        const envs = getEnvironments(
+            'https://spinnaker.k8s.staging-shadowbox.cloud/#/applications/app/executions',
+        );
+        expect(envs?.find((e) => e.current)?.env).toBe('staging');
     });
 
     it('preserves hash-based routing path', () => {
@@ -105,30 +112,41 @@ describe('getEnvironments', () => {
 });
 
 describe('getNextEnvironmentUrl', () => {
-    it('cycles production → alpha', () => {
-        const next = getNextEnvironmentUrl(
-            'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
-        );
-        expect(new URL(next!).hostname).toBe('spinnaker.k8s.alpha-shadowbox.cloud');
-    });
-
-    it('cycles alpha → production', () => {
-        const next = getNextEnvironmentUrl(
-            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions',
-        );
-        expect(new URL(next!).hostname).toBe('spinnaker.k8s.shadowbox.cloud');
+    it('cycles alpha → staging → production → alpha', () => {
+        const path = '/#/applications/app/executions';
+        expect(
+            new URL(getNextEnvironmentUrl(`https://spinnaker.k8s.alpha-shadowbox.cloud${path}`)!)
+                .hostname,
+        ).toBe('spinnaker.k8s.staging-shadowbox.cloud');
+        expect(
+            new URL(getNextEnvironmentUrl(`https://spinnaker.k8s.staging-shadowbox.cloud${path}`)!)
+                .hostname,
+        ).toBe('spinnaker.k8s.shadowbox.cloud');
+        expect(
+            new URL(getNextEnvironmentUrl(`https://spinnaker.k8s.shadowbox.cloud${path}`)!)
+                .hostname,
+        ).toBe('spinnaker.k8s.alpha-shadowbox.cloud');
     });
 
     it('returns undefined for non-Spinnaker URL', () => {
         expect(getNextEnvironmentUrl('https://example.com')).toBeUndefined();
     });
 
-    it('drops the env-specific pipeline filter when switching environments', () => {
+    it('retargets the pipeline filter to the destination environment', () => {
         const next = getNextEnvironmentUrl(
-            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?pipeline=Rollback%20Pipeline%20Group%20Non-App%20Worker%20PRODUCTION&stage=0&step=0&details=evaluateVariablesConfig',
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?pipeline=Continuous%20Migration%20PRODUCTION&stage=0&step=0&details=evaluateVariablesConfig',
         );
         expect(next).toBe(
-            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?stage=0&step=0&details=evaluateVariablesConfig',
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KKF8684WK9RM252E798BBQ3W?stage=0&step=0&details=evaluateVariablesConfig&pipeline=Continuous%20Migration%20ALPHA',
+        );
+    });
+
+    it('retargets whichever env token the pipeline name carries', () => {
+        const next = getNextEnvironmentUrl(
+            'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/app/executions?pipeline=Rollback%20Pipeline%20Group%20Non-App%20Worker%20PRODUCTION',
+        );
+        expect(next).toBe(
+            'https://spinnaker.k8s.staging-shadowbox.cloud/#/applications/app/executions?pipeline=Rollback%20Pipeline%20Group%20Non-App%20Worker%20STAGING',
         );
     });
 

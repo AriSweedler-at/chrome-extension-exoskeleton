@@ -65,16 +65,21 @@ export function setPipelineFilter(url: string, pipelineName: string): string {
 }
 
 /**
- * Drop every pipeline filter, preserving the other params. Pipeline names
- * are environment-specific ("... PRODUCTION"), so carrying the filter
- * across an environment switch would match nothing.
+ * Rewrite every pipeline filter through `transform`, preserving the other
+ * params and the filters' order/multiplicity. URLs without a filter pass
+ * through untouched.
  */
-export function clearPipelineFilter(url: string): string {
+export function transformPipelineFilters(url: string, transform: (name: string) => string): string {
     const urlObj = new URL(url);
     const [hashPath, hashQuery = ''] = urlObj.hash.split('?');
     const params = new URLSearchParams(hashQuery);
+    const pipelines = params.getAll('pipeline');
+    if (pipelines.length === 0) return url;
+
     params.delete('pipeline');
-    const query = params.toString().replace(/\+/g, '%20');
-    urlObj.hash = query ? `${hashPath}?${query}` : hashPath;
+    for (const name of pipelines) {
+        params.append('pipeline', transform(name));
+    }
+    urlObj.hash = `${hashPath}?${params.toString().replace(/\+/g, '%20')}`;
     return urlObj.toString();
 }

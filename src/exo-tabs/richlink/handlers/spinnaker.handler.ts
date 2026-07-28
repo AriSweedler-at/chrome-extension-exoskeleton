@@ -60,6 +60,7 @@ export class SpinnakerHandler extends Handler {
     canHandle(url: URL): boolean {
         return (
             url.hostname === 'spinnaker.k8s.shadowbox.cloud' ||
+            url.hostname === 'spinnaker.k8s.staging-shadowbox.cloud' ||
             url.hostname === 'spinnaker.k8s.alpha-shadowbox.cloud'
         );
     }

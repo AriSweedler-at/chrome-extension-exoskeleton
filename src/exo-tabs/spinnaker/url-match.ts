@@ -1,23 +1,29 @@
 import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
-import {clearPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
+import {transformPipelineFilters} from '@exo/exo-tabs/spinnaker/filters';
 
-export const SPINNAKER_ENVIRONMENTS = ['alpha', 'production'] as const;
+export const SPINNAKER_ENVIRONMENTS = ['alpha', 'staging', 'production'] as const;
 export type SpinnakerEnvironment = (typeof SPINNAKER_ENVIRONMENTS)[number];
 
 const HOSTNAME_TO_ENV: Record<string, SpinnakerEnvironment> = {
     'spinnaker.k8s.shadowbox.cloud': 'production',
+    'spinnaker.k8s.staging-shadowbox.cloud': 'staging',
     'spinnaker.k8s.alpha-shadowbox.cloud': 'alpha',
 };
 
 const ENV_TO_HOSTNAME: Record<SpinnakerEnvironment, string> = {
     production: 'spinnaker.k8s.shadowbox.cloud',
+    staging: 'spinnaker.k8s.staging-shadowbox.cloud',
     alpha: 'spinnaker.k8s.alpha-shadowbox.cloud',
 };
 
-const SPINNAKER_HOSTNAMES = [
-    'spinnaker.k8s.shadowbox.cloud',
-    'spinnaker.k8s.alpha-shadowbox.cloud',
-] as const;
+/** The environment token embedded in pipeline names ("Deploy web PRODUCTION"). */
+const ENV_TO_TOKEN: Record<SpinnakerEnvironment, string> = {
+    production: 'PRODUCTION',
+    staging: 'STAGING',
+    alpha: 'ALPHA',
+};
+
+const ENV_TOKEN_PATTERN = /\b(ALPHA|STAGING|PRODUCTION)\b/g;
 
 /**
  * Check if URL is any Spinnaker page
@@ -25,7 +31,7 @@ const SPINNAKER_HOSTNAMES = [
 export function isSpinnakerPage(url: string): boolean {
     try {
         const hostname = new URL(url).hostname.toLowerCase();
-        return SPINNAKER_HOSTNAMES.some((h) => hostname === h);
+        return hostname in HOSTNAME_TO_ENV;
     } catch {
         return false;
     }
@@ -55,13 +61,14 @@ export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
             const envUrl = new URL(url);
             envUrl.hostname = ENV_TO_HOSTNAME[env];
             const current = env === currentEnv;
-            // Pipeline names are env-specific — a carried-over filter would
-            // match nothing in the other environment.
-            return {
-                env,
-                url: current ? envUrl.toString() : clearPipelineFilter(envUrl.toString()),
-                current,
-            };
+            // Pipeline names embed the environment ("Deploy web PRODUCTION"),
+            // so retarget any pipeline filter to the destination env's token.
+            const envUrlWithFilters = current
+                ? envUrl.toString()
+                : transformPipelineFilters(envUrl.toString(), (name) =>
+                      name.replace(ENV_TOKEN_PATTERN, ENV_TO_TOKEN[env]),
+                  );
+            return {env, url: envUrlWithFilters, current};
         });
     } catch {
         return undefined;
