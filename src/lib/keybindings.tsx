@@ -249,13 +249,15 @@ export class KeybindingRegistry {
      */
     private formatKeybinding(keybinding: Pick<Keybinding, 'key' | 'modifiers'>): string {
         const modifiers = keybinding.modifiers || {};
+        // A shifted letter reads as its capital ('G'), not 'Shift + g'.
+        const isShiftedLetter = Boolean(modifiers.shift) && /^[a-zA-Z]$/.test(keybinding.key);
         const parts: string[] = [];
 
         if (modifiers.ctrl) parts.push('Ctrl');
-        if (modifiers.shift) parts.push('Shift');
+        if (modifiers.shift && !isShiftedLetter) parts.push('Shift');
         if (modifiers.alt) parts.push('Alt');
         if (modifiers.meta) parts.push('⌘');
-        parts.push(keybinding.key);
+        parts.push(isShiftedLetter ? keybinding.key.toUpperCase() : keybinding.key);
 
         return parts.join(' + ');
     }

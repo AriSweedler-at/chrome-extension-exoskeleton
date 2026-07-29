@@ -70,6 +70,22 @@ describe('KeybindingRegistry', () => {
         registry.hideHelp();
     });
 
+    it('displays a shifted letter as its capital, without the Shift prefix', () => {
+        registry.register({
+            key: 'G',
+            modifiers: {shift: true},
+            description: 'Jump',
+            handler: vi.fn(),
+            context: 'Spinnaker',
+        });
+        registry.showHelp();
+
+        const kbds = Array.from(document.querySelectorAll('kbd')).map((el) => el.textContent);
+        expect(kbds).toContain('G');
+        expect(kbds).not.toContain('Shift + G');
+        registry.hideHelp();
+    });
+
     it('should fire handler for ? key (requires shift)', async () => {
         const handler = vi.fn();
         registry.register({key: '?', description: 'test', handler});
