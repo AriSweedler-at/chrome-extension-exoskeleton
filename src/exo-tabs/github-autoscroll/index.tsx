@@ -88,6 +88,52 @@ export function goToChangedFiles(): void {
     navigateToPRTab('changes');
 }
 
+/** Dinghy pipeline definition files: services/spinnaker/pipelines2/<service>/dinghy.<env>.json */
+export const DINGHY_FILE_PATTERN = /^services\/spinnaker\/pipelines2\/[^/]+\/dinghy\.[^/]+\.json$/;
+
+interface ViewedToggle {
+    path: string;
+    button: HTMLButtonElement;
+    viewed: boolean;
+}
+
+/**
+ * Every rendered file diff's "Viewed" toggle with its path. In the current
+ * GitHub files view each diff header carries a MarkAsViewedButton whose
+ * aria-pressed reflects the viewed state; the path is the header's h3 link
+ * (wrapped in LEFT-TO-RIGHT MARK characters).
+ */
+export function getViewedToggles(): ViewedToggle[] {
+    const buttons = Array.from(
+        document.querySelectorAll('button[class*="MarkAsViewedButton"]'),
+    ) as HTMLButtonElement[];
+
+    const toggles: ViewedToggle[] = [];
+    for (const button of buttons) {
+        const header = button.closest('[class*="diff-file-header"]');
+        const path = header
+            ?.querySelector('h3 a')
+            ?.textContent?.replace(/\u200e/g, '')
+            .trim();
+        if (!path) continue;
+        toggles.push({path, button, viewed: button.getAttribute('aria-pressed') === 'true'});
+    }
+    return toggles;
+}
+
+/**
+ * Mark every rendered dinghy pipeline file as viewed by clicking its
+ * "Viewed" toggle. Returns counts for the caller's toast.
+ */
+export function markDinghyFilesViewed(): {marked: number; alreadyViewed: number} {
+    const dinghy = getViewedToggles().filter((toggle) => DINGHY_FILE_PATTERN.test(toggle.path));
+    const toMark = dinghy.filter((toggle) => !toggle.viewed);
+    for (const toggle of toMark) {
+        toggle.button.click();
+    }
+    return {marked: toMark.length, alreadyViewed: dinghy.length - toMark.length};
+}
+
 /**
  * Get all file elements in the PR changes view
  */

@@ -65,6 +65,26 @@ test.describe('exo keybindings (content script)', () => {
         await expect.poll(() => seenKeys(page)).toContain('?');
     });
 
+    test('d marks dinghy files as viewed, leaving other files alone', async ({context}) => {
+        const page = await openToyPr(context);
+
+        await expect(async () => {
+            await page.keyboard.press('d');
+            await expect(page.locator('#notification-container')).toContainText(
+                'Marked 1 dinghy files as viewed (1 already viewed)',
+                {timeout: 500},
+            );
+        }).toPass({timeout: 5000});
+
+        const pressed = await page.evaluate(() =>
+            Array.from(document.querySelectorAll('button[class*="MarkAsViewedButton"]')).map(
+                (btn) => btn.getAttribute('aria-pressed'),
+            ),
+        );
+        // dinghy.alpha flipped to viewed, dinghy.staging already was, src/index.ts untouched
+        expect(pressed).toEqual(['true', 'true', 'false']);
+    });
+
     test('the f shortcut navigates to the Files changed tab', async ({context}) => {
         // openFixturePage routes the whole origin, so the /changes destination
         // resolves to the same fixture and the navigation commits.

@@ -1,6 +1,5 @@
 /**
- * Loader for saved real Spinnaker DOM snapshots (see src/lib/example-dom.ts).
- * Used by examples.test.ts and the `npm run spinnaker-html` iteration CLI.
+ * Loader for saved real GitHub PR DOM snapshots (see src/lib/example-dom.ts).
  */
 
 import * as path from 'path';
@@ -12,6 +11,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const {resolveExamplePath, listExamples, loadExampleHtml, missingExampleHint} =
     createExampleDomLoader({
         examplesDir: path.join(__dirname, 'examples'),
-        repoRelativeDir: 'src/exo-tabs/spinnaker/examples',
-        sourceDescription: 'the matching Spinnaker view',
+        repoRelativeDir: 'src/exo-tabs/github-autoscroll/examples',
+        sourceDescription: 'the matching GitHub PR view',
     });

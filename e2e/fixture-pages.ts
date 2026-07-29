@@ -16,11 +16,33 @@ export const KEYLOGGER_SNIPPET = `<script>
 
 export const PR_URL = 'https://github.com/exo-test/repo/pull/1';
 
+const prFileHeader = (path: string, viewed: boolean) => `
+    <div class="DiffFileHeader-module__diff-file-header__UuNN4">
+      <h3 class="DiffFileHeader-module__file-name__V">
+        <a class="prc-Link-Link-9ZwDx" href="#diff-${path.replace(/[^a-z]/gi, '')}">${'\u200e'}${path}${'\u200e'}</a>
+      </h3>
+      <button class="prc-Button-ButtonBase MarkAsViewedButton-module__x"
+              aria-label="${viewed ? 'Viewed' : 'Not Viewed'}" aria-pressed="${viewed}">
+        <span>Viewed</span>
+      </button>
+    </div>`;
+
 export const PR_HTML = `<!doctype html>
 <html>
   <head><meta charset="utf-8"><title>toy app</title></head>
   <body>
     <h1 id="app">toy app</h1>
+    ${prFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false)}
+    ${prFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.staging.json', true)}
+    ${prFileHeader('src/index.ts', false)}
+    <script>
+      // Like real GitHub: the Viewed toggle flips its aria-pressed on click.
+      for (const btn of document.querySelectorAll('button[class*="MarkAsViewedButton"]')) {
+        btn.addEventListener('click', () => {
+          btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+        });
+      }
+    </script>
     ${KEYLOGGER_SNIPPET}
   </body>
 </html>`;

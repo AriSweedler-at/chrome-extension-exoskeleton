@@ -17,12 +17,12 @@ export default defineConfig({
                 '**/test-utils.tsx',
                 '**/*.d.ts',
                 'src/test/**',
-                // Manual CLI harnesses, not exercised by the unit suite
+                // Manual CLI harnesses and snapshot loaders, not exercised by the unit suite
                 'src/exo-tabs/richlink/handlers/test-with-html.ts',
                 'src/exo-tabs/richlink/handlers/resolve-example.ts',
                 'src/exo-tabs/richlink/handlers/parse-html.ts',
                 'src/exo-tabs/spinnaker/inspect-html.ts',
-                'src/exo-tabs/spinnaker/example-dom.ts',
+                '**/example-dom.ts',
             ],
             thresholds: {
                 lines: 78,

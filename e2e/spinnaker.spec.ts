@@ -72,9 +72,15 @@ test.describe('spinnaker keybindings (content script)', () => {
         // press('G') does not hold Shift, so press the chord explicitly.
         await pressAndExpectToast(page, 'Shift+G', 'Jump to last pipeline');
 
-        const top = await page.evaluate(
-            () => document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,
-        );
-        expect(Math.abs(top)).toBeLessThan(2);
+        // The handler is deferred past the announce toast's paint — poll.
+        await expect
+            .poll(() =>
+                page.evaluate(() =>
+                    Math.abs(
+                        document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,
+                    ),
+                ),
+            )
+            .toBeLessThan(2);
     });
 });

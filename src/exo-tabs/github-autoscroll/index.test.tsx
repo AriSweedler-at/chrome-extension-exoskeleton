@@ -5,7 +5,102 @@ import {
     initializeAutoScroll,
     isGitHubPRChangesPage,
     isGitHubPRPage,
+    getViewedToggles,
+    markDinghyFilesViewed,
+    DINGHY_FILE_PATTERN,
 } from '@exo/exo-tabs/github-autoscroll';
+
+describe('DINGHY_FILE_PATTERN', () => {
+    it('matches dinghy pipeline files for any service and env', () => {
+        expect(
+            DINGHY_FILE_PATTERN.test(
+                'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
+            ),
+        ).toBe(true);
+        expect(
+            DINGHY_FILE_PATTERN.test(
+                'services/spinnaker/pipelines2/cert-manager/dinghy.production.json',
+            ),
+        ).toBe(true);
+    });
+
+    it('rejects non-dinghy paths', () => {
+        expect(
+            DINGHY_FILE_PATTERN.test('services/spinnaker/pipelines2/blocks-copier/config.json'),
+        ).toBe(false);
+        expect(DINGHY_FILE_PATTERN.test('services/other/pipelines2/svc/dinghy.alpha.json')).toBe(
+            false,
+        );
+        expect(
+            DINGHY_FILE_PATTERN.test('services/spinnaker/pipelines2/a/b/dinghy.alpha.json'),
+        ).toBe(false);
+        expect(
+            DINGHY_FILE_PATTERN.test('prefix/services/spinnaker/pipelines2/svc/dinghy.alpha.json'),
+        ).toBe(false);
+    });
+});
+
+describe('viewed toggles (new GitHub files view)', () => {
+    /** A diff header shaped like GitHub's current files view. */
+    function addFileHeader(path: string, viewed: boolean): void {
+        const header = document.createElement('div');
+        header.className = 'DiffFileHeader-module__diff-file-header__UuNN4';
+        header.innerHTML = `
+            <div class="DiffFileHeader-module__file-path-section__Z">
+                <h3 class="DiffFileHeader-module__file-name__V">
+                    <a class="prc-Link-Link-9ZwDx" href="#diff-x">${'\u200e'}${path}${'\u200e'}</a>
+                    <button>Copy file name to clipboard</button>
+                </h3>
+            </div>
+            <button class="prc-Button-ButtonBase MarkAsViewedButton-module__x"
+                    aria-label="${viewed ? 'Viewed' : 'Not Viewed'}"
+                    aria-pressed="${viewed}"><span>Viewed</span></button>
+        `;
+        document.body.appendChild(header);
+    }
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('getViewedToggles resolves clean paths and viewed state', () => {
+        addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false);
+        addFileHeader('src/index.ts', true);
+
+        const toggles = getViewedToggles();
+        expect(toggles.map((t) => t.path)).toEqual([
+            'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
+            'src/index.ts',
+        ]);
+        expect(toggles.map((t) => t.viewed)).toEqual([false, true]);
+    });
+
+    it('markDinghyFilesViewed clicks only unviewed dinghy files', () => {
+        addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false);
+        addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.staging.json', true);
+        addFileHeader('src/index.ts', false);
+
+        const clicked: string[] = [];
+        for (const toggle of getViewedToggles()) {
+            toggle.button.addEventListener('click', () => clicked.push(toggle.path));
+        }
+
+        const result = markDinghyFilesViewed();
+
+        expect(result).toEqual({marked: 1, alreadyViewed: 1});
+        expect(clicked).toEqual(['services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json']);
+    });
+
+    it('markDinghyFilesViewed reports zeros on a page without dinghy files', () => {
+        addFileHeader('src/index.ts', false);
+        expect(markDinghyFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
+    });
+});
+
 describe('isGitHubPRChangesPage', () => {
     it('returns true for valid GitHub PR changes URL', () => {
         const url = 'https://github.com/owner/repo/pull/123/changes';

@@ -5,8 +5,8 @@ coverage
 .DS_Store
 extension.zip
 .worktrees
-src/exo-tabs/richlink/handlers/**/examples/*.html
-src/exo-tabs/spinnaker/examples/*.html
+# Saved real-DOM snapshots — machine-local iteration fixtures
+src/exo-tabs/**/examples/*.html
 
 # Playwright
 /test-results/
