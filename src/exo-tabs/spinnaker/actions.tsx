@@ -10,10 +10,17 @@
 import {
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
+    findStackedPipelineName,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
-import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
+import {
+    setPipelineFilter,
+    isStackedDetailsView,
+    applicationFromPipelineName,
+    getApplicationName,
+    buildIsolatedExecutionUrl,
+} from '@exo/exo-tabs/spinnaker/filters';
 import {Notifications} from '@exo/lib/toast-notification';
 
 /**
@@ -51,14 +58,27 @@ export function jumpToLastPipeline(): void {
 }
 
 /**
- * Isolate the open execution's pipeline: read the pipeline name from the
- * execution's group heading and set the `pipeline` filter param in the URL,
- * so the executions view shows only that pipeline.
+ * Isolate the open execution's pipeline.
+ *
+ * On an executions list: read the pipeline name from the execution's group
+ * heading and set the `pipeline` filter param, so the view shows only that
+ * pipeline.
+ *
+ * On a stacked details view (.../executions/details/<id>): jump to the
+ * execution's own isolated view. The pipeline name comes from the
+ * execution's heading; the owning application is derived from the deploy
+ * naming convention ("Deploy {service} {ENV}" → {service}), falling back to
+ * the current application for non-deploy pipelines.
  */
 export function isolatePipeline(): void {
     const executionId = getExecutionIdFromUrl();
     if (!executionId) {
         showNotification('No execution found in URL');
+        return;
+    }
+
+    if (isStackedDetailsView(window.location.href)) {
+        isolateStackedExecution(executionId);
         return;
     }
 
@@ -70,4 +90,26 @@ export function isolatePipeline(): void {
 
     window.location.href = setPipelineFilter(window.location.href, pipelineName);
     showNotification(`Isolated pipeline: ${pipelineName}`);
+}
+
+function isolateStackedExecution(executionId: string): void {
+    const pipelineName = findStackedPipelineName(executionId);
+    if (!pipelineName) {
+        showNotification('Could not determine the pipeline for this execution');
+        return;
+    }
+
+    const application =
+        applicationFromPipelineName(pipelineName) ?? getApplicationName(window.location.href);
+    if (!application) {
+        showNotification('Could not determine the application for this execution');
+        return;
+    }
+
+    window.location.href = buildIsolatedExecutionUrl(window.location.href, {
+        application,
+        executionId,
+        pipelineName,
+    });
+    showNotification(`Isolated pipeline: ${pipelineName} (${application})`);
 }

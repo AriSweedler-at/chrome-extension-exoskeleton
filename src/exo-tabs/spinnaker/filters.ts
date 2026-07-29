@@ -49,6 +49,43 @@ export function isExecutionsView(url: string): boolean {
     }
 }
 
+/** Is this a stacked execution-details view (.../executions/details/<id>)? */
+export function isStackedDetailsView(url: string): boolean {
+    try {
+        return new URL(url).hash.split('?')[0].includes('/executions/details/');
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Derive the owning application from a deploy pipeline's name: by convention
+ * "Deploy {service} {ENV}" deploys the application named {service}. Pipeline
+ * groups and non-deploy pipelines derive nothing.
+ */
+const DEPLOY_PIPELINE_PATTERN =
+    /^Deploy\s+(?!Pipeline\s+Group\s)(.+?)\s+(?:ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
+
+export function applicationFromPipelineName(pipelineName: string): string | null {
+    return DEPLOY_PIPELINE_PATTERN.exec(pipelineName)?.[1] ?? null;
+}
+
+/**
+ * Build the URL that isolates an execution's pipeline under its own
+ * application: hash path /applications/<app>/executions/<id> (no /details/
+ * segment), existing hash query preserved, pipeline filter set.
+ */
+export function buildIsolatedExecutionUrl(
+    url: string,
+    target: {application: string; executionId: string; pipelineName: string},
+): string {
+    const urlObj = new URL(url);
+    const hashQuery = urlObj.hash.split('?')[1];
+    const query = hashQuery ? `?${hashQuery}` : '';
+    urlObj.hash = `/applications/${target.application}/executions/${target.executionId}${query}`;
+    return setPipelineFilter(urlObj.toString(), target.pipelineName);
+}
+
 /**
  * Build the URL that filters the executions view to a single pipeline by
  * setting the `pipeline` param in the hash query. Existing params are

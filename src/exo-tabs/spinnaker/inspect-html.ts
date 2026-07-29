@@ -24,11 +24,16 @@ import {
 import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
+    findStackedPipelineName,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
     getPipelineFilters,
     getIsolatedPipeline,
     setPipelineFilter,
+    isStackedDetailsView,
+    applicationFromPipelineName,
+    getApplicationName,
+    buildIsolatedExecutionUrl,
 } from '@exo/exo-tabs/spinnaker/filters';
 import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
 
@@ -83,9 +88,21 @@ for (const el of executions) {
     const executionId = el.id.replace('execution-', '');
     const pipeline = findPipelineNameForExecution(executionId);
     console.log(`  - ${executionId}`);
-    console.log(`      pipeline:    ${pipeline ?? 'NOT FOUND'}`);
+    console.log(`      pipeline (grouped): ${pipeline ?? 'NOT FOUND'}`);
     if (pipeline) {
-        console.log(`      isolate url: ${setPipelineFilter(url, pipeline)}`);
+        console.log(`      isolate url:        ${setPipelineFilter(url, pipeline)}`);
+    }
+
+    const stackedName = findStackedPipelineName(executionId);
+    console.log(`      pipeline (stacked): ${stackedName ?? 'NOT FOUND'}`);
+    if (stackedName && isStackedDetailsView(url)) {
+        const application = applicationFromPipelineName(stackedName) ?? getApplicationName(url);
+        console.log(`      application:        ${application ?? 'NOT FOUND'}`);
+        if (application) {
+            console.log(
+                `      isolate url:        ${buildIsolatedExecutionUrl(url, {application, executionId, pipelineName: stackedName})}`,
+            );
+        }
     }
 }
 

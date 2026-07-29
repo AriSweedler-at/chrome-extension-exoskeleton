@@ -3,6 +3,7 @@ import {
     getExecutionIdFromUrl,
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
+    findStackedPipelineName,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
@@ -12,6 +13,12 @@ describe('Spinnaker DOM Utils - URL Parsing', () => {
             const url =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT';
             expect(getExecutionIdFromUrl(url)).toBe('01HPN64GE091GK831P0XG2JQQT');
+        });
+
+        it('extracts execution ID from a stacked details URL', () => {
+            const url =
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0';
+            expect(getExecutionIdFromUrl(url)).toBe('01KYQA4SMS5STF94WB38DZY1A4');
         });
 
         it('returns null for URL without execution ID', () => {
@@ -50,6 +57,25 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
         it('returns null when link not found', () => {
             document.body.innerHTML = '<div>No execution details</div>';
             expect(findExecutionDetailsLink()).toBeNull();
+        });
+    });
+
+    describe('findStackedPipelineName', () => {
+        it('reads the execution-name heading of the execution', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-01KYQA4SMS5STF94WB38DZY1A4">
+                    <h4 class="execution-name">Deploy worker-assigner PRODUCTION</h4>
+                </div>
+            `;
+            expect(findStackedPipelineName('01KYQA4SMS5STF94WB38DZY1A4')).toBe(
+                'Deploy worker-assigner PRODUCTION',
+            );
+        });
+
+        it('returns null when the execution or its heading is missing', () => {
+            document.body.innerHTML = '<div class="execution" id="execution-OTHER"></div>';
+            expect(findStackedPipelineName('MISSING')).toBeNull();
+            expect(findStackedPipelineName('OTHER')).toBeNull();
         });
     });
 

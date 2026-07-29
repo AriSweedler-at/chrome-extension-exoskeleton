@@ -4,8 +4,11 @@ import {
     getIsolatedPipeline,
     getApplicationName,
     isExecutionsView,
+    isStackedDetailsView,
+    applicationFromPipelineName,
     setPipelineFilter,
     transformPipelineFilters,
+    buildIsolatedExecutionUrl,
 } from '@exo/exo-tabs/spinnaker/filters';
 
 const BASE =
@@ -85,6 +88,61 @@ describe('spinnaker filters', () => {
 
         it('is false for malformed URLs', () => {
             expect(isExecutionsView('not-a-url')).toBe(false);
+        });
+    });
+
+    describe('isStackedDetailsView', () => {
+        it('is true on stacked details URLs', () => {
+            expect(
+                isStackedDetailsView(
+                    'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0',
+                ),
+            ).toBe(true);
+        });
+
+        it('is false on plain executions views and malformed URLs', () => {
+            expect(isStackedDetailsView(BASE)).toBe(false);
+            expect(isStackedDetailsView('not-a-url')).toBe(false);
+        });
+    });
+
+    describe('applicationFromPipelineName', () => {
+        it('derives the service from a deploy pipeline name', () => {
+            expect(applicationFromPipelineName('Deploy worker-assigner PRODUCTION')).toBe(
+                'worker-assigner',
+            );
+            expect(applicationFromPipelineName('Deploy my-app ALPHA 3')).toBe('my-app');
+        });
+
+        it('derives nothing from pipeline groups or non-deploy pipelines', () => {
+            expect(applicationFromPipelineName('Deploy Pipeline Group Web PRODUCTION')).toBeNull();
+            expect(applicationFromPipelineName('K8s Meta Pipeline PRODUCTION')).toBeNull();
+        });
+    });
+
+    describe('buildIsolatedExecutionUrl', () => {
+        it('rewrites app and path, keeps params, and sets the pipeline filter', () => {
+            const result = buildIsolatedExecutionUrl(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig',
+                {
+                    application: 'worker-assigner',
+                    executionId: '01KYQA4SMS5STF94WB38DZY1A4',
+                    pipelineName: 'Deploy worker-assigner PRODUCTION',
+                },
+            );
+            expect(result).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/worker-assigner/executions/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig&pipeline=Deploy%20worker-assigner%20PRODUCTION',
+            );
+        });
+
+        it('works without an existing hash query', () => {
+            const result = buildIsolatedExecutionUrl(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions/details/01KYQA4SMS5STF94WB38DZY1A4',
+                {application: 'svc', executionId: '01KYQA4SMS5STF94WB38DZY1A4', pipelineName: 'P'},
+            );
+            expect(result).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/svc/executions/01KYQA4SMS5STF94WB38DZY1A4?pipeline=P',
+            );
         });
     });
 

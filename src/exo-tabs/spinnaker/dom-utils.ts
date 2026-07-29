@@ -1,9 +1,10 @@
 /**
  * Extract execution ID from Spinnaker URL
- * Pattern: /executions/01HPN64GE091GK831P0XG2JQQT
+ * Patterns: /executions/01HPN64GE091GK831P0XG2JQQT
+ *           /executions/details/01HPN64GE091GK831P0XG2JQQT (stacked view)
  */
 export function getExecutionIdFromUrl(url: string = window.location.href): string | null {
-    const match = url.match(/\/executions\/([A-Z0-9]+)/);
+    const match = url.match(/\/executions\/(?:details\/)?([A-Z0-9]+)/);
     return match ? match[1] : null;
 }
 
@@ -43,6 +44,15 @@ export function findPipelineNameForExecution(executionId: string): string | null
         return pipelineNameFromTitle(titles[0]);
     }
     return null;
+}
+
+/**
+ * The pipeline name of an execution on a stacked details view: each stacked
+ * execution renders its full pipeline name as its .execution-name heading.
+ */
+export function findStackedPipelineName(executionId: string): string | null {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    return pipelineNameFromTitle(executionEl?.querySelector('.execution-name') ?? null);
 }
 
 /**

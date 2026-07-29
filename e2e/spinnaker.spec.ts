@@ -1,7 +1,13 @@
 import {test, expect} from './fixtures';
 import type {BrowserContext, Page} from '@playwright/test';
 import {openFixturePage, pressAndExpectToast, seenKeys, resetSeenKeys} from './helpers';
-import {SPINNAKER_URL, SPINNAKER_HTML, PIPELINE_NAME} from './fixture-pages';
+import {
+    SPINNAKER_URL,
+    SPINNAKER_HTML,
+    PIPELINE_NAME,
+    STACKED_DETAILS_URL,
+    STACKED_EXECUTION_ID,
+} from './fixture-pages';
 
 /**
  * Drives the Spinnaker page-tab keybindings (e/i) end-to-end against a
@@ -38,6 +44,24 @@ test.describe('spinnaker keybindings (content script)', () => {
         expect(await seenKeys(page)).not.toContain('i');
     });
 
+    test('i on a stacked details view jumps to the pipeline’s own application', async ({
+        context,
+    }) => {
+        const page = await openFixturePage(context, STACKED_DETAILS_URL, SPINNAKER_HTML);
+
+        await pressAndExpectToast(
+            page,
+            'i',
+            'Isolated pipeline: Deploy worker-assigner PRODUCTION (worker-assigner)',
+        );
+        expect(page.url()).toContain(
+            `/applications/worker-assigner/executions/${STACKED_EXECUTION_ID}`,
+        );
+        expect(page.url()).toContain('pipeline=Deploy%20worker-assigner%20PRODUCTION');
+        expect(page.url()).toContain('stage=0&step=0&details=webhookConfig');
+        expect(page.url()).not.toContain('/details/');
+    });
+
     test('G scrolls the last stacked pipeline row to the top of the viewport', async ({
         context,
     }) => {
@@ -46,7 +70,7 @@ test.describe('spinnaker keybindings (content script)', () => {
         // 'G' has no outcome toast; the keystroke announce toast is the
         // signal that the binding is registered and fired. Playwright's
         // press('G') does not hold Shift, so press the chord explicitly.
-        await pressAndExpectToast(page, 'Shift+G', 'Shift + G');
+        await pressAndExpectToast(page, 'Shift+G', 'Jump to last pipeline');
 
         const top = await page.evaluate(
             () => document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,

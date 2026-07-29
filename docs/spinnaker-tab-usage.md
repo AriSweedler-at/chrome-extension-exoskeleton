@@ -30,6 +30,14 @@ part of the name).
 **When to use:** An application lists many pipelines and you want to see only
 the one your execution belongs to.
 
+**On a stacked details view** (`.../executions/details/<id>`): `i` jumps to
+the execution's own isolated view instead. The pipeline name comes from the
+execution's heading, and the owning application is derived from the deploy
+naming convention (`Deploy {service} {ENV}` → `{service}`; non-deploy
+pipelines keep the current application). Example:
+`.../hyperbase-deploy/executions/details/01KYQ...?stage=0` becomes
+`.../worker-assigner/executions/01KYQ...?stage=0&pipeline=Deploy%20worker-assigner%20PRODUCTION`.
+
 **Example:**
 
 - On URL: `...executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&step=0&details=runJobConfig`

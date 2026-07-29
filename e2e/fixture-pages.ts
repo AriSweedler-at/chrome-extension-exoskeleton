@@ -37,6 +37,12 @@ export const POD_NAME = 'h-bg-provision-step-0-abc12';
 
 export const PIPELINE_NAME = 'Blue Green Provisioning PRODUCTION';
 
+export const STACKED_EXECUTION_ID = '01KYQA4SMS5STF94WB38DZY1A4';
+
+export const STACKED_DETAILS_URL =
+    `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
+    `?stage=0&step=0&details=webhookConfig`;
+
 // A k8s manifest dump with metadata fields in real (alphabetical) order —
 // labels precede name, which the pod extractor must tolerate.
 const ERROR_BODY = `Exception ( Wait For Manifest To Stabilize )
@@ -68,10 +74,14 @@ export const SPINNAKER_HTML = `<!doctype html>
     <react-ui-view-adapter name="pipelines" class="ng-scope">
       <div class="row"><div class="single-execution-details">stack header</div></div>
       <div class="row" style="height: 600px">
-        <div class="execution" id="execution-STACKPARENT">Deploy PRODUCTION</div>
+        <div class="execution" id="execution-STACKPARENT">
+          <h4 class="execution-name">Deploy PRODUCTION</h4>
+        </div>
       </div>
       <div class="row" id="last-pipeline-row" style="height: 400px">
-        <div class="execution" id="execution-STACKLAST">Deploy worker-assigner PRODUCTION</div>
+        <div class="execution" id="execution-${STACKED_EXECUTION_ID}">
+          <h4 class="execution-name">Deploy worker-assigner PRODUCTION</h4>
+        </div>
       </div>
       <div class="row" style="height: 1600px">Webhook Stage Configuration</div>
     </react-ui-view-adapter>

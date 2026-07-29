@@ -8,6 +8,7 @@ import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
+    findStackedPipelineName,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
@@ -91,6 +92,21 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             const row = findLastStackedPipelineRow();
             expect(row).not.toBeNull();
             expect(row?.querySelector('.execution')).toBeTruthy();
+        });
+
+        it('resolves a pipeline name for every stacked execution', () => {
+            installDom();
+            if (isListView()) return; // stacked details views only
+            const executions = Array.from(
+                document.querySelectorAll('[id^="execution-"]'),
+            ) as HTMLElement[];
+            for (const el of executions) {
+                const executionId = el.id.replace('execution-', '');
+                expect(
+                    findStackedPipelineName(executionId),
+                    `execution ${executionId}`,
+                ).toBeTruthy();
+            }
         });
     });
 });

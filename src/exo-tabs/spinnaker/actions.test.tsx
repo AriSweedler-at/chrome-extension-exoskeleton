@@ -120,5 +120,55 @@ describe('spinnaker actions', () => {
                 message: 'Could not determine the pipeline for this execution',
             });
         });
+
+        describe('on a stacked details view', () => {
+            const STACKED_URL =
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig';
+
+            it('jumps to the isolated view under the deploy pipeline’s application', () => {
+                vi.stubGlobal('location', {href: STACKED_URL});
+                vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
+                    'Deploy worker-assigner PRODUCTION',
+                );
+
+                isolatePipeline();
+
+                expect(domUtils.findStackedPipelineName).toHaveBeenCalledWith(
+                    '01KYQA4SMS5STF94WB38DZY1A4',
+                );
+                expect(window.location.href).toBe(
+                    'https://spinnaker.k8s.shadowbox.cloud/#/applications/worker-assigner/executions/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig&pipeline=Deploy%20worker-assigner%20PRODUCTION',
+                );
+                expect(Notifications.show).toHaveBeenCalledWith({
+                    message:
+                        'Isolated pipeline: Deploy worker-assigner PRODUCTION (worker-assigner)',
+                });
+            });
+
+            it('falls back to the current application for non-deploy pipelines', () => {
+                vi.stubGlobal('location', {href: STACKED_URL});
+                vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
+                    'K8s Meta Pipeline PRODUCTION',
+                );
+
+                isolatePipeline();
+
+                expect(window.location.href).toBe(
+                    'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig&pipeline=K8s%20Meta%20Pipeline%20PRODUCTION',
+                );
+            });
+
+            it('shows an error when the stacked pipeline name cannot be found', () => {
+                vi.stubGlobal('location', {href: STACKED_URL});
+                vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(null);
+
+                isolatePipeline();
+
+                expect(window.location.href).toBe(STACKED_URL);
+                expect(Notifications.show).toHaveBeenCalledWith({
+                    message: 'Could not determine the pipeline for this execution',
+                });
+            });
+        });
     });
 });
