@@ -9,16 +9,19 @@ visiting any URL containing "spinnaker".
 ## Features
 
 ### 1. Toggle Execution Details (kbd: `e`)
+
 Clicks the "Execution Details" link to expand or collapse the execution view.
 
 **When to use:** Quickly open or close execution details without manual clicking.
 
 **Example:**
+
 - Visit a Spinnaker execution page
 - Press `e` or click "Toggle Execution Details"
 - The execution details will expand/collapse
 
 ### 2. Isolate Pipeline (kbd: `i`)
+
 Filters the executions view down to the open execution's pipeline by adding
 `?pipeline=<name>` to the URL. The pipeline name is read from the execution's
 group heading in the page (direct text only — the running-count badge is not
@@ -28,6 +31,7 @@ part of the name).
 the one your execution belongs to.
 
 **Example:**
+
 - On URL: `...executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&step=0&details=runJobConfig`
 - Press `i` or click "Isolate Pipeline"
 - URL becomes: `...?stage=2&step=0&details=runJobConfig&pipeline=Blue%20Green%20Provisioning%20PRODUCTION`
@@ -37,10 +41,11 @@ the one your execution belongs to.
 
 All keyboard shortcuts work globally in the browser tab, except when typing in input fields or textareas.
 
-| Key | Action |
-|-----|--------|
-| `e` | Toggle Execution Details |
-| `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline) |
+| Key | Action                                                                           |
+| --- | -------------------------------------------------------------------------------- |
+| `e` | Toggle Execution Details                                                         |
+| `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline)  |
+| `G` | Jump to the last pipeline of a stacked details view (its row scrolls to the top) |
 
 ## Rich links (Cmd+Shift+C)
 
@@ -62,18 +67,22 @@ name is swapped (`?pipeline=Continuous Migration PRODUCTION` becomes
 The Spinnaker tab automatically appears when your URL contains "spinnaker" (case-insensitive).
 
 ### Example URLs:
+
 - `https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions`
 - `https://spinnaker.example.com/#/applications/hyperbase-deploy/executions/01HPN64GE091GK831P0XG2JQQT`
 
 ## Troubleshooting
 
 ### "Execution details link not found"
+
 The "Execution Details" link is not present on the current page. Make sure you're on an execution page, not the executions list.
 
 ### "No execution found in URL"
+
 You're not viewing a specific execution. Navigate to an execution details page first.
 
 ### "Could not determine the pipeline for this execution"
+
 Isolate couldn't find the execution's group heading in the page
 (`.execution-group-title`). If this happens on a real Spinnaker page, save the
 DOM (see `docs/testing.md`, Spinnaker DOM Tools) and update the selectors in
@@ -82,12 +91,14 @@ DOM (see `docs/testing.md`, Spinnaker DOM Tools) and update the selectors in
 ## Technical Details
 
 ### DOM Selectors
+
 - Execution Details link: `a.clickable` containing "Execution Details" text
 - Pipeline name: direct text of `.execution-group-title` within the execution's
   `.execution-group` (execution located by `#execution-<id>` or a permalink
   `a[href*="<id>"]`)
 
 ### URL Parsing
+
 - Execution ID: Extracted from `/executions/{ID}` pattern
 - Isolate: sets the `pipeline` param in the hash query, preserving other params
   (`src/exo-tabs/spinnaker/filters.ts` owns all pipeline-filter URL state)

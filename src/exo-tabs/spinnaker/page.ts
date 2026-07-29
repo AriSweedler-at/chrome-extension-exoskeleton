@@ -1,6 +1,10 @@
 import {keybindings} from '@exo/lib/keybindings';
 import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
-import {toggleExecution, isolatePipeline} from '@exo/exo-tabs/spinnaker/actions';
+import {
+    toggleExecution,
+    isolatePipeline,
+    jumpToLastPipeline,
+} from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
 
 async function initialize() {
@@ -18,6 +22,13 @@ async function initialize() {
             key: 'i',
             description: 'Isolate pipeline',
             handler: isolatePipeline,
+            context: 'Spinnaker',
+        },
+        {
+            key: 'G',
+            modifiers: {shift: true},
+            description: 'Jump to last pipeline in a stack',
+            handler: jumpToLastPipeline,
             context: 'Spinnaker',
         },
     ]);

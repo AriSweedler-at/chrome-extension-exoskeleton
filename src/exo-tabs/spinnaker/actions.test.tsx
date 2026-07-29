@@ -1,5 +1,9 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-import {toggleExecution, isolatePipeline} from '@exo/exo-tabs/spinnaker/actions';
+import {
+    toggleExecution,
+    isolatePipeline,
+    jumpToLastPipeline,
+} from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import {Notifications} from '@exo/lib/toast-notification';
 
@@ -39,6 +43,29 @@ describe('spinnaker actions', () => {
             expect(domUtils.findExecutionDetailsLink).toHaveBeenCalled();
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'Execution details link not found',
+            });
+        });
+    });
+
+    describe('jumpToLastPipeline', () => {
+        it('scrolls the last stacked pipeline row to the top of the viewport', () => {
+            const scrollIntoView = vi.fn();
+            const row = {scrollIntoView} as unknown as HTMLElement;
+            vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue(row);
+
+            jumpToLastPipeline();
+
+            expect(scrollIntoView).toHaveBeenCalledWith({block: 'start'});
+            expect(Notifications.show).not.toHaveBeenCalled();
+        });
+
+        it('notifies when the page has no stacked pipeline rows', () => {
+            vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue(null);
+
+            jumpToLastPipeline();
+
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No stacked pipeline rows on this page',
             });
         });
     });

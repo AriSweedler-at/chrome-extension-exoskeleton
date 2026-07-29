@@ -1,13 +1,15 @@
 /**
  * Action handlers for Spinnaker tab operations
  *
- * Implements two core actions for interacting with Spinnaker UI:
+ * Implements three core actions for interacting with Spinnaker UI:
  * - Toggle execution details
+ * - Jump to the last pipeline of a stacked details view
  * - Isolate the open execution's pipeline
  */
 
 import {
     findExecutionDetailsLink,
+    findLastStackedPipelineRow,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -33,6 +35,19 @@ export function toggleExecution(): void {
     } else {
         showNotification('Execution details link not found');
     }
+}
+
+/**
+ * Jump to the last pipeline of a stacked execution-details view: scroll the
+ * top of its row to the top of the viewport.
+ */
+export function jumpToLastPipeline(): void {
+    const row = findLastStackedPipelineRow();
+    if (!row) {
+        showNotification('No stacked pipeline rows on this page');
+        return;
+    }
+    row.scrollIntoView({block: 'start'});
 }
 
 /**

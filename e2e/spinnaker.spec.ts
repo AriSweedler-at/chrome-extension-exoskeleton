@@ -37,4 +37,20 @@ test.describe('spinnaker keybindings (content script)', () => {
         await page.keyboard.press('i');
         expect(await seenKeys(page)).not.toContain('i');
     });
+
+    test('G scrolls the last stacked pipeline row to the top of the viewport', async ({
+        context,
+    }) => {
+        const page = await openSpinnaker(context);
+
+        // 'G' has no outcome toast; the keystroke announce toast is the
+        // signal that the binding is registered and fired. Playwright's
+        // press('G') does not hold Shift, so press the chord explicitly.
+        await pressAndExpectToast(page, 'Shift+G', 'Shift + G');
+
+        const top = await page.evaluate(
+            () => document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,
+        );
+        expect(Math.abs(top)).toBeLessThan(2);
+    });
 });

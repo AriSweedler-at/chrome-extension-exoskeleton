@@ -46,6 +46,24 @@ export function findPipelineNameForExecution(executionId: string): string | null
 }
 
 /**
+ * Find the last stacked-pipeline row on an execution-details view.
+ *
+ * The stacked view (URL .../executions/details/<id>) renders each pipeline
+ * of the stack as a .row containing its .execution inside
+ * react-ui-view-adapter[name="pipelines"]; trailing rows hold the selected
+ * stage's config pane, not a pipeline.
+ */
+export function findLastStackedPipelineRow(): HTMLElement | null {
+    const adapter = document.querySelector('react-ui-view-adapter[name="pipelines"]');
+    if (!adapter) return null;
+
+    const pipelineRows = Array.from(adapter.querySelectorAll('.row')).filter((row) =>
+        row.querySelector('.execution'),
+    );
+    return (pipelineRows[pipelineRows.length - 1] as HTMLElement | undefined) ?? null;
+}
+
+/**
  * Find the "Execution Details" link in the Spinnaker UI
  */
 export function findExecutionDetailsLink(): HTMLElement | null {

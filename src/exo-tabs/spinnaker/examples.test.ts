@@ -7,6 +7,7 @@ import {
 import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
+    findLastStackedPipelineRow,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
@@ -43,12 +44,21 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             document.body.innerHTML = html;
         }
 
-        it('resolves the owning pipeline for every execution on the page', () => {
+        /**
+         * Snapshots come in two shapes: executions-list views (have
+         * .execution-group) and stacked details views (no groups; pipelines
+         * render as .row elements inside the pipelines adapter). Each
+         * assertion applies only where its structure exists.
+         */
+        const isListView = () => document.querySelector('.execution-group') !== null;
+
+        it('resolves the owning pipeline for every grouped execution', () => {
             installDom();
             const executions = Array.from(
                 document.querySelectorAll('[id^="execution-"]'),
             ) as HTMLElement[];
             expect(executions.length).toBeGreaterThan(0);
+            if (!isListView()) return; // stacked details view — no groups to resolve
 
             const groupTitles = Array.from(document.querySelectorAll('.execution-group-title')).map(
                 (el) => el.textContent?.trim() ?? '',
@@ -67,9 +77,20 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             }
         });
 
-        it('finds the Execution Details link', () => {
+        it('finds the Execution Details link on executions-list views', () => {
             installDom();
+            if (!isListView()) return;
             expect(findExecutionDetailsLink()).not.toBeNull();
+        });
+
+        it('finds the last stacked pipeline row where the pipelines adapter exists', () => {
+            installDom();
+            if (!document.querySelector('react-ui-view-adapter[name="pipelines"] .execution')) {
+                return;
+            }
+            const row = findLastStackedPipelineRow();
+            expect(row).not.toBeNull();
+            expect(row?.querySelector('.execution')).toBeTruthy();
         });
     });
 });

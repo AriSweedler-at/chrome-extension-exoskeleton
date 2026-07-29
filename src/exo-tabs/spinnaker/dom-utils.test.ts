@@ -2,6 +2,7 @@ import {describe, it, expect, beforeEach, afterEach} from 'vitest';
 import {
     getExecutionIdFromUrl,
     findExecutionDetailsLink,
+    findLastStackedPipelineRow,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
@@ -49,6 +50,37 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
         it('returns null when link not found', () => {
             document.body.innerHTML = '<div>No execution details</div>';
             expect(findExecutionDetailsLink()).toBeNull();
+        });
+    });
+
+    describe('findLastStackedPipelineRow', () => {
+        it('returns the last row containing an execution, skipping config rows', () => {
+            document.body.innerHTML = `
+                <react-ui-view-adapter name="pipelines" class="ng-scope">
+                    <div class="row"><div class="single-execution-details">header</div></div>
+                    <div class="row"><div class="execution" id="execution-A">Deploy PRODUCTION</div></div>
+                    <div class="row"><div class="execution" id="execution-B">Deploy worker-assigner PRODUCTION</div></div>
+                    <div class="row">Webhook Stage Configuration</div>
+                </react-ui-view-adapter>
+            `;
+            const row = findLastStackedPipelineRow();
+            expect(row?.querySelector('.execution')?.id).toBe('execution-B');
+        });
+
+        it('returns null without the pipelines adapter', () => {
+            document.body.innerHTML = `
+                <div class="row"><div class="execution" id="execution-A"></div></div>
+            `;
+            expect(findLastStackedPipelineRow()).toBeNull();
+        });
+
+        it('returns null when the adapter has no pipeline rows', () => {
+            document.body.innerHTML = `
+                <react-ui-view-adapter name="pipelines">
+                    <div class="row">just config</div>
+                </react-ui-view-adapter>
+            `;
+            expect(findLastStackedPipelineRow()).toBeNull();
         });
     });
 

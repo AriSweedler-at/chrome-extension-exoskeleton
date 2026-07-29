@@ -65,6 +65,16 @@ export const SPINNAKER_HTML = `<!doctype html>
         </div>
       </div>
     </div>
+    <react-ui-view-adapter name="pipelines" class="ng-scope">
+      <div class="row"><div class="single-execution-details">stack header</div></div>
+      <div class="row" style="height: 600px">
+        <div class="execution" id="execution-STACKPARENT">Deploy PRODUCTION</div>
+      </div>
+      <div class="row" id="last-pipeline-row" style="height: 400px">
+        <div class="execution" id="execution-STACKLAST">Deploy worker-assigner PRODUCTION</div>
+      </div>
+      <div class="row" style="height: 1600px">Webhook Stage Configuration</div>
+    </react-ui-view-adapter>
     <script>
       window.__clicks = [];
       const link = document.getElementById('exec-details-link');
