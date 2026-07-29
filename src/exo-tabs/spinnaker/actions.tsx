@@ -11,14 +11,13 @@ import {
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
     findStackedPipelineName,
+    findApplicationForExecution,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
     setPipelineFilter,
     isStackedDetailsView,
-    applicationFromPipelineName,
-    getApplicationName,
     buildIsolatedExecutionUrl,
 } from '@exo/exo-tabs/spinnaker/filters';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -66,9 +65,8 @@ export function jumpToLastPipeline(): void {
  *
  * On a stacked details view (.../executions/details/<id>): jump to the
  * execution's own isolated view. The pipeline name comes from the
- * execution's heading; the owning application is derived from the deploy
- * naming convention ("Deploy {service} {ENV}" → {service}), falling back to
- * the current application for non-deploy pipelines.
+ * execution's heading; the owning application comes from the event payloads
+ * on the page (the only place the DOM names it).
  */
 export function isolatePipeline(): void {
     const executionId = getExecutionIdFromUrl();
@@ -99,8 +97,7 @@ function isolateStackedExecution(executionId: string): void {
         return;
     }
 
-    const application =
-        applicationFromPipelineName(pipelineName) ?? getApplicationName(window.location.href);
+    const application = findApplicationForExecution(executionId);
     if (!application) {
         showNotification('Could not determine the application for this execution');
         return;

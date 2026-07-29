@@ -5,7 +5,6 @@ import {
     getApplicationName,
     isExecutionsView,
     isStackedDetailsView,
-    applicationFromPipelineName,
     setPipelineFilter,
     transformPipelineFilters,
     buildIsolatedExecutionUrl,
@@ -103,20 +102,6 @@ describe('spinnaker filters', () => {
         it('is false on plain executions views and malformed URLs', () => {
             expect(isStackedDetailsView(BASE)).toBe(false);
             expect(isStackedDetailsView('not-a-url')).toBe(false);
-        });
-    });
-
-    describe('applicationFromPipelineName', () => {
-        it('derives the service from a deploy pipeline name', () => {
-            expect(applicationFromPipelineName('Deploy worker-assigner PRODUCTION')).toBe(
-                'worker-assigner',
-            );
-            expect(applicationFromPipelineName('Deploy my-app ALPHA 3')).toBe('my-app');
-        });
-
-        it('derives nothing from pipeline groups or non-deploy pipelines', () => {
-            expect(applicationFromPipelineName('Deploy Pipeline Group Web PRODUCTION')).toBeNull();
-            expect(applicationFromPipelineName('K8s Meta Pipeline PRODUCTION')).toBeNull();
         });
     });
 

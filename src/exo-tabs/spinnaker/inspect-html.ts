@@ -25,14 +25,13 @@ import {
     findPipelineNameForExecution,
     findExecutionDetailsLink,
     findStackedPipelineName,
+    findApplicationForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
     getPipelineFilters,
     getIsolatedPipeline,
     setPipelineFilter,
     isStackedDetailsView,
-    applicationFromPipelineName,
-    getApplicationName,
     buildIsolatedExecutionUrl,
 } from '@exo/exo-tabs/spinnaker/filters';
 import {SpinnakerHandler} from '@exo/exo-tabs/richlink/handlers/spinnaker.handler';
@@ -96,7 +95,7 @@ for (const el of executions) {
     const stackedName = findStackedPipelineName(executionId);
     console.log(`      pipeline (stacked): ${stackedName ?? 'NOT FOUND'}`);
     if (stackedName && isStackedDetailsView(url)) {
-        const application = applicationFromPipelineName(stackedName) ?? getApplicationName(url);
+        const application = findApplicationForExecution(executionId);
         console.log(`      application:        ${application ?? 'NOT FOUND'}`);
         if (application) {
             console.log(

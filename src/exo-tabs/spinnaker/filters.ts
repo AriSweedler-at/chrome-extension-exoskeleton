@@ -59,18 +59,6 @@ export function isStackedDetailsView(url: string): boolean {
 }
 
 /**
- * Derive the owning application from a deploy pipeline's name: by convention
- * "Deploy {service} {ENV}" deploys the application named {service}. Pipeline
- * groups and non-deploy pipelines derive nothing.
- */
-const DEPLOY_PIPELINE_PATTERN =
-    /^Deploy\s+(?!Pipeline\s+Group\s)(.+?)\s+(?:ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
-
-export function applicationFromPipelineName(pipelineName: string): string | null {
-    return DEPLOY_PIPELINE_PATTERN.exec(pipelineName)?.[1] ?? null;
-}
-
-/**
  * Build the URL that isolates an execution's pipeline under its own
  * application: hash path /applications/<app>/executions/<id> (no /details/
  * segment), existing hash query preserved, pipeline filter set.

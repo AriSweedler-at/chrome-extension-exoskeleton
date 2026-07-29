@@ -9,6 +9,7 @@ import {
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
     findStackedPipelineName,
+    findApplicationForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
@@ -107,6 +108,19 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
                     `execution ${executionId}`,
                 ).toBeTruthy();
             }
+        });
+
+        it('resolves an application from event payloads when a stage pane is open', () => {
+            installDom();
+            if (isListView()) return; // stacked details views only
+            if (!document.querySelector('copy-to-clipboard')) return; // no stage pane open
+            const executionIds = Array.from(document.querySelectorAll('[id^="execution-"]')).map(
+                (el) => el.id.replace('execution-', ''),
+            );
+            const applications = executionIds
+                .map((id) => findApplicationForExecution(id))
+                .filter(Boolean);
+            expect(applications.length).toBeGreaterThan(0);
         });
     });
 });

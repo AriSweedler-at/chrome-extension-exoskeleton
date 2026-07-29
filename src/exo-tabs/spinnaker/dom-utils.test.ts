@@ -4,6 +4,7 @@ import {
     findExecutionDetailsLink,
     findLastStackedPipelineRow,
     findStackedPipelineName,
+    findApplicationForExecution,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
@@ -76,6 +77,49 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
             document.body.innerHTML = '<div class="execution" id="execution-OTHER"></div>';
             expect(findStackedPipelineName('MISSING')).toBeNull();
             expect(findStackedPipelineName('OTHER')).toBeNull();
+        });
+    });
+
+    describe('findApplicationForExecution', () => {
+        const EXEC_ID = '01KYQA4SMS5STF94WB38DZY1A4';
+        const payload = {
+            title: '[prod] spinnaker-pipeline: Deploy worker-assigner PRODUCTION started',
+            aggregation_key: EXEC_ID,
+            tags: ['stage:production', 'application:worker-assigner', 'trigger_type:pipeline'],
+        };
+
+        it('reads the application tag from a double-encoded clipboard payload', () => {
+            const textarea = document.createElement('textarea');
+            textarea.textContent = JSON.stringify(JSON.stringify(payload));
+            const widget = document.createElement('copy-to-clipboard');
+            widget.appendChild(textarea);
+            document.body.appendChild(widget);
+
+            expect(findApplicationForExecution(EXEC_ID)).toBe('worker-assigner');
+        });
+
+        it('reads the application tag from a single-encoded <pre> payload', () => {
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify(payload, null, 2);
+            document.body.appendChild(pre);
+
+            expect(findApplicationForExecution(EXEC_ID)).toBe('worker-assigner');
+        });
+
+        it('ignores payloads for other executions', () => {
+            const pre = document.createElement('pre');
+            pre.textContent = JSON.stringify({...payload, aggregation_key: 'OTHER'});
+            document.body.appendChild(pre);
+
+            expect(findApplicationForExecution(EXEC_ID)).toBeNull();
+        });
+
+        it('tolerates non-JSON payload elements', () => {
+            const pre = document.createElement('pre');
+            pre.textContent = 'set -euo pipefail\ngrunt deploy';
+            document.body.appendChild(pre);
+
+            expect(findApplicationForExecution(EXEC_ID)).toBeNull();
         });
     });
 

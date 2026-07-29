@@ -32,11 +32,12 @@ the one your execution belongs to.
 
 **On a stacked details view** (`.../executions/details/<id>`): `i` jumps to
 the execution's own isolated view instead. The pipeline name comes from the
-execution's heading, and the owning application is derived from the deploy
-naming convention (`Deploy {service} {ENV}` → `{service}`; non-deploy
-pipelines keep the current application). Example:
+execution's heading; the owning application is read from the notification
+event payloads on the page (the `application:<name>` tag under the
+execution's `aggregation_key` — the only place the DOM names it). Example:
 `.../hyperbase-deploy/executions/details/01KYQ...?stage=0` becomes
 `.../worker-assigner/executions/01KYQ...?stage=0&pipeline=Deploy%20worker-assigner%20PRODUCTION`.
+If no payload names the application, `i` gives up with an error toast.
 
 **Example:**
 

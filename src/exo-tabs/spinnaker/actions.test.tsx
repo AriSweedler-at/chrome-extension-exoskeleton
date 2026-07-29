@@ -125,15 +125,21 @@ describe('spinnaker actions', () => {
             const STACKED_URL =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig';
 
-            it('jumps to the isolated view under the deploy pipeline’s application', () => {
+            it('jumps to the isolated view under the payload-declared application', () => {
                 vi.stubGlobal('location', {href: STACKED_URL});
                 vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
                     'Deploy worker-assigner PRODUCTION',
+                );
+                vi.spyOn(domUtils, 'findApplicationForExecution').mockReturnValue(
+                    'worker-assigner',
                 );
 
                 isolatePipeline();
 
                 expect(domUtils.findStackedPipelineName).toHaveBeenCalledWith(
+                    '01KYQA4SMS5STF94WB38DZY1A4',
+                );
+                expect(domUtils.findApplicationForExecution).toHaveBeenCalledWith(
                     '01KYQA4SMS5STF94WB38DZY1A4',
                 );
                 expect(window.location.href).toBe(
@@ -145,17 +151,19 @@ describe('spinnaker actions', () => {
                 });
             });
 
-            it('falls back to the current application for non-deploy pipelines', () => {
+            it('gives up when no payload names the application', () => {
                 vi.stubGlobal('location', {href: STACKED_URL});
                 vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
                     'K8s Meta Pipeline PRODUCTION',
                 );
+                vi.spyOn(domUtils, 'findApplicationForExecution').mockReturnValue(null);
 
                 isolatePipeline();
 
-                expect(window.location.href).toBe(
-                    'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig&pipeline=K8s%20Meta%20Pipeline%20PRODUCTION',
-                );
+                expect(window.location.href).toBe(STACKED_URL);
+                expect(Notifications.show).toHaveBeenCalledWith({
+                    message: 'Could not determine the application for this execution',
+                });
             });
 
             it('shows an error when the stacked pipeline name cannot be found', () => {

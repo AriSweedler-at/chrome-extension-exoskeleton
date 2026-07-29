@@ -56,6 +56,37 @@ export function findStackedPipelineName(executionId: string): string | null {
 }
 
 /**
+ * Stage panes embed notification-event payloads (copy-to-clipboard widgets
+ * and <pre> dumps) — JSON, sometimes JSON-encoded twice — whose
+ * aggregation_key is the execution id and whose tags name the application.
+ */
+function parseEventPayload(raw: string): {aggregation_key?: string; tags?: string[]} | null {
+    try {
+        const parsed = JSON.parse(raw);
+        return typeof parsed === 'string' ? JSON.parse(parsed) : parsed;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * The application that owns an execution, read from the event payloads on
+ * the page ("application:<name>" tag under the execution's aggregation_key).
+ * Null when no payload for this execution is rendered.
+ */
+export function findApplicationForExecution(executionId: string): string | null {
+    const payloadElements = document.querySelectorAll('copy-to-clipboard textarea, pre');
+    for (const el of Array.from(payloadElements)) {
+        const payload = parseEventPayload(el.textContent ?? '');
+        if (payload?.aggregation_key !== executionId) continue;
+
+        const tag = payload.tags?.find((t) => t.startsWith('application:'));
+        if (tag) return tag.slice('application:'.length);
+    }
+    return null;
+}
+
+/**
  * Find the last stacked-pipeline row on an execution-details view.
  *
  * The stacked view (URL .../executions/details/<id>) renders each pipeline

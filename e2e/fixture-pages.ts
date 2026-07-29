@@ -43,6 +43,16 @@ export const STACKED_DETAILS_URL =
     `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
     `?stage=0&step=0&details=webhookConfig`;
 
+// Event payload as Deck renders it: JSON-encoded twice inside the
+// copy-to-clipboard textarea. Names the execution's owning application.
+const STACKED_EVENT_PAYLOAD = JSON.stringify(
+    JSON.stringify({
+        title: '[prod] spinnaker-pipeline: Deploy worker-assigner PRODUCTION started',
+        aggregation_key: STACKED_EXECUTION_ID,
+        tags: ['application:worker-assigner', 'pipeline:Deploy worker-assigner PRODUCTION'],
+    }),
+);
+
 // A k8s manifest dump with metadata fields in real (alphabetical) order —
 // labels precede name, which the pod extractor must tolerate.
 const ERROR_BODY = `Exception ( Wait For Manifest To Stabilize )
@@ -83,7 +93,10 @@ export const SPINNAKER_HTML = `<!doctype html>
           <h4 class="execution-name">Deploy worker-assigner PRODUCTION</h4>
         </div>
       </div>
-      <div class="row" style="height: 1600px">Webhook Stage Configuration</div>
+      <div class="row" style="height: 1600px">
+        Webhook Stage Configuration
+        <copy-to-clipboard class="copy-to-clipboard"><textarea tabindex="-1">${STACKED_EVENT_PAYLOAD}</textarea></copy-to-clipboard>
+      </div>
     </react-ui-view-adapter>
     <script>
       window.__clicks = [];
