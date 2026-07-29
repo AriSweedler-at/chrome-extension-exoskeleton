@@ -78,13 +78,13 @@ describe('spinnaker actions', () => {
             vi.unstubAllGlobals();
         });
 
-        it('should navigate to the pipeline-filtered URL and notify', () => {
+        it('should navigate to the pipeline-filtered URL and notify', async () => {
             vi.stubGlobal('location', {href: EXECUTION_URL});
             vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(
                 'Blue Green Provisioning PRODUCTION',
             );
 
-            isolatePipeline();
+            await isolatePipeline();
 
             expect(domUtils.findPipelineNameForExecution).toHaveBeenCalledWith(
                 '01HPN5GWDEJ5088Y9QZ4JPG2C0',
@@ -97,23 +97,23 @@ describe('spinnaker actions', () => {
             });
         });
 
-        it('should show "No execution found" when the URL has no execution', () => {
+        it('should show "No execution found" when the URL has no execution', async () => {
             vi.stubGlobal('location', {
                 href: 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions',
             });
 
-            isolatePipeline();
+            await isolatePipeline();
 
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'No execution found in URL',
             });
         });
 
-        it('should show an error when the pipeline name cannot be found', () => {
+        it('should show an error when the pipeline name cannot be found', async () => {
             vi.stubGlobal('location', {href: EXECUTION_URL});
             vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(null);
 
-            isolatePipeline();
+            await isolatePipeline();
 
             expect(window.location.href).toBe(EXECUTION_URL);
             expect(Notifications.show).toHaveBeenCalledWith({
@@ -125,7 +125,7 @@ describe('spinnaker actions', () => {
             const STACKED_URL =
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/01KYQA4SMS5STF94WB38DZY1A4?stage=0&step=0&details=webhookConfig';
 
-            it('jumps to the isolated view under the payload-declared application', () => {
+            it('jumps to the isolated view under the payload-declared application', async () => {
                 vi.stubGlobal('location', {href: STACKED_URL});
                 vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
                     'Deploy worker-assigner PRODUCTION',
@@ -134,7 +134,7 @@ describe('spinnaker actions', () => {
                     'worker-assigner',
                 );
 
-                isolatePipeline();
+                await isolatePipeline();
 
                 expect(domUtils.findStackedPipelineName).toHaveBeenCalledWith(
                     '01KYQA4SMS5STF94WB38DZY1A4',
@@ -151,14 +151,39 @@ describe('spinnaker actions', () => {
                 });
             });
 
-            it('gives up when no payload names the application', () => {
+            it('opens the event stage and polls when the payload is not yet rendered', async () => {
+                vi.stubGlobal('location', {href: STACKED_URL});
+                vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
+                    'Deploy worker-assigner PRODUCTION',
+                );
+                // Absent before the click, present once the pane renders.
+                vi.spyOn(domUtils, 'findApplicationForExecution')
+                    .mockReturnValueOnce(null)
+                    .mockReturnValue('worker-assigner');
+                const click = vi.fn();
+                vi.spyOn(domUtils, 'findEventStageMarker').mockReturnValue({
+                    click,
+                } as unknown as HTMLElement);
+
+                await isolatePipeline();
+
+                expect(click).toHaveBeenCalled();
+                expect(window.location.href).toContain('/applications/worker-assigner/executions/');
+                expect(Notifications.show).toHaveBeenCalledWith({
+                    message:
+                        'Isolated pipeline: Deploy worker-assigner PRODUCTION (worker-assigner)',
+                });
+            });
+
+            it('gives up when no payload names the application and no event stage exists', async () => {
                 vi.stubGlobal('location', {href: STACKED_URL});
                 vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(
                     'K8s Meta Pipeline PRODUCTION',
                 );
                 vi.spyOn(domUtils, 'findApplicationForExecution').mockReturnValue(null);
+                vi.spyOn(domUtils, 'findEventStageMarker').mockReturnValue(null);
 
-                isolatePipeline();
+                await isolatePipeline();
 
                 expect(window.location.href).toBe(STACKED_URL);
                 expect(Notifications.show).toHaveBeenCalledWith({
@@ -166,11 +191,11 @@ describe('spinnaker actions', () => {
                 });
             });
 
-            it('shows an error when the stacked pipeline name cannot be found', () => {
+            it('shows an error when the stacked pipeline name cannot be found', async () => {
                 vi.stubGlobal('location', {href: STACKED_URL});
                 vi.spyOn(domUtils, 'findStackedPipelineName').mockReturnValue(null);
 
-                isolatePipeline();
+                await isolatePipeline();
 
                 expect(window.location.href).toBe(STACKED_URL);
                 expect(Notifications.show).toHaveBeenCalledWith({

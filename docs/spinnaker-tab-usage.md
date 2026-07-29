@@ -34,10 +34,14 @@ the one your execution belongs to.
 the execution's own isolated view instead. The pipeline name comes from the
 execution's heading; the owning application is read from the notification
 event payloads on the page (the `application:<name>` tag under the
-execution's `aggregation_key` — the only place the DOM names it). Example:
+execution's `aggregation_key` — the only place the DOM names it). That
+payload only renders while the Datadog change-event stage's pane is open,
+so when it's absent `i` clicks that stage's marker itself and waits (up to
+~3s) for the payload to appear. Example:
 `.../hyperbase-deploy/executions/details/01KYQ...?stage=0` becomes
 `.../worker-assigner/executions/01KYQ...?stage=0&pipeline=Deploy%20worker-assigner%20PRODUCTION`.
-If no payload names the application, `i` gives up with an error toast.
+If the execution has no event stage or the payload never appears, `i` gives
+up with an error toast.
 
 **Example:**
 

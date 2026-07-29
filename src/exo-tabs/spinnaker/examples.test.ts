@@ -10,6 +10,7 @@ import {
     findLastStackedPipelineRow,
     findStackedPipelineName,
     findApplicationForExecution,
+    findEventStageMarker,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
@@ -107,6 +108,20 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
                     findStackedPipelineName(executionId),
                     `execution ${executionId}`,
                 ).toBeTruthy();
+            }
+        });
+
+        it('finds a Datadog change-event stage marker for every stacked execution', () => {
+            installDom();
+            if (isListView()) return; // stacked details views only
+            const executionIds = Array.from(document.querySelectorAll('[id^="execution-"]')).map(
+                (el) => el.id.replace('execution-', ''),
+            );
+            for (const executionId of executionIds) {
+                expect(
+                    findEventStageMarker(executionId),
+                    `execution ${executionId}`,
+                ).not.toBeNull();
             }
         });
 

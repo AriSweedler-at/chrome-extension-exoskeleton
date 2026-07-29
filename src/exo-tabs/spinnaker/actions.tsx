@@ -12,6 +12,7 @@ import {
     findLastStackedPipelineRow,
     findStackedPipelineName,
     findApplicationForExecution,
+    findEventStageMarker,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -68,7 +69,7 @@ export function jumpToLastPipeline(): void {
  * execution's heading; the owning application comes from the event payloads
  * on the page (the only place the DOM names it).
  */
-export function isolatePipeline(): void {
+export async function isolatePipeline(): Promise<void> {
     const executionId = getExecutionIdFromUrl();
     if (!executionId) {
         showNotification('No execution found in URL');
@@ -76,7 +77,7 @@ export function isolatePipeline(): void {
     }
 
     if (isStackedDetailsView(window.location.href)) {
-        isolateStackedExecution(executionId);
+        await isolateStackedExecution(executionId);
         return;
     }
 
@@ -90,14 +91,16 @@ export function isolatePipeline(): void {
     showNotification(`Isolated pipeline: ${pipelineName}`);
 }
 
-function isolateStackedExecution(executionId: string): void {
+async function isolateStackedExecution(executionId: string): Promise<void> {
     const pipelineName = findStackedPipelineName(executionId);
     if (!pipelineName) {
         showNotification('Could not determine the pipeline for this execution');
         return;
     }
 
-    const application = findApplicationForExecution(executionId);
+    const application =
+        findApplicationForExecution(executionId) ??
+        (await openEventStageAndFindApplication(executionId));
     if (!application) {
         showNotification('Could not determine the application for this execution');
         return;
@@ -109,4 +112,25 @@ function isolateStackedExecution(executionId: string): void {
         pipelineName,
     });
     showNotification(`Isolated pipeline: ${pipelineName} (${application})`);
+}
+
+const EVENT_PANE_POLL_MS = 100;
+const EVENT_PANE_POLL_ATTEMPTS = 30;
+
+/**
+ * The event payload only renders while its stage's details pane is open:
+ * click the execution's Datadog change-event stage marker and poll until the
+ * payload (and the application it names) appears.
+ */
+async function openEventStageAndFindApplication(executionId: string): Promise<string | null> {
+    const marker = findEventStageMarker(executionId);
+    if (!marker) return null;
+    marker.click();
+
+    for (let attempt = 0; attempt < EVENT_PANE_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, EVENT_PANE_POLL_MS));
+        const application = findApplicationForExecution(executionId);
+        if (application) return application;
+    }
+    return null;
 }

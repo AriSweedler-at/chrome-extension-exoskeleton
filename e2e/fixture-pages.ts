@@ -91,13 +91,24 @@ export const SPINNAKER_HTML = `<!doctype html>
       <div class="row" id="last-pipeline-row" style="height: 400px">
         <div class="execution" id="execution-${STACKED_EXECUTION_ID}">
           <h4 class="execution-name">Deploy worker-assigner PRODUCTION</h4>
+          <div class="clickable stage execution-marker stage-type-datadogchangeevent" id="dd-event-marker"></div>
         </div>
       </div>
-      <div class="row" style="height: 1600px">
-        Webhook Stage Configuration
-        <copy-to-clipboard class="copy-to-clipboard"><textarea tabindex="-1">${STACKED_EVENT_PAYLOAD}</textarea></copy-to-clipboard>
-      </div>
+      <div class="row" id="stage-config-row" style="height: 1600px">Webhook Stage Configuration</div>
     </react-ui-view-adapter>
+    <script>
+      // Like real Deck: the event payload pane only renders (async) after
+      // the Datadog change-event stage marker is clicked.
+      document.getElementById('dd-event-marker').addEventListener('click', () => {
+        setTimeout(() => {
+          const widget = document.createElement('copy-to-clipboard');
+          const textarea = document.createElement('textarea');
+          textarea.textContent = ${JSON.stringify(STACKED_EVENT_PAYLOAD)};
+          widget.appendChild(textarea);
+          document.getElementById('stage-config-row').appendChild(widget);
+        }, 150);
+      });
+    </script>
     <script>
       window.__clicks = [];
       const link = document.getElementById('exec-details-link');

@@ -5,6 +5,7 @@ import {
     findLastStackedPipelineRow,
     findStackedPipelineName,
     findApplicationForExecution,
+    findEventStageMarker,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
@@ -77,6 +78,30 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
             document.body.innerHTML = '<div class="execution" id="execution-OTHER"></div>';
             expect(findStackedPipelineName('MISSING')).toBeNull();
             expect(findStackedPipelineName('OTHER')).toBeNull();
+        });
+    });
+
+    describe('findEventStageMarker', () => {
+        const EXEC_ID = '01KYQA4SMS5STF94WB38DZY1A4';
+
+        it('finds the Datadog change-event stage marker within the execution', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-${EXEC_ID}">
+                    <div class="clickable stage execution-marker stage-type-runjobmanifest"></div>
+                    <div class="clickable stage execution-marker stage-type-datadogchangeevent" id="dd-marker"></div>
+                </div>
+            `;
+            expect(findEventStageMarker(EXEC_ID)?.id).toBe('dd-marker');
+        });
+
+        it('returns null when the execution has no event stage', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-${EXEC_ID}">
+                    <div class="clickable stage execution-marker stage-type-runjobmanifest"></div>
+                </div>
+            `;
+            expect(findEventStageMarker(EXEC_ID)).toBeNull();
+            expect(findEventStageMarker('MISSING')).toBeNull();
         });
     });
 

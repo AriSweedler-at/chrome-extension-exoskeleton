@@ -70,6 +70,19 @@ function parseEventPayload(raw: string): {aggregation_key?: string; tags?: strin
 }
 
 /**
+ * The stage marker of the execution's Datadog change-event stage — the
+ * stage whose details pane renders the event payload naming the
+ * application. Clicking it opens that pane.
+ */
+export function findEventStageMarker(executionId: string): HTMLElement | null {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    const marker = executionEl?.querySelector(
+        '.execution-marker[class*="stage-type-datadogchangeevent"]',
+    );
+    return (marker as HTMLElement | undefined) ?? null;
+}
+
+/**
  * The application that owns an execution, read from the event payloads on
  * the page ("application:<name>" tag under the execution's aggregation_key).
  * Null when no payload for this execution is rendered.
