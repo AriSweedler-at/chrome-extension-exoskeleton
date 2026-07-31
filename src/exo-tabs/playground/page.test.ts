@@ -9,6 +9,7 @@ vi.mock('@exo/lib/keybindings', () => ({
 }));
 vi.mock('@exo/exo-tabs/playground/actions', () => ({
     typeXxxAndScrollToBottom: vi.fn(),
+    announceSequenceDemo: vi.fn(),
 }));
 
 const GDOC_URL = 'https://docs.google.com/document/d/1abc/edit';
@@ -51,6 +52,9 @@ describe('playground page module', () => {
 
         expect(keybindings.register).toHaveBeenCalledWith(
             expect.objectContaining({key: 'x', context: 'Playground'}),
+        );
+        expect(keybindings.register).toHaveBeenCalledWith(
+            expect.objectContaining({sequence: ['g', 'g'], context: 'Playground'}),
         );
         expect(keybindings.listen).toHaveBeenCalled();
     });

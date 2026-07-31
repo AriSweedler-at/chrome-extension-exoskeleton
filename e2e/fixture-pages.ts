@@ -47,6 +47,20 @@ export const PR_HTML = `<!doctype html>
   </body>
 </html>`;
 
+// --- Google Docs (playground tab) ----------------------------------------
+
+export const GDOC_URL = 'https://docs.google.com/document/d/exo-test/edit';
+
+export const GDOC_HTML = `<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>toy doc</title></head>
+  <body>
+    <h1 id="doc">toy doc</h1>
+    <input id="doc-input" placeholder="type here" />
+    ${KEYLOGGER_SNIPPET}
+  </body>
+</html>`;
+
 // --- Spinnaker execution page ------------------------------------------
 
 export const EXECUTION_ID = '01HPN64GE091GK831P0XG2JQQT';

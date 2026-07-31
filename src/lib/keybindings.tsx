@@ -34,7 +34,11 @@ function afterNextPaint(fn: () => void): void {
 }
 
 export interface Keybinding {
-    key: string;
+    // Exactly one of key/sequence. A sequence step is written like a
+    // signature: a plain key ('g') or modifier-prefixed ('shift+g'). Escape
+    // is reserved (it closes the help overlay) and cannot be a step.
+    key?: string;
+    sequence?: string[];
     description: string;
     handler: () => void;
     modifiers?: {
@@ -44,6 +48,28 @@ export interface Keybinding {
         meta?: boolean;
     };
     context?: string; // Optional grouping context (e.g., "GitHub", "Spinnaker")
+}
+
+// How long a pending sequence waits for its next keystroke.
+export const SEQUENCE_TTL_MS = 1_200;
+
+// Joins the per-keystroke signatures of a sequence. A single-key signature
+// never contains a space (the Space key itself is not bindable this way).
+const SEQUENCE_SEPARATOR = ' ';
+
+// Parse a sequence step ('g', 'shift+g', 'ctrl+x') into binding parts.
+function parseStep(step: string): {key: string; modifiers: Keybinding['modifiers']} {
+    const tokens = step.split('+');
+    const key = tokens.pop() || '+';
+    const modifiers: Keybinding['modifiers'] = {};
+    for (const token of tokens) {
+        const name = token.toLowerCase();
+        if (name === 'ctrl') modifiers.ctrl = true;
+        if (name === 'shift') modifiers.shift = true;
+        if (name === 'alt') modifiers.alt = true;
+        if (name === 'meta') modifiers.meta = true;
+    }
+    return {key, modifiers};
 }
 
 // The "quote next keystroke" prefix: after it, the next key is passed straight
@@ -81,6 +107,11 @@ export class KeybindingRegistry {
     private passThrough = false; // armed by PASS_THROUGH_PREFIX, consumed by next key
     private passThroughToast: ToastHandle | null = null;
     private helpCloseHandler: ((event?: Event) => void) | null = null;
+    // Every proper prefix of a registered sequence, as a joined signature.
+    private sequencePrefixes: Set<string> = new Set();
+    private pendingSteps: string[] = []; // signatures typed toward a sequence
+    private pendingTimer: number | null = null;
+    private pendingToast: ToastHandle | null = null;
 
     constructor() {
         // Auto-register the help keybinding
@@ -96,8 +127,16 @@ export class KeybindingRegistry {
      * Register a keybinding
      */
     register(keybinding: Keybinding): void {
-        const key = this.getKeySignature(keybinding);
-        this.keybindings.set(key, keybinding);
+        if (!keybinding.sequence?.length && !keybinding.key) {
+            console.error('[exo keybindings] a binding needs a key or a sequence', keybinding);
+            return;
+        }
+        if (keybinding.sequence?.some((step) => parseStep(step).key.toLowerCase() === 'escape')) {
+            console.error('[exo keybindings] Escape cannot be a sequence step', keybinding);
+            return;
+        }
+        this.keybindings.set(this.bindingSignature(keybinding), keybinding);
+        this.reindexSequences();
     }
 
     /**
@@ -113,6 +152,12 @@ export class KeybindingRegistry {
     unregister(key: string, modifiers?: Keybinding['modifiers']): void {
         const signature = this.getKeySignature({key, modifiers} as Keybinding);
         this.keybindings.delete(signature);
+        this.reindexSequences();
+    }
+
+    unregisterSequence(sequence: string[]): void {
+        this.keybindings.delete(this.bindingSignature({sequence} as Keybinding));
+        this.reindexSequences();
     }
 
     /**
@@ -143,15 +188,19 @@ export class KeybindingRegistry {
                 return;
             }
 
-            // Skip if user is typing in an input field
+            // Skip if user is typing in an input field. The key went to the
+            // field, so it also breaks any pending sequence.
             if (isTypingInInputField(event.target as HTMLElement)) {
+                this.resetPendingSequence();
                 return;
             }
 
             // The prefix itself: arm the next keystroke to pass through, and show
             // a banner toast that stays until consumed or the TTL expires (which
-            // also disarms, via onDismiss).
+            // also disarms, via onDismiss). Pass-through and a pending sequence
+            // are mutually exclusive modes.
             if (signature === PASS_THROUGH_PREFIX) {
+                this.resetPendingSequence();
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 this.passThrough = true;
@@ -160,6 +209,32 @@ export class KeybindingRegistry {
                     {duration: PASS_THROUGH_TTL_MS, onDismiss: () => this.disarmPassThrough()},
                 );
                 return;
+            }
+
+            // Continue a pending sequence: fire on an exact match, extend on a
+            // prefix, otherwise abandon it and treat this keystroke as fresh.
+            if (this.pendingSteps.length > 0) {
+                if (MODIFIER_KEYS.has(event.key)) {
+                    return;
+                }
+                const candidate = [...this.pendingSteps, signature];
+                const candidateSignature = candidate.join(SEQUENCE_SEPARATOR);
+                const sequenceBinding = this.keybindings.get(candidateSignature);
+                if (sequenceBinding) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    this.resetPendingSequence();
+                    this.announce(sequenceBinding);
+                    afterNextPaint(sequenceBinding.handler);
+                    return;
+                }
+                if (this.sequencePrefixes.has(candidateSignature)) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    this.setPendingSequence(candidate);
+                    return;
+                }
+                this.resetPendingSequence();
             }
 
             const keybinding = this.keybindings.get(signature);
@@ -172,6 +247,15 @@ export class KeybindingRegistry {
                 // Defer the handler past the next paint so the toast is visible
                 // even when the handler navigates to another page.
                 afterNextPaint(keybinding.handler);
+                return;
+            }
+
+            // Start a sequence. Checked after the single-binding lookup, so a
+            // single binding always wins over a same-key sequence prefix.
+            if (this.sequencePrefixes.has(signature)) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                this.setPendingSequence([signature]);
             }
         };
 
@@ -188,6 +272,7 @@ export class KeybindingRegistry {
             this.keydownHandler = null;
         }
         this.disarmPassThrough();
+        this.resetPendingSequence();
     }
 
     /**
@@ -201,9 +286,61 @@ export class KeybindingRegistry {
         if (modifiers.shift) parts.push('shift');
         if (modifiers.alt) parts.push('alt');
         if (modifiers.meta) parts.push('meta');
-        parts.push(keybinding.key.toLowerCase());
+        parts.push((keybinding.key ?? '').toLowerCase());
 
         return parts.join('+');
+    }
+
+    private bindingSignature(keybinding: Keybinding): string {
+        if (keybinding.sequence?.length) {
+            return keybinding.sequence
+                .map((step) => this.getKeySignature(parseStep(step)))
+                .join(SEQUENCE_SEPARATOR);
+        }
+        return this.getKeySignature(keybinding);
+    }
+
+    // A single binding is matched before a sequence can start, so a sequence
+    // whose first step collides with a single binding is unreachable.
+    private reindexSequences(): void {
+        this.sequencePrefixes.clear();
+        for (const [signature, keybinding] of this.keybindings) {
+            if (!keybinding.sequence?.length) continue;
+            const steps = signature.split(SEQUENCE_SEPARATOR);
+            for (let i = 1; i < steps.length; i++) {
+                this.sequencePrefixes.add(steps.slice(0, i).join(SEQUENCE_SEPARATOR));
+            }
+        }
+        for (const prefix of this.sequencePrefixes) {
+            if (!prefix.includes(SEQUENCE_SEPARATOR) && this.keybindings.has(prefix)) {
+                console.warn(
+                    `[exo keybindings] single binding '${prefix}' shadows a sequence starting with it`,
+                );
+            }
+        }
+    }
+
+    private setPendingSequence(steps: string[]): void {
+        this.resetPendingSequence();
+        this.pendingSteps = steps;
+        this.pendingTimer = window.setTimeout(() => this.resetPendingSequence(), SEQUENCE_TTL_MS);
+        // The toast mirrors the TTL but the timer above is authoritative —
+        // hovering a toast pauses its countdown animation.
+        this.pendingToast = this.notify(
+            `**pending** ${code(this.formatSequenceSignatures(steps))} — waiting for the next key`,
+            {duration: SEQUENCE_TTL_MS, onDismiss: () => this.resetPendingSequence()},
+        );
+    }
+
+    /** Abort any pending sequence, its timer, and its banner (idempotent). */
+    private resetPendingSequence(): void {
+        this.pendingSteps = [];
+        const timer = this.pendingTimer;
+        this.pendingTimer = null;
+        if (timer !== null) window.clearTimeout(timer);
+        const toast = this.pendingToast;
+        this.pendingToast = null;
+        toast?.dismiss();
     }
 
     /**
@@ -247,19 +384,37 @@ export class KeybindingRegistry {
     /**
      * Format a keybinding for display
      */
-    private formatKeybinding(keybinding: Pick<Keybinding, 'key' | 'modifiers'>): string {
+    private formatKeybinding(
+        keybinding: Pick<Keybinding, 'key' | 'modifiers' | 'sequence'>,
+    ): string {
+        if (keybinding.sequence?.length) {
+            return this.formatSequenceSignatures(
+                keybinding.sequence.map((step) => this.getKeySignature(parseStep(step))),
+            );
+        }
+
+        const key = keybinding.key ?? '';
         const modifiers = keybinding.modifiers || {};
         // A shifted letter reads as its capital ('G'), not 'Shift + g'.
-        const isShiftedLetter = Boolean(modifiers.shift) && /^[a-zA-Z]$/.test(keybinding.key);
+        const isShiftedLetter = Boolean(modifiers.shift) && /^[a-zA-Z]$/.test(key);
         const parts: string[] = [];
 
         if (modifiers.ctrl) parts.push('Ctrl');
         if (modifiers.shift && !isShiftedLetter) parts.push('Shift');
         if (modifiers.alt) parts.push('Alt');
         if (modifiers.meta) parts.push('⌘');
-        parts.push(isShiftedLetter ? keybinding.key.toUpperCase() : keybinding.key);
+        parts.push(isShiftedLetter ? key.toUpperCase() : key);
 
         return parts.join(' + ');
+    }
+
+    // 'g g' renders as 'gg'; steps that need more than one character keep a
+    // space between them ('Ctrl + V g').
+    private formatSequenceSignatures(stepSignatures: string[]): string {
+        const parts = stepSignatures.map((signature) =>
+            this.formatKeybinding(parseStep(signature)),
+        );
+        return parts.every((part) => part.length === 1) ? parts.join('') : parts.join(' ');
     }
 
     /**
@@ -406,6 +561,7 @@ export class KeybindingRegistry {
      * Hide the help overlay
      */
     hideHelp(): void {
+        this.resetPendingSequence();
         if (!this.helpOverlay) {
             return;
         }
@@ -436,6 +592,9 @@ export class KeybindingRegistry {
         if (helpBinding) {
             this.keybindings.set(helpKey, helpBinding);
         }
+        this.reindexSequences();
+        this.resetPendingSequence();
+        this.disarmPassThrough();
     }
 }
 

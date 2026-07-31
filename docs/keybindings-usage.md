@@ -9,6 +9,7 @@ The keybinding system provides a data-driven approach to managing keyboard short
 - **Context grouping**: Group related keybindings by context (e.g., "GitHub", "Spinnaker")
 - **Smart filtering**: Automatically ignores INPUT/TEXTAREA elements
 - **Modifier support**: Support for Ctrl, Shift, Alt, and Meta keys
+- **Multi-keystroke sequences**: vim-style chords like `gg` (see below)
 
 ## Basic Usage
 
@@ -58,10 +59,11 @@ keybindings.unlisten();
 
 ```typescript
 interface Keybinding {
-  key: string;                    // The key to press (e.g., 'e', 'Enter', '?')
+  key?: string;                   // The key to press (e.g., 'e', 'Enter', '?')
+  sequence?: string[];            // OR a multi-keystroke chord (e.g., ['g', 'g'])
   description: string;            // Human-readable description
   handler: () => void;            // Function to call when key is pressed
-  modifiers?: {                   // Optional modifier keys
+  modifiers?: {                   // Optional modifier keys (single-key bindings)
     ctrl?: boolean;
     shift?: boolean;
     alt?: boolean;
@@ -70,6 +72,37 @@ interface Keybinding {
   context?: string;               // Optional grouping (e.g., "GitHub", "Spinnaker")
 }
 ```
+
+Exactly one of `key` and `sequence` must be set.
+
+## Multi-Keystroke Sequences
+
+```typescript
+keybindings.register({
+    sequence: ['g', 'g'],           // steps: plain keys or 'shift+g' / 'ctrl+x'
+    description: 'Go to the top',
+    handler: () => goToTop(),
+    context: 'My Feature'
+});
+// Clean up with: keybindings.unregisterSequence(['g', 'g'])
+```
+
+Behavior:
+
+- A key that starts a registered sequence is **swallowed** (the page never
+  sees it) and shows a **pending** banner. The next keystrokes either extend
+  the chord, complete it (handler fires, announced as `` `gg` ``), or abandon
+  it — an aborting key is then processed normally, as if pressed fresh.
+- A pending chord expires after ~1.2s (`SEQUENCE_TTL_MS`), when the banner is
+  dismissed, when a key goes to an input field, or when pass-through arms.
+- **A single binding always wins over a sequence starting with the same
+  key** — that sequence would be unreachable (the registry warns).
+- Because prefix keys are swallowed, don't register sequences whose first
+  key a host page uses as its own prefix (e.g. GitHub's `g`-navigation) on
+  that page.
+- `Escape` is reserved (closes the help overlay) and cannot be a step.
+- Sequences appear in the `?` help overlay as their concatenated keys
+  (`gg`).
 
 ## Examples
 

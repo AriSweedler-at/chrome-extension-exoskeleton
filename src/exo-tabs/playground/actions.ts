@@ -7,6 +7,12 @@ import {Notifications} from '@exo/lib/toast-notification';
  * via keyboard events + execCommand for insertion, then scroll the
  * document container to the bottom.
  */
+// Outcome toast for the demo 'gg' chord — the e2e suite asserts on it to
+// prove multi-keystroke sequences fire end-to-end.
+export function announceSequenceDemo(): void {
+    Notifications.show({message: 'Playground sequence: gg'});
+}
+
 export function typeXxxAndScrollToBottom(): void {
     // Google Docs' editable surface
     const editor = document.querySelector<HTMLElement>('.docs-texteventtarget-iframe');

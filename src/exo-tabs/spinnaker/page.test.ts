@@ -55,7 +55,7 @@ describe('spinnaker page module', () => {
 
         expect(keybindings.registerAll).toHaveBeenCalledTimes(1);
         const bindings = vi.mocked(keybindings.registerAll).mock.calls[0][0];
-        expect(bindings.map((b: {key: string}) => b.key)).toEqual(['e', 'i', 'd', 'M', 'G']);
+        expect(bindings.map((b: {key?: string}) => b.key)).toEqual(['e', 'i', 'd', 'M', 'G']);
         expect(keybindings.listen).toHaveBeenCalled();
     });
 

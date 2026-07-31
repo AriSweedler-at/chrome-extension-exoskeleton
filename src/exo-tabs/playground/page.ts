@@ -1,6 +1,6 @@
 import {keybindings} from '@exo/lib/keybindings';
 import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
-import {typeXxxAndScrollToBottom} from '@exo/exo-tabs/playground/actions';
+import {typeXxxAndScrollToBottom, announceSequenceDemo} from '@exo/exo-tabs/playground/actions';
 
 async function initialize() {
     if (!window.location.href.includes('docs.google.com/document')) return;
@@ -10,6 +10,12 @@ async function initialize() {
         key: 'x',
         description: 'Type XXX and scroll to bottom',
         handler: typeXxxAndScrollToBottom,
+        context: 'Playground',
+    });
+    keybindings.register({
+        sequence: ['g', 'g'],
+        description: 'Demo multi-keystroke sequence',
+        handler: announceSequenceDemo,
         context: 'Playground',
     });
     keybindings.listen();

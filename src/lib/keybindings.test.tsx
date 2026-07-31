@@ -1,5 +1,5 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-import {KeybindingRegistry} from '@exo/lib/keybindings';
+import {KeybindingRegistry, SEQUENCE_TTL_MS} from '@exo/lib/keybindings';
 import {Notifications} from '@exo/lib/toast-notification';
 
 vi.mock('@exo/lib/toast-notification', () => ({
@@ -268,6 +268,295 @@ describe('KeybindingRegistry', () => {
             await flushFrames();
 
             expect(handler).toHaveBeenCalledOnce();
+        });
+    });
+
+    describe('multi-keystroke sequences', () => {
+        beforeEach(() => {
+            // Keep requestAnimationFrame real so flushFrames() still works;
+            // only the sequence TTL runs on fake time.
+            vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        function registerSequence(handler = vi.fn(), sequence = ['g', 'g']) {
+            registry.register({sequence, description: 'Sequence demo', handler});
+            return handler;
+        }
+
+        it('fires the handler after the full sequence', async () => {
+            const handler = registerSequence();
+
+            pressKey('g');
+            expect(handler).not.toHaveBeenCalled();
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+        });
+
+        it('swallows the prefix keystroke (preventDefault)', () => {
+            registerSequence();
+
+            const event = new KeyboardEvent('keydown', {key: 'g', bubbles: true, cancelable: true});
+            document.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(true);
+        });
+
+        it('does not swallow a key that is neither a binding nor a prefix', () => {
+            registerSequence();
+
+            const event = new KeyboardEvent('keydown', {key: 'z', bubbles: true, cancelable: true});
+            document.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(Notifications.show).not.toHaveBeenCalled();
+        });
+
+        it('shows a pending banner naming the prefix, on the sequence TTL', () => {
+            registerSequence();
+
+            pressKey('g');
+
+            expect(Notifications.show).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    markdown: expect.stringContaining('`g`'),
+                    duration: SEQUENCE_TTL_MS,
+                }),
+            );
+        });
+
+        it('dismisses the pending banner when the sequence completes', () => {
+            const dismiss = vi.fn();
+            vi.mocked(Notifications.show).mockReturnValueOnce({dismiss} as never);
+            registerSequence();
+
+            pressKey('g');
+            pressKey('g');
+
+            expect(dismiss).toHaveBeenCalled();
+        });
+
+        it('announces the completed sequence as a single chip', () => {
+            registerSequence();
+
+            pressKey('g');
+            pressKey('g');
+
+            expect(Notifications.show).toHaveBeenCalledWith(
+                expect.objectContaining({markdown: 'exo keystroke `gg`\nSequence demo'}),
+            );
+        });
+
+        it('resets after the TTL, so a late second key does not fire', async () => {
+            const handler = registerSequence();
+
+            pressKey('g');
+            vi.advanceTimersByTime(SEQUENCE_TTL_MS + 1);
+            pressKey('g'); // starts a fresh pending sequence instead
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+            // Two pending banners were shown, one per prefix press.
+            const pendingCalls = vi
+                .mocked(Notifications.show)
+                .mock.calls.filter(([opts]) => String(opts.markdown).includes('pending'));
+            expect(pendingCalls).toHaveLength(2);
+        });
+
+        it('restarts the TTL on every step of a longer sequence', async () => {
+            const handler = vi.fn();
+            registry.register({sequence: ['g', 'i', 'g'], description: 'three', handler});
+
+            pressKey('g');
+            vi.advanceTimersByTime(SEQUENCE_TTL_MS - 100);
+            pressKey('i');
+            vi.advanceTimersByTime(SEQUENCE_TTL_MS - 100);
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+        });
+
+        it('aborts when the pending banner is dismissed (click)', async () => {
+            const handler = registerSequence();
+            let onDismiss: (() => void) | undefined;
+            vi.mocked(Notifications.show).mockImplementationOnce((opts) => {
+                onDismiss = opts.onDismiss;
+                return {dismiss: vi.fn()} as never;
+            });
+
+            pressKey('g');
+            onDismiss?.();
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('processes the aborting key normally when a prefix is abandoned', async () => {
+            const sequenceHandler = registerSequence();
+            const singleHandler = vi.fn();
+            registry.register({key: 'f', description: 'single f', handler: singleHandler});
+
+            pressKey('g');
+            pressKey('f');
+            await flushFrames();
+
+            expect(sequenceHandler).not.toHaveBeenCalled();
+            expect(singleHandler).toHaveBeenCalledOnce();
+            expect(Notifications.show).toHaveBeenCalledWith(
+                expect.objectContaining({markdown: 'exo keystroke `f`\nsingle f'}),
+            );
+        });
+
+        it('ignores a lone modifier mid-sequence', async () => {
+            const handler = registerSequence();
+
+            pressKey('g');
+            pressModifier('Shift');
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+        });
+
+        it('matches a shifted step only on a real shifted keydown', async () => {
+            const shifted = vi.fn();
+            registry.register({sequence: ['g', 'shift+g'], description: 'gG', handler: shifted});
+            const plain = registerSequence();
+
+            pressKey('g');
+            pressKey('G', {shiftKey: true});
+            await flushFrames();
+
+            expect(shifted).toHaveBeenCalledOnce();
+            expect(plain).not.toHaveBeenCalled();
+        });
+
+        it('leaves single bindings untouched by a registered sequence', async () => {
+            registerSequence();
+            const handler = vi.fn();
+            registry.register({key: 'x', description: 'single', handler});
+
+            pressKey('x');
+            await flushFrames();
+
+            expect(handler).toHaveBeenCalledOnce();
+            expect(Notifications.show).not.toHaveBeenCalledWith(
+                expect.objectContaining({markdown: expect.stringContaining('pending')}),
+            );
+        });
+
+        it('lets a single binding shadow a sequence with the same first key', async () => {
+            const sequenceHandler = registerSequence();
+            const singleHandler = vi.fn();
+            registry.register({key: 'g', description: 'single g', handler: singleHandler});
+
+            pressKey('g');
+            await flushFrames();
+
+            expect(singleHandler).toHaveBeenCalledOnce();
+            expect(sequenceHandler).not.toHaveBeenCalled();
+        });
+
+        it('cancels a pending sequence when typing goes to an input field', async () => {
+            const handler = registerSequence();
+
+            pressKey('g');
+            const input = document.createElement('input');
+            document.body.appendChild(input);
+            input.dispatchEvent(new KeyboardEvent('keydown', {key: 'a', bubbles: true}));
+            input.remove();
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('cancels a pending sequence when pass-through arms', async () => {
+            const handler = registerSequence();
+
+            pressKey('g'); // pending
+            pressCtrl('v'); // arm pass-through — cancels the sequence
+            pressKey('g'); // passed through to the page
+            pressKey('g'); // fresh prefix, not a completion
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('never starts a sequence from a passed-through key', () => {
+            registerSequence();
+
+            pressCtrl('v');
+            const event = new KeyboardEvent('keydown', {key: 'g', bubbles: true, cancelable: true});
+            document.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(Notifications.show).not.toHaveBeenCalledWith(
+                expect.objectContaining({markdown: expect.stringContaining('pending')}),
+            );
+        });
+
+        it('clears pending state on unlisten', () => {
+            const dismiss = vi.fn();
+            vi.mocked(Notifications.show).mockReturnValueOnce({dismiss} as never);
+            registerSequence();
+
+            pressKey('g');
+            registry.unlisten();
+
+            expect(dismiss).toHaveBeenCalled();
+            expect(() => vi.advanceTimersByTime(SEQUENCE_TTL_MS + 1)).not.toThrow();
+        });
+
+        it('clear() removes sequences and resets pending state', async () => {
+            const handler = registerSequence();
+
+            pressKey('g');
+            registry.clear();
+            pressKey('g');
+            pressKey('g');
+            await flushFrames();
+
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('lists a sequence as its concatenated keys in the help overlay', () => {
+            registerSequence();
+            registry.showHelp();
+
+            const kbds = Array.from(document.querySelectorAll('kbd')).map((el) => el.textContent);
+            expect(kbds).toContain('gg');
+            registry.hideHelp();
+        });
+
+        it('unregisterSequence removes the sequence and its prefix', () => {
+            registerSequence();
+            registry.unregisterSequence(['g', 'g']);
+
+            const event = new KeyboardEvent('keydown', {key: 'g', bubbles: true, cancelable: true});
+            document.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(false);
+        });
+
+        it('rejects Escape as a sequence step and bindings with neither key nor sequence', () => {
+            const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const handler = vi.fn();
+
+            registry.register({sequence: ['g', 'Escape'], description: 'bad', handler});
+            registry.register({description: 'worse', handler});
+
+            expect(error).toHaveBeenCalledTimes(2);
+            pressKey('g');
+            expect(Notifications.show).not.toHaveBeenCalled();
+            error.mockRestore();
         });
     });
 

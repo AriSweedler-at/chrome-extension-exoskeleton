@@ -85,6 +85,22 @@ export async function pressAndExpectToast(
     }).toPass({timeout: 5000});
 }
 
+/**
+ * Wait until the page modules have registered their keybindings: retry '?'
+ * until the help overlay renders, then close it with Escape.
+ *
+ * Use this instead of pressAndExpectToast before driving a SEQUENCE — its
+ * retry presses would complete the chord instead of being idempotent.
+ */
+export async function waitForKeybindings(page: Page): Promise<void> {
+    await expect(async () => {
+        await page.keyboard.press('Shift+Slash');
+        await expect(page.getByText('Keyboard Shortcuts')).toBeVisible({timeout: 500});
+    }).toPass({timeout: 5000});
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('Keyboard Shortcuts')).not.toBeVisible();
+}
+
 /** Read the clipboard as text from the page's origin. */
 export async function readClipboardText(page: Page): Promise<string> {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], {
