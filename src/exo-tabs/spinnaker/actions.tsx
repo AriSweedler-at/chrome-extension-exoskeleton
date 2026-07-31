@@ -6,6 +6,8 @@
  * - Jump to the last pipeline of a stacked details view
  * - Isolate the open execution's pipeline
  * - Jump to hyperbase-deploy's isolated Deploy pipeline
+ * - Climb to the parent execution via its breadcrumbs
+ * - Open the OpenSearch links of the Monitoring Links stage
  */
 
 import {
@@ -18,6 +20,9 @@ import {
     findChildPipelineName,
     findStageLabel,
     findOpenSearchLinks,
+    findParentBreadcrumbLink,
+    findStageLabelForPipeline,
+    findExecutionRow,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -201,6 +206,51 @@ async function openEventStageAndFindApplication(executionId: string): Promise<st
         await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
         const application = findApplicationForExecution(executionId);
         if (application) return application;
+    }
+    return null;
+}
+
+/**
+ * Climb to the parent execution that spawned this one ('gg'): follow the
+ * nearest-ancestor breadcrumb, select the stage that ran this child once the
+ * parent renders, and scroll the parent's row to the top.
+ */
+export async function climbToParentExecution(): Promise<void> {
+    const childId = getExecutionIdFromUrl();
+    const crumb = childId ? findParentBreadcrumbLink(childId) : null;
+    if (!childId || !crumb) {
+        showNotification('No parent execution breadcrumbs on this page');
+        return;
+    }
+
+    const childPipelineName = findPipelineNameForExecution(childId);
+    const parentId = getExecutionIdFromUrl(crumb.getAttribute('href') ?? '');
+    crumb.click();
+    showNotification(`Jumping to parent pipeline: ${crumb.textContent?.trim()}`);
+    if (!parentId || !childPipelineName) return;
+
+    const label = await waitForStageLabel(parentId, childPipelineName);
+    if (!label) {
+        showNotification(`Could not find the stage that ran ${childPipelineName}`);
+        return;
+    }
+    label.click();
+    findExecutionRow(parentId)?.scrollIntoView({block: 'start'});
+    showNotification(`Opened stage: ${label.textContent?.trim()}`);
+}
+
+const CLIMB_POLL_ATTEMPTS = 50;
+
+// Deck fetches the parent execution before rendering its stage graph — wait
+// for the child's stage label instead of a fixed delay.
+async function waitForStageLabel(
+    executionId: string,
+    pipelineName: string,
+): Promise<HTMLElement | null> {
+    for (let attempt = 0; attempt < CLIMB_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
+        const label = findStageLabelForPipeline(executionId, pipelineName);
+        if (label) return label;
     }
     return null;
 }

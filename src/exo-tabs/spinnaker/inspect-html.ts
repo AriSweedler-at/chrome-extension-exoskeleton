@@ -30,6 +30,7 @@ import {
     findChildPipelineName,
     findStageLabel,
     findOpenSearchLinks,
+    findParentBreadcrumbLink,
     getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
@@ -127,6 +128,14 @@ console.log(
     }`,
 );
 console.log(`OpenSearch links in open panes: ${openSearchLinks.length}`);
+
+const urlExecutionId = getExecutionIdFromUrl(url);
+const crumb = urlExecutionId ? findParentBreadcrumbLink(urlExecutionId) : null;
+console.log(
+    `Parent breadcrumb ('gg' climbs): ${
+        crumb ? `${crumb.textContent?.trim()} -> ${crumb.getAttribute('href')}` : 'not present'
+    }`,
+);
 
 const childLink = findViewPipelineExecutionLink();
 console.log(`View Pipeline Execution link ('G' expands): ${childLink ? 'found' : 'not present'}`);

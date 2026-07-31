@@ -5,6 +5,7 @@ import {
     isolateDeployPipeline,
     openMonitoringLinks,
     jumpToLastPipeline,
+    climbToParentExecution,
 } from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -180,6 +181,100 @@ describe('spinnaker actions', () => {
             expect(window.location.href).toBe(url);
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'Only works in the hyperbase-deploy application',
+            });
+        });
+    });
+
+    describe('climbToParentExecution', () => {
+        const CHILD_URL =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/web-service/executions/01KYWEXG47N131DFQ6W6C8EA30';
+        const PARENT_HREF =
+            '#/applications/hyperbase-deploy/executions/details/01KYWEVS4ZZBVD19RQ7ZH3NCCF?stage=0&step=0';
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        function stubCrumb() {
+            const click = vi.fn();
+            const crumb = {
+                click,
+                getAttribute: () => PARENT_HREF,
+                textContent: 'K8s Meta Pipeline PRODUCTION',
+            } as unknown as HTMLAnchorElement;
+            vi.spyOn(domUtils, 'findParentBreadcrumbLink').mockReturnValue(crumb);
+            return click;
+        }
+
+        it('climbs to the parent, opens the stage that ran the child, and scrolls', async () => {
+            vi.stubGlobal('location', {href: CHILD_URL});
+            const crumbClick = stubCrumb();
+            vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(
+                'Deploy sar-proxy PRODUCTION',
+            );
+            const labelClick = vi.fn();
+            vi.spyOn(domUtils, 'findStageLabelForPipeline').mockReturnValue({
+                click: labelClick,
+                textContent: ' Run sar-proxy pipeline ',
+            } as unknown as HTMLElement);
+            const scrollIntoView = vi.fn();
+            vi.spyOn(domUtils, 'findExecutionRow').mockReturnValue({
+                scrollIntoView,
+            } as unknown as HTMLElement);
+
+            await climbToParentExecution();
+
+            expect(domUtils.findParentBreadcrumbLink).toHaveBeenCalledWith(
+                '01KYWEXG47N131DFQ6W6C8EA30',
+            );
+            expect(crumbClick).toHaveBeenCalled();
+            expect(domUtils.findStageLabelForPipeline).toHaveBeenCalledWith(
+                '01KYWEVS4ZZBVD19RQ7ZH3NCCF',
+                'Deploy sar-proxy PRODUCTION',
+            );
+            expect(labelClick).toHaveBeenCalled();
+            expect(scrollIntoView).toHaveBeenCalledWith({block: 'start'});
+            expect(Notifications.show).toHaveBeenNthCalledWith(1, {
+                message: 'Jumping to parent pipeline: K8s Meta Pipeline PRODUCTION',
+            });
+            expect(Notifications.show).toHaveBeenNthCalledWith(2, {
+                message: 'Opened stage: Run sar-proxy pipeline',
+            });
+        });
+
+        it('refuses when the execution has no breadcrumbs', async () => {
+            vi.stubGlobal('location', {href: CHILD_URL});
+            vi.spyOn(domUtils, 'findParentBreadcrumbLink').mockReturnValue(null);
+
+            await climbToParentExecution();
+
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No parent execution breadcrumbs on this page',
+            });
+        });
+
+        it('gives up on the stage when no unique label matches', async () => {
+            vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+            vi.stubGlobal('location', {href: CHILD_URL});
+            const crumbClick = stubCrumb();
+            vi.spyOn(domUtils, 'findPipelineNameForExecution').mockReturnValue(
+                'Deploy sar-proxy PRODUCTION',
+            );
+            vi.spyOn(domUtils, 'findStageLabelForPipeline').mockReturnValue(null);
+            const scrollIntoView = vi.fn();
+            vi.spyOn(domUtils, 'findExecutionRow').mockReturnValue({
+                scrollIntoView,
+            } as unknown as HTMLElement);
+
+            const pending = climbToParentExecution();
+            await vi.advanceTimersByTimeAsync(6000);
+            await pending;
+            vi.useRealTimers();
+
+            expect(crumbClick).toHaveBeenCalled();
+            expect(scrollIntoView).not.toHaveBeenCalled();
+            expect(Notifications.show).toHaveBeenNthCalledWith(2, {
+                message: 'Could not find the stage that ran Deploy sar-proxy PRODUCTION',
             });
         });
     });

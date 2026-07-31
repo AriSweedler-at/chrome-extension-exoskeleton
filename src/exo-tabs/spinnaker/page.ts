@@ -6,6 +6,7 @@ import {
     isolateDeployPipeline,
     openMonitoringLinks,
     jumpToLastPipeline,
+    climbToParentExecution,
 } from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
 
@@ -44,6 +45,12 @@ async function initialize() {
             modifiers: {shift: true},
             description: 'Jump to last pipeline in a stack',
             handler: jumpToLastPipeline,
+            context: 'Spinnaker',
+        },
+        {
+            sequence: ['g', 'g'],
+            description: 'Climb to the parent execution',
+            handler: climbToParentExecution,
             context: 'Spinnaker',
         },
     ]);

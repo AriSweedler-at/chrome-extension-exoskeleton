@@ -11,6 +11,9 @@ import {
     findChildPipelineName,
     findStageLabel,
     findOpenSearchLinks,
+    findParentBreadcrumbLink,
+    findStageLabelForPipeline,
+    findExecutionRow,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
@@ -130,6 +133,68 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
             expect(
                 findChildPipelineName(document.getElementById('orphan') as HTMLAnchorElement),
             ).toBeNull();
+        });
+    });
+
+    describe('findParentBreadcrumbLink', () => {
+        it('returns the nearest ancestor — the last breadcrumb link', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-CHILD">
+                    <div class="execution-breadcrumbs">
+                        Parent Executions:
+                        <a href="#/applications/hyperbase-deploy/executions/details/GRANDPARENT?stage=0&step=0">Deploy PRODUCTION</a>
+                        <a href="#/applications/hyperbase-deploy/executions/details/PARENT01?stage=0&step=0">K8s Meta Pipeline PRODUCTION</a>
+                    </div>
+                </div>
+            `;
+            const link = findParentBreadcrumbLink('CHILD');
+            expect(link?.textContent).toBe('K8s Meta Pipeline PRODUCTION');
+            expect(link?.getAttribute('href')).toContain('PARENT01');
+        });
+
+        it('returns null without breadcrumbs or without the execution', () => {
+            document.body.innerHTML = '<div class="execution" id="execution-CHILD"></div>';
+            expect(findParentBreadcrumbLink('CHILD')).toBeNull();
+            expect(findParentBreadcrumbLink('MISSING')).toBeNull();
+        });
+    });
+
+    describe('findStageLabelForPipeline', () => {
+        const graph = (labels: string) => `
+            <div class="execution" id="execution-PARENT01">
+                <svg class="pipeline-graph">${labels}</svg>
+            </div>
+        `;
+        const label = (text: string) =>
+            `<foreignObject><div class="execution-stage-label clickable"><span>${text}</span></div></foreignObject>`;
+
+        it('matches the stage named for the pipeline target, Deploy/env stripped', () => {
+            document.body.innerHTML = graph(
+                label('Datadog: Pipeline Started') +
+                    label('Run sar-proxy pipeline') +
+                    label('Run taskworker-service-data-tbl pipeline'),
+            );
+            expect(
+                findStageLabelForPipeline('PARENT01', 'Deploy sar-proxy PRODUCTION')?.textContent,
+            ).toBe('Run sar-proxy pipeline');
+        });
+
+        it('returns null when zero or several labels match', () => {
+            document.body.innerHTML = graph(
+                label('Run sar-proxy pipeline') + label('Run sar-proxy-canary pipeline'),
+            );
+            expect(findStageLabelForPipeline('PARENT01', 'Deploy sar-proxy PRODUCTION')).toBeNull();
+            expect(findStageLabelForPipeline('PARENT01', 'Deploy web-service ALPHA')).toBeNull();
+        });
+    });
+
+    describe('findExecutionRow', () => {
+        it('returns the row the execution renders in', () => {
+            document.body.innerHTML = `
+                <div class="row" id="the-row"><div class="execution" id="execution-X"></div></div>
+            `;
+            expect(findExecutionRow('X')?.id).toBe('the-row');
+            expect(findExecutionRow('MISSING')).toBeNull();
         });
     });
 

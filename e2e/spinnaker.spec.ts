@@ -1,6 +1,13 @@
 import {test, expect} from './fixtures';
 import type {BrowserContext, Page} from '@playwright/test';
-import {openFixturePage, pressAndExpectToast, seenKeys, resetSeenKeys} from './helpers';
+import {
+    openFixturePage,
+    pressAndExpectToast,
+    waitForKeybindings,
+    toastContainer,
+    seenKeys,
+    resetSeenKeys,
+} from './helpers';
 import {
     SPINNAKER_URL,
     SPINNAKER_HTML,
@@ -9,10 +16,12 @@ import {
     STACKED_EXECUTION_ID,
     EXPANDING_DETAILS_URL,
     EXPANDED_CHILD_URL,
+    CHILD_OF_DEPLOY_URL,
+    CLIMB_PARENT_URL,
 } from './fixture-pages';
 
 /**
- * Drives the Spinnaker page-tab keybindings (e/i/d/M/G) end-to-end against a
+ * Drives the Spinnaker page-tab keybindings (e/i/d/M/G/gg) end-to-end against a
  * fixture that mimics the execution-details DOM the actions target. This is
  * the iteration loop for the Spinnaker tab: change an action, save real
  * Spinnaker DOM into the fixture, re-run.
@@ -108,6 +117,32 @@ test.describe('spinnaker keybindings (content script)', () => {
                     Math.abs(
                         document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,
                     ),
+                ),
+            )
+            .toBeLessThan(2);
+    });
+
+    test('gg climbs from a child of a deploy to the stage that ran it', async ({context}) => {
+        const page = await openFixturePage(context, CHILD_OF_DEPLOY_URL, SPINNAKER_HTML);
+        await waitForKeybindings(page);
+
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText('pending');
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText(
+            'Jumping to parent pipeline: K8s Meta Pipeline PRODUCTION',
+        );
+
+        // Breadcrumb first (stage=0), then the fixture's stage label click
+        // selects the child's stage — like Deck.
+        await page.waitForURL(CLIMB_PARENT_URL);
+        await expect(toastContainer(page)).toContainText('Opened stage: Run sar-proxy pipeline');
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        document.getElementById('last-pipeline-row')?.getBoundingClientRect()
+                            .top ?? Number.NaN,
                 ),
             )
             .toBeLessThan(2);

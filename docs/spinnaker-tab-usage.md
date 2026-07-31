@@ -99,6 +99,27 @@ the page open without the stage click.
 The stage-graph labels only render while the execution's details are open —
 if the stage can't be found, `M` gives up with a toast.
 
+### 6. Climb to the Parent Execution (kbd: `gg`)
+
+An execution spawned by another pipeline renders "Parent Executions"
+breadcrumbs. Pressing `g` twice follows the nearest ancestor's breadcrumb
+back to the parent's stacked view, waits for its stage graph to render,
+clicks the stage that ran this child (matched by the child pipeline's name
+minus its `Deploy`/environment wrapping — e.g. `Deploy sar-proxy PRODUCTION`
+came from "Run sar-proxy pipeline"), and scrolls the parent's row to the
+top.
+
+**Example:**
+
+- On URL: `...#/applications/web-service/executions/01KYWEXG...`
+  (child `Deploy sar-proxy PRODUCTION`)
+- Press `g` `g`
+- URL becomes `...hyperbase-deploy/executions/details/01KYWEVS...?stage=49&step=0&details=pipelineConfig`
+  with the "Run sar-proxy pipeline" stage open and highlighted at the top
+
+Without breadcrumbs, `gg` refuses with a toast. If no single stage matches
+the child's name, it stops after the jump with an error toast.
+
 ## Keyboard Shortcuts
 
 All keyboard shortcuts work globally in the browser tab, except when typing in input fields or textareas.
@@ -110,6 +131,7 @@ All keyboard shortcuts work globally in the browser tab, except when typing in i
 | `d` | Isolate hyperbase-deploy's `Deploy <ENV>` pipeline for the current environment    |
 | `M` | Open the OpenSearch links (via the execution's Monitoring Links stage)            |
 | `G` | Jump to the last pipeline of a stacked details view; expands a selected child pipeline first |
+| `gg` | Climb to the parent execution and open the stage that ran this child             |
 
 ## Rich links (Cmd+Shift+C)
 

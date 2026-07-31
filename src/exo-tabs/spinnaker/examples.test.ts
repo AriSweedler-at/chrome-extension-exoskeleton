@@ -15,6 +15,8 @@ import {
     findChildPipelineName,
     findStageLabel,
     findOpenSearchLinks,
+    findParentBreadcrumbLink,
+    findStageLabelForPipeline,
     getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
@@ -140,6 +142,35 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             // The child is not rendered on the parent page — its element
             // appearing is the composed 'G' action's loaded signal.
             expect(document.getElementById(`execution-${childId}`)).toBeNull();
+        });
+
+        it('resolves the nearest-ancestor breadcrumb for executions that have one', () => {
+            installDom();
+            for (const el of Array.from(document.querySelectorAll('[id^="execution-"]'))) {
+                const executionId = el.id.replace('execution-', '');
+                const anchors = el.querySelectorAll('.execution-breadcrumbs a');
+                const link = findParentBreadcrumbLink(executionId);
+                if (anchors.length === 0) {
+                    expect(link, `execution ${executionId}`).toBeNull();
+                    continue;
+                }
+                expect(link, `execution ${executionId}`).toBe(anchors[anchors.length - 1]);
+                expect(
+                    getExecutionIdFromUrl(link?.getAttribute('href') ?? ''),
+                    `execution ${executionId}`,
+                ).toBeTruthy();
+            }
+        });
+
+        it('locates the stage that runs an open child pipeline', () => {
+            installDom();
+            const link = findViewPipelineExecutionLink();
+            const childName = link ? findChildPipelineName(link) : null;
+            if (!link || !childName) return; // no child pipeline stage pane open
+            const owner = link.closest('[id^="execution-"]');
+            expect(owner).not.toBeNull();
+            const parentId = (owner as HTMLElement).id.replace('execution-', '');
+            expect(findStageLabelForPipeline(parentId, childName)).not.toBeNull();
         });
 
         it('resolves the Monitoring Links stage label wherever one renders', () => {

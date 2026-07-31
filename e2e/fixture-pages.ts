@@ -85,6 +85,18 @@ export const EXPANDING_DETAILS_URL =
     `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
     `?stage=59&step=0&details=pipelineConfig`;
 
+// A child spawned by a deploy, viewed in its own application: it renders
+// parent-execution breadcrumbs whose last link climbs back to the stack.
+const DEPLOY_CHILD_ID = '01KYWEXG47N131DFQ6W6C8EA30';
+
+export const CHILD_OF_DEPLOY_URL = `https://spinnaker.k8s.shadowbox.cloud/#/applications/web-service/executions/${DEPLOY_CHILD_ID}`;
+
+// Where the climb lands: the breadcrumb's own href, then the stage that ran
+// the child, selected by the fixture's stage-label click handler.
+export const CLIMB_PARENT_URL =
+    `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
+    `?stage=49&step=0&details=pipelineConfig`;
+
 const CHILD_EXECUTION_ID = '01KYWEXG59VW8KF897QNBXAWRX';
 const CHILD_DETAILS_HASH = `/applications/taskworker-service/executions/details/${CHILD_EXECUTION_ID}?stage=0&step=0`;
 
@@ -178,6 +190,42 @@ export const SPINNAKER_HTML = `<!doctype html>
           config.style.height = '1600px';
           config.textContent = 'Child Stage Configuration';
           adapter.appendChild(config);
+        }, 150);
+      });
+    </script>
+    <script>
+      // Like real Deck: a child-of-deploy page renders the child under its
+      // own group, with parent-execution breadcrumbs (nearest ancestor last).
+      if (location.hash.includes('/executions/${DEPLOY_CHILD_ID}')) {
+        const group = document.createElement('div');
+        group.className = 'execution-group';
+        group.innerHTML = '<h4 class="execution-group-title">Deploy sar-proxy PRODUCTION</h4>' +
+          '<div class="execution" id="execution-${DEPLOY_CHILD_ID}">' +
+          '<div class="execution-breadcrumbs">Parent Executions: ' +
+          '<a href="#/applications/hyperbase-deploy/executions/details/01KYWDY7DH8Y22MT8VG0GDY42H?stage=0&step=0">Deploy PRODUCTION</a>' +
+          '<a href="#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}?stage=0&step=0">K8s Meta Pipeline PRODUCTION</a>' +
+          '</div></div>';
+        document.body.insertBefore(group, document.body.firstChild);
+      }
+      // Following the breadcrumb renders the parent's stage graph (async).
+      // Clicking a stage label selects that stage, like Deck does.
+      window.addEventListener('hashchange', () => {
+        if (!location.hash.includes('details/${STACKED_EXECUTION_ID}')) return;
+        if (document.getElementById('climb-stage-label')) return;
+        setTimeout(() => {
+          const exec = document.getElementById('execution-${STACKED_EXECUTION_ID}');
+          const decoy = document.createElement('div');
+          decoy.className = 'execution-stage-label clickable';
+          decoy.innerHTML = '<span>Run other-service pipeline</span>';
+          exec.appendChild(decoy);
+          const label = document.createElement('div');
+          label.className = 'execution-stage-label clickable';
+          label.id = 'climb-stage-label';
+          label.innerHTML = '<span>Run sar-proxy pipeline</span>';
+          label.addEventListener('click', () => {
+            location.hash = '/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}?stage=49&step=0&details=pipelineConfig';
+          });
+          exec.appendChild(label);
         }, 150);
       });
     </script>

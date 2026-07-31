@@ -141,6 +141,41 @@ export function findChildPipelineName(link: HTMLAnchorElement): string | null {
     return null;
 }
 
+// An execution spawned by a pipeline renders its ancestry as breadcrumb
+// links ("Parent Executions: ..."), nearest ancestor last. Returns the
+// immediate parent's link.
+export function findParentBreadcrumbLink(executionId: string): HTMLAnchorElement | null {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    const crumbs = executionEl?.querySelectorAll<HTMLAnchorElement>('.execution-breadcrumbs a');
+    return crumbs?.length ? crumbs[crumbs.length - 1] : null;
+}
+
+// The stage-graph label of the stage that runs a child pipeline. The stage
+// is named for the pipeline's target ("Deploy sar-proxy PRODUCTION" runs
+// from "Run sar-proxy pipeline"), so match on the name minus its Deploy/env
+// wrapping — and only when exactly one label matches.
+export function findStageLabelForPipeline(
+    executionId: string,
+    pipelineName: string,
+): HTMLElement | null {
+    const token = pipelineName
+        .replace(/^Deploy /, '')
+        .replace(/ (ALPHA|STAGING|PRODUCTION)$/, '')
+        .trim();
+    if (!token) return null;
+
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    const labels = Array.from(executionEl?.querySelectorAll('.execution-stage-label') ?? []);
+    const matches = labels.filter((label) => label.textContent?.includes(token));
+    return matches.length === 1 ? (matches[0] as HTMLElement) : null;
+}
+
+// The stacked-view row an execution renders in.
+export function findExecutionRow(executionId: string): HTMLElement | null {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    return (executionEl?.closest('.row') as HTMLElement | null) ?? null;
+}
+
 // The execution's stage-graph label with this exact text. Clicking a label
 // selects its stage and opens the stage's details pane.
 export function findStageLabel(executionId: string, labelText: string): HTMLElement | null {
