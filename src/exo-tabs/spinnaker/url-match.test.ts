@@ -4,6 +4,8 @@ import {
     isSpinnakerSearchPage,
     getEnvironments,
     getNextEnvironmentUrl,
+    getSpinnakerEnvironment,
+    environmentToken,
 } from '@exo/exo-tabs/spinnaker/url-match';
 
 describe('isSpinnakerPage', () => {
@@ -31,6 +33,33 @@ describe('isSpinnakerPage', () => {
 
     it('returns false for invalid URLs', () => {
         expect(isSpinnakerPage('not-a-url')).toBe(false);
+    });
+});
+
+describe('getSpinnakerEnvironment', () => {
+    it('maps each hostname to its environment', () => {
+        expect(getSpinnakerEnvironment('https://spinnaker.k8s.shadowbox.cloud/#/foo')).toBe(
+            'production',
+        );
+        expect(getSpinnakerEnvironment('https://spinnaker.k8s.staging-shadowbox.cloud/#/foo')).toBe(
+            'staging',
+        );
+        expect(getSpinnakerEnvironment('https://spinnaker.k8s.alpha-shadowbox.cloud/#/foo')).toBe(
+            'alpha',
+        );
+    });
+
+    it('returns undefined for non-Spinnaker and invalid URLs', () => {
+        expect(getSpinnakerEnvironment('https://github.com/owner/repo')).toBeUndefined();
+        expect(getSpinnakerEnvironment('not-a-url')).toBeUndefined();
+    });
+});
+
+describe('environmentToken', () => {
+    it('returns the token pipeline names embed', () => {
+        expect(environmentToken('production')).toBe('PRODUCTION');
+        expect(environmentToken('staging')).toBe('STAGING');
+        expect(environmentToken('alpha')).toBe('ALPHA');
     });
 });
 

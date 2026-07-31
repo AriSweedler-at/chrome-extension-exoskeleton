@@ -74,6 +74,21 @@ export function buildIsolatedExecutionUrl(
     return setPipelineFilter(urlObj.toString(), target.pipelineName);
 }
 
+// Build an application's executions-list URL isolated to one pipeline: the
+// `pipeline` filter is checked and the sidebar search (`q`) is set to the
+// same name so the pipeline list narrows to it. Run-scoped state from the
+// source URL (execution id, stage/step/details) does not carry over.
+export function buildIsolatedPipelineListUrl(
+    url: string,
+    target: {application: string; pipelineName: string},
+): string {
+    const urlObj = new URL(url);
+    const query = new URLSearchParams({q: target.pipelineName});
+    const hashQuery = query.toString().replace(/\+/g, '%20');
+    urlObj.hash = `/applications/${target.application}/executions?${hashQuery}`;
+    return setPipelineFilter(urlObj.toString(), target.pipelineName);
+}
+
 /**
  * Build the URL that filters the executions view to a single pipeline by
  * setting the `pipeline` param in the hash query. Existing params are

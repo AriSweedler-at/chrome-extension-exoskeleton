@@ -50,15 +50,34 @@ up with an error toast.
 - URL becomes: `...?stage=2&step=0&details=runJobConfig&pipeline=Blue%20Green%20Provisioning%20PRODUCTION`
 - Notification shows: "Isolated pipeline: Blue Green Provisioning PRODUCTION"
 
+### 3. Isolate the Deploy Pipeline (kbd: `d`)
+
+In the `hyperbase-deploy` application, jumps straight to the executions list
+isolated to the environment's main deploy pipeline — `Deploy PRODUCTION`,
+`Deploy STAGING`, or `Deploy ALPHA`, chosen by the current hostname. Both the
+`pipeline` filter and the sidebar search (`q`) are set to that name, and any
+open run (`/executions/<id>` plus its `stage`/`step`/`details` params) is
+dropped.
+
+**Example:**
+
+- On URL: `...#/applications/hyperbase-deploy/executions/01KYWDY7DH8Y22MT8VG0GDY42H?stage=0&step=0&details=webhookConfig`
+- Press `d`
+- URL becomes: `...#/applications/hyperbase-deploy/executions?q=Deploy%20PRODUCTION&pipeline=Deploy%20PRODUCTION`
+
+In any other application `d` refuses with a toast — the Deploy pipeline
+lives in `hyperbase-deploy`.
+
 ## Keyboard Shortcuts
 
 All keyboard shortcuts work globally in the browser tab, except when typing in input fields or textareas.
 
-| Key | Action                                                                           |
-| --- | -------------------------------------------------------------------------------- |
-| `e` | Toggle Execution Details                                                         |
-| `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline)  |
-| `G` | Jump to the last pipeline of a stacked details view (its row scrolls to the top) |
+| Key | Action                                                                            |
+| --- | --------------------------------------------------------------------------------- |
+| `e` | Toggle Execution Details                                                          |
+| `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline)   |
+| `d` | Isolate hyperbase-deploy's `Deploy <ENV>` pipeline for the current environment    |
+| `G` | Jump to the last pipeline of a stacked details view (its row scrolls to the top)  |
 
 ## Rich links (Cmd+Shift+C)
 

@@ -3,6 +3,7 @@ import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 import {
     toggleExecution,
     isolatePipeline,
+    isolateDeployPipeline,
     jumpToLastPipeline,
 } from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
@@ -22,6 +23,12 @@ async function initialize() {
             key: 'i',
             description: 'Isolate pipeline',
             handler: isolatePipeline,
+            context: 'Spinnaker',
+        },
+        {
+            key: 'd',
+            description: 'Isolate the Deploy pipeline',
+            handler: isolateDeployPipeline,
             context: 'Spinnaker',
         },
         {

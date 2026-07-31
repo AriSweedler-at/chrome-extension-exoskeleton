@@ -10,7 +10,7 @@ import {
 } from './fixture-pages';
 
 /**
- * Drives the Spinnaker page-tab keybindings (e/i) end-to-end against a
+ * Drives the Spinnaker page-tab keybindings (e/i/d/G) end-to-end against a
  * fixture that mimics the execution-details DOM the actions target. This is
  * the iteration loop for the Spinnaker tab: change an action, save real
  * Spinnaker DOM into the fixture, re-run.
@@ -60,6 +60,25 @@ test.describe('spinnaker keybindings (content script)', () => {
         expect(page.url()).toContain('pipeline=Deploy%20worker-assigner%20PRODUCTION');
         expect(page.url()).toContain('stage=0&step=0&details=webhookConfig');
         expect(page.url()).not.toContain('/details/');
+    });
+
+    test('d jumps to the isolated Deploy pipeline of the current environment', async ({
+        context,
+    }) => {
+        const page = await openFixturePage(context, STACKED_DETAILS_URL, SPINNAKER_HTML);
+
+        await pressAndExpectToast(page, 'd', 'Isolated pipeline: Deploy PRODUCTION');
+        expect(page.url()).toBe(
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions' +
+                '?q=Deploy%20PRODUCTION&pipeline=Deploy%20PRODUCTION',
+        );
+    });
+
+    test('d refuses outside the hyperbase-deploy application', async ({context}) => {
+        const page = await openSpinnaker(context);
+
+        await pressAndExpectToast(page, 'd', 'Only works in the hyperbase-deploy application');
+        expect(page.url()).toBe(SPINNAKER_URL);
     });
 
     test('G scrolls the last stacked pipeline row to the top of the viewport', async ({

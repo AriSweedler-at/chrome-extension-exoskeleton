@@ -8,6 +8,7 @@ import {
     setPipelineFilter,
     transformPipelineFilters,
     buildIsolatedExecutionUrl,
+    buildIsolatedPipelineListUrl,
 } from '@exo/exo-tabs/spinnaker/filters';
 
 const BASE =
@@ -127,6 +128,38 @@ describe('spinnaker filters', () => {
             );
             expect(result).toBe(
                 'https://spinnaker.k8s.shadowbox.cloud/#/applications/svc/executions/01KYQA4SMS5STF94WB38DZY1A4?pipeline=P',
+            );
+        });
+    });
+
+    describe('buildIsolatedPipelineListUrl', () => {
+        it('drops the run and its params, setting only q and the pipeline filter', () => {
+            const result = buildIsolatedPipelineListUrl(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KYWDY7DH8Y22MT8VG0GDY42H?q=Deploy%20Pro&pipeline=Deploy%20PRODUCTION&stage=0&step=0&details=webhookConfig',
+                {application: 'hyperbase-deploy', pipelineName: 'Deploy PRODUCTION'},
+            );
+            expect(result).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions?q=Deploy%20PRODUCTION&pipeline=Deploy%20PRODUCTION',
+            );
+        });
+
+        it('keeps the host, so the environment is preserved', () => {
+            const result = buildIsolatedPipelineListUrl(
+                'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/hyperbase-deploy/executions',
+                {application: 'hyperbase-deploy', pipelineName: 'Deploy ALPHA'},
+            );
+            expect(result).toBe(
+                'https://spinnaker.k8s.alpha-shadowbox.cloud/#/applications/hyperbase-deploy/executions?q=Deploy%20ALPHA&pipeline=Deploy%20ALPHA',
+            );
+        });
+
+        it('can retarget a different application', () => {
+            const result = buildIsolatedPipelineListUrl(`${BASE}?stage=2`, {
+                application: 'other-app',
+                pipelineName: 'P',
+            });
+            expect(result).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/other-app/executions?q=P&pipeline=P',
             );
         });
     });

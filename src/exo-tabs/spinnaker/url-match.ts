@@ -25,16 +25,24 @@ const ENV_TO_TOKEN: Record<SpinnakerEnvironment, string> = {
 
 const ENV_TOKEN_PATTERN = /\b(ALPHA|STAGING|PRODUCTION)\b/g;
 
+/** The environment the URL's hostname belongs to, or undefined. */
+export function getSpinnakerEnvironment(url: string): SpinnakerEnvironment | undefined {
+    try {
+        return HOSTNAME_TO_ENV[new URL(url).hostname.toLowerCase()];
+    } catch {
+        return undefined;
+    }
+}
+
+export function environmentToken(env: SpinnakerEnvironment): string {
+    return ENV_TO_TOKEN[env];
+}
+
 /**
  * Check if URL is any Spinnaker page
  */
 export function isSpinnakerPage(url: string): boolean {
-    try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        return hostname in HOSTNAME_TO_ENV;
-    } catch {
-        return false;
-    }
+    return getSpinnakerEnvironment(url) !== undefined;
 }
 
 /**
@@ -53,8 +61,7 @@ export function isSpinnakerSearchPage(url: string): boolean {
 /** Returns all environments with their URLs and which is current, or undefined if not a Spinnaker page. */
 export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
     try {
-        const u = new URL(url);
-        const currentEnv = HOSTNAME_TO_ENV[u.hostname.toLowerCase()];
+        const currentEnv = getSpinnakerEnvironment(url);
         if (!currentEnv) return undefined;
 
         return SPINNAKER_ENVIRONMENTS.map((env) => {

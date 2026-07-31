@@ -2,6 +2,7 @@ import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {
     toggleExecution,
     isolatePipeline,
+    isolateDeployPipeline,
     jumpToLastPipeline,
 } from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -66,6 +67,57 @@ describe('spinnaker actions', () => {
 
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'No stacked pipeline rows on this page',
+            });
+        });
+    });
+
+    describe('isolateDeployPipeline', () => {
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('jumps from a run to the isolated Deploy pipeline of the environment', () => {
+            vi.stubGlobal('location', {
+                href: 'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01KYWDY7DH8Y22MT8VG0GDY42H?q=Deploy%20Pro&pipeline=Deploy%20PRODUCTION&stage=0&step=0&details=webhookConfig',
+            });
+
+            isolateDeployPipeline();
+
+            expect(window.location.href).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions?q=Deploy%20PRODUCTION&pipeline=Deploy%20PRODUCTION',
+            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Isolated pipeline: Deploy PRODUCTION',
+            });
+        });
+
+        it.each([
+            ['https://spinnaker.k8s.alpha-shadowbox.cloud', 'Deploy%20ALPHA', 'Deploy ALPHA'],
+            ['https://spinnaker.k8s.staging-shadowbox.cloud', 'Deploy%20STAGING', 'Deploy STAGING'],
+        ])('targets the environment of the %s host', (host, encoded, pipelineName) => {
+            vi.stubGlobal('location', {
+                href: `${host}/#/applications/hyperbase-deploy/executions`,
+            });
+
+            isolateDeployPipeline();
+
+            expect(window.location.href).toBe(
+                `${host}/#/applications/hyperbase-deploy/executions?q=${encoded}&pipeline=${encoded}`,
+            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: `Isolated pipeline: ${pipelineName}`,
+            });
+        });
+
+        it('refuses to run outside the hyperbase-deploy application', () => {
+            const url = 'https://spinnaker.k8s.shadowbox.cloud/#/applications/myapp/executions';
+            vi.stubGlobal('location', {href: url});
+
+            isolateDeployPipeline();
+
+            expect(window.location.href).toBe(url);
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Only works in the hyperbase-deploy application',
             });
         });
     });

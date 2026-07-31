@@ -1,10 +1,11 @@
 /**
  * Action handlers for Spinnaker tab operations
  *
- * Implements three core actions for interacting with Spinnaker UI:
+ * Implements the core actions for interacting with Spinnaker UI:
  * - Toggle execution details
  * - Jump to the last pipeline of a stacked details view
  * - Isolate the open execution's pipeline
+ * - Jump to hyperbase-deploy's isolated Deploy pipeline
  */
 
 import {
@@ -20,7 +21,10 @@ import {
     setPipelineFilter,
     isStackedDetailsView,
     buildIsolatedExecutionUrl,
+    buildIsolatedPipelineListUrl,
+    getApplicationName,
 } from '@exo/exo-tabs/spinnaker/filters';
+import {getSpinnakerEnvironment, environmentToken} from '@exo/exo-tabs/spinnaker/url-match';
 import {Notifications} from '@exo/lib/toast-notification';
 
 /**
@@ -42,6 +46,32 @@ export function toggleExecution(): void {
     } else {
         showNotification('Execution details link not found');
     }
+}
+
+// The application whose main deploy pipeline is named "Deploy <ENV>".
+const DEPLOY_APPLICATION = 'hyperbase-deploy';
+
+// Jump to the current environment's "Deploy <ENV>" pipeline, isolated. Any
+// open run is left behind — this targets the pipeline's executions list,
+// not a specific execution.
+export function isolateDeployPipeline(): void {
+    const url = window.location.href;
+    if (getApplicationName(url) !== DEPLOY_APPLICATION) {
+        showNotification(`Only works in the ${DEPLOY_APPLICATION} application`);
+        return;
+    }
+    const env = getSpinnakerEnvironment(url);
+    if (!env) {
+        showNotification('Could not determine the Spinnaker environment from the URL');
+        return;
+    }
+
+    const pipelineName = `Deploy ${environmentToken(env)}`;
+    window.location.href = buildIsolatedPipelineListUrl(url, {
+        application: DEPLOY_APPLICATION,
+        pipelineName,
+    });
+    showNotification(`Isolated pipeline: ${pipelineName}`);
 }
 
 /**
