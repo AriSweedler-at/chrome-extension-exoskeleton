@@ -141,6 +141,27 @@ export function findChildPipelineName(link: HTMLAnchorElement): string | null {
     return null;
 }
 
+// The execution's stage-graph label with this exact text. Clicking a label
+// selects its stage and opens the stage's details pane.
+export function findStageLabel(executionId: string, labelText: string): HTMLElement | null {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    const labels = Array.from(executionEl?.querySelectorAll('.execution-stage-label') ?? []);
+    const match = labels.find((label) => label.textContent?.trim() === labelText);
+    return (match as HTMLElement | undefined) ?? null;
+}
+
+// OpenSearch links in the execution's open stage pane, recognized by their
+// text or target host.
+export function findOpenSearchLinks(executionId: string): HTMLAnchorElement[] {
+    const executionEl = document.getElementById(`execution-${executionId}`);
+    const anchors = Array.from(
+        executionEl?.querySelectorAll<HTMLAnchorElement>('.execution-details a') ?? [],
+    );
+    return anchors.filter((anchor) =>
+        /opensearch/i.test(`${anchor.textContent ?? ''} ${anchor.getAttribute('href') ?? ''}`),
+    );
+}
+
 /**
  * Find the "Execution Details" link in the Spinnaker UI
  */

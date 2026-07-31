@@ -9,6 +9,8 @@ import {
     findPipelineNameForExecution,
     findViewPipelineExecutionLink,
     findChildPipelineName,
+    findStageLabel,
+    findOpenSearchLinks,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
@@ -128,6 +130,59 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
             expect(
                 findChildPipelineName(document.getElementById('orphan') as HTMLAnchorElement),
             ).toBeNull();
+        });
+    });
+
+    describe('findStageLabel', () => {
+        it('matches a stage-graph label by exact text, scoped to the execution', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-OTHER">
+                    <div class="execution-stage-label clickable"><span>Monitoring Links</span></div>
+                </div>
+                <div class="execution" id="execution-MINE">
+                    <div class="execution-stage-label clickable"><span>Datadog: Pipeline Started</span></div>
+                    <div class="execution-stage-label clickable" id="target"><span>Monitoring Links</span></div>
+                </div>
+            `;
+            expect(findStageLabel('MINE', 'Monitoring Links')?.id).toBe('target');
+        });
+
+        it('returns null when no label has that exact text', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-MINE">
+                    <div class="execution-stage-label"><span>Monitoring Links and more</span></div>
+                </div>
+            `;
+            expect(findStageLabel('MINE', 'Monitoring Links')).toBeNull();
+            expect(findStageLabel('MISSING', 'Monitoring Links')).toBeNull();
+        });
+    });
+
+    describe('findOpenSearchLinks', () => {
+        it('collects pane links matching OpenSearch by text or host', () => {
+            document.body.innerHTML = `
+                <div class="execution" id="execution-MINE">
+                    <div class="execution-details">
+                        <a href="https://opensearch-applogs.shadowbox.cloud/_dashboards/app/discover#/">OpenSearch Link</a>
+                        <a href="https://app.datadoghq.com/dashboard">Datadog Dashboard</a>
+                        <a>Task Status</a>
+                    </div>
+                </div>
+                <div class="execution" id="execution-OTHER">
+                    <div class="execution-details">
+                        <a href="https://opensearch-applogs.shadowbox.cloud/">OpenSearch Link</a>
+                    </div>
+                </div>
+            `;
+            const links = findOpenSearchLinks('MINE');
+            expect(links).toHaveLength(1);
+            expect(links[0].getAttribute('href')).toContain('opensearch-applogs');
+        });
+
+        it('returns empty without a pane or execution', () => {
+            document.body.innerHTML = '<div class="execution" id="execution-MINE"></div>';
+            expect(findOpenSearchLinks('MINE')).toEqual([]);
+            expect(findOpenSearchLinks('MISSING')).toEqual([]);
         });
     });
 

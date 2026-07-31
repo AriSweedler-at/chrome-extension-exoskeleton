@@ -13,6 +13,8 @@ import {
     findEventStageMarker,
     findViewPipelineExecutionLink,
     findChildPipelineName,
+    findStageLabel,
+    findOpenSearchLinks,
     getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
@@ -138,6 +140,33 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
             // The child is not rendered on the parent page — its element
             // appearing is the composed 'G' action's loaded signal.
             expect(document.getElementById(`execution-${childId}`)).toBeNull();
+        });
+
+        it('resolves the Monitoring Links stage label wherever one renders', () => {
+            installDom();
+            // Not every pipeline has a Monitoring Links stage — assert the
+            // helper finds the label exactly where the execution renders one.
+            for (const el of Array.from(document.querySelectorAll('[id^="execution-"]'))) {
+                const executionId = el.id.replace('execution-', '');
+                const rendered = Array.from(el.querySelectorAll('.execution-stage-label')).some(
+                    (label) => label.textContent?.trim() === 'Monitoring Links',
+                );
+                expect(
+                    Boolean(findStageLabel(executionId, 'Monitoring Links')),
+                    `execution ${executionId}`,
+                ).toBe(rendered);
+            }
+        });
+
+        it('collects every OpenSearch link on the page under its execution', () => {
+            installDom();
+            const isOpenSearch = (a: Element) =>
+                /opensearch/i.test(`${a.textContent ?? ''} ${a.getAttribute('href') ?? ''}`);
+            const all = Array.from(document.querySelectorAll('a')).filter(isOpenSearch);
+            const collected = Array.from(document.querySelectorAll('[id^="execution-"]')).flatMap(
+                (el) => findOpenSearchLinks(el.id.replace('execution-', '')),
+            );
+            expect(new Set(collected)).toEqual(new Set(all));
         });
 
         it('resolves an application from event payloads when a stage pane is open', () => {

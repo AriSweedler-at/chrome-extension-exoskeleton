@@ -126,6 +126,8 @@ export const SPINNAKER_HTML = `<!doctype html>
         <div class="execution" id="execution-${STACKED_EXECUTION_ID}">
           <h4 class="execution-name">Deploy worker-assigner PRODUCTION</h4>
           <div class="clickable stage execution-marker stage-type-datadogchangeevent" id="dd-event-marker"></div>
+          <div class="execution-stage-label clickable"><span>Datadog: Pipeline Started</span></div>
+          <div class="execution-stage-label clickable" id="monitoring-stage-label"><span>Monitoring Links</span></div>
         </div>
       </div>
       <div class="row" id="stage-config-row" style="height: 1600px">Webhook Stage Configuration</div>
@@ -162,6 +164,23 @@ export const SPINNAKER_HTML = `<!doctype html>
           config.style.height = '1600px';
           config.textContent = 'Child Stage Configuration';
           adapter.appendChild(config);
+        }, 150);
+      });
+    </script>
+    <script>
+      // Like real Deck: the Monitoring Links pane renders (async) after its
+      // stage-graph label is clicked; the OpenSearch link lives in that pane.
+      document.getElementById('monitoring-stage-label').addEventListener('click', () => {
+        setTimeout(() => {
+          const pane = document.createElement('div');
+          pane.className = 'execution-details';
+          pane.innerHTML = '<h1>Monitoring Links</h1><h2>OpenSearch Link</h2>' +
+            '<a href="#opensearch">OpenSearch Link</a>';
+          pane.querySelector('a').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.__clicks.push('opensearch-link');
+          });
+          document.getElementById('execution-${STACKED_EXECUTION_ID}').appendChild(pane);
         }, 150);
       });
     </script>

@@ -4,6 +4,7 @@ import {
     toggleExecution,
     isolatePipeline,
     isolateDeployPipeline,
+    openMonitoringLinks,
     jumpToLastPipeline,
 } from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
@@ -29,6 +30,13 @@ async function initialize() {
             key: 'd',
             description: 'Isolate the Deploy pipeline',
             handler: isolateDeployPipeline,
+            context: 'Spinnaker',
+        },
+        {
+            key: 'M',
+            modifiers: {shift: true},
+            description: 'Open the OpenSearch links (Monitoring Links stage)',
+            handler: openMonitoringLinks,
             context: 'Spinnaker',
         },
         {

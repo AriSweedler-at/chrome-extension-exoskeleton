@@ -28,6 +28,8 @@ import {
     findApplicationForExecution,
     findViewPipelineExecutionLink,
     findChildPipelineName,
+    findStageLabel,
+    findOpenSearchLinks,
     getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
@@ -110,6 +112,21 @@ for (const el of executions) {
 
 const detailsLink = findExecutionDetailsLink();
 console.log(`\nExecution Details link ('e'): ${detailsLink ? 'found' : 'NOT FOUND'}`);
+
+const monitored = executions.filter((el) =>
+    findStageLabel(el.id.replace('execution-', ''), 'Monitoring Links'),
+);
+const openSearchLinks = executions.flatMap((el) =>
+    findOpenSearchLinks(el.id.replace('execution-', '')),
+);
+console.log(
+    `Monitoring Links stage ('M'): ${
+        monitored.length
+            ? `label found on ${monitored.length} execution(s)`
+            : 'no stage graph rendered'
+    }`,
+);
+console.log(`OpenSearch links in open panes: ${openSearchLinks.length}`);
 
 const childLink = findViewPipelineExecutionLink();
 console.log(`View Pipeline Execution link ('G' expands): ${childLink ? 'found' : 'not present'}`);

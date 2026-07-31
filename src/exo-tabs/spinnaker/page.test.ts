@@ -11,6 +11,7 @@ vi.mock('@exo/exo-tabs/spinnaker/actions', () => ({
     toggleExecution: vi.fn(),
     isolatePipeline: vi.fn(),
     isolateDeployPipeline: vi.fn(),
+    openMonitoringLinks: vi.fn(),
     jumpToLastPipeline: vi.fn(),
 }));
 
@@ -54,7 +55,7 @@ describe('spinnaker page module', () => {
 
         expect(keybindings.registerAll).toHaveBeenCalledTimes(1);
         const bindings = vi.mocked(keybindings.registerAll).mock.calls[0][0];
-        expect(bindings.map((b: {key: string}) => b.key)).toEqual(['e', 'i', 'd', 'G']);
+        expect(bindings.map((b: {key: string}) => b.key)).toEqual(['e', 'i', 'd', 'M', 'G']);
         expect(keybindings.listen).toHaveBeenCalled();
     });
 

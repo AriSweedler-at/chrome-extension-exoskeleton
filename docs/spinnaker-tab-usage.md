@@ -88,6 +88,17 @@ waits for the child to render, then scrolls its row to the top and toasts
 - URL becomes `...taskworker-service/executions/details/01KYWEXG...` and the
   child's pipeline row scrolls to the top once it renders
 
+### 5. Open the OpenSearch Links (kbd: `M`)
+
+On an execution view, opens the OpenSearch links of the URL's execution:
+clicks its "Monitoring Links" stage-graph label (whose details pane carries
+the links), waits for the pane to render, then clicks every OpenSearch link
+in it (recognized by link text or an `opensearch` host). Links already on
+the page open without the stage click.
+
+The stage-graph labels only render while the execution's details are open —
+if the stage can't be found, `M` gives up with a toast.
+
 ## Keyboard Shortcuts
 
 All keyboard shortcuts work globally in the browser tab, except when typing in input fields or textareas.
@@ -97,6 +108,7 @@ All keyboard shortcuts work globally in the browser tab, except when typing in i
 | `e` | Toggle Execution Details                                                          |
 | `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline)   |
 | `d` | Isolate hyperbase-deploy's `Deploy <ENV>` pipeline for the current environment    |
+| `M` | Open the OpenSearch links (via the execution's Monitoring Links stage)            |
 | `G` | Jump to the last pipeline of a stacked details view; expands a selected child pipeline first |
 
 ## Rich links (Cmd+Shift+C)

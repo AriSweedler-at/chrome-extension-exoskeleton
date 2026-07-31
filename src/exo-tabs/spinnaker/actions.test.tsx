@@ -3,6 +3,7 @@ import {
     toggleExecution,
     isolatePipeline,
     isolateDeployPipeline,
+    openMonitoringLinks,
     jumpToLastPipeline,
 } from '@exo/exo-tabs/spinnaker/actions';
 import * as domUtils from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -179,6 +180,82 @@ describe('spinnaker actions', () => {
             expect(window.location.href).toBe(url);
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'Only works in the hyperbase-deploy application',
+            });
+        });
+    });
+
+    describe('openMonitoringLinks', () => {
+        const STACKED_URL =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/web-service/executions/details/01KYWEXG47N131DFQ6W6C8EA30?stage=2&step=0';
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        const fakeLink = (click = vi.fn()) => ({click}) as unknown as HTMLAnchorElement;
+
+        it('clicks links that are already on the page, without touching the stage', async () => {
+            vi.stubGlobal('location', {href: STACKED_URL});
+            const click = vi.fn();
+            vi.spyOn(domUtils, 'findOpenSearchLinks').mockReturnValue([fakeLink(click)]);
+            vi.spyOn(domUtils, 'findStageLabel');
+
+            await openMonitoringLinks();
+
+            expect(click).toHaveBeenCalled();
+            expect(domUtils.findStageLabel).not.toHaveBeenCalled();
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Opened 1 OpenSearch link',
+            });
+        });
+
+        it('opens the Monitoring Links stage and clicks the links once they render', async () => {
+            vi.stubGlobal('location', {href: STACKED_URL});
+            const linkClick = vi.fn();
+            // Absent before the stage click, present once the pane renders.
+            vi.spyOn(domUtils, 'findOpenSearchLinks')
+                .mockReturnValueOnce([])
+                .mockReturnValueOnce([])
+                .mockReturnValue([fakeLink(linkClick), fakeLink(linkClick)]);
+            const labelClick = vi.fn();
+            vi.spyOn(domUtils, 'findStageLabel').mockReturnValue({
+                click: labelClick,
+            } as unknown as HTMLElement);
+
+            await openMonitoringLinks();
+
+            expect(domUtils.findStageLabel).toHaveBeenCalledWith(
+                '01KYWEXG47N131DFQ6W6C8EA30',
+                'Monitoring Links',
+            );
+            expect(labelClick).toHaveBeenCalled();
+            expect(linkClick).toHaveBeenCalledTimes(2);
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Opened 2 OpenSearch links',
+            });
+        });
+
+        it('gives up when the execution has no Monitoring Links stage', async () => {
+            vi.stubGlobal('location', {href: STACKED_URL});
+            vi.spyOn(domUtils, 'findOpenSearchLinks').mockReturnValue([]);
+            vi.spyOn(domUtils, 'findStageLabel').mockReturnValue(null);
+
+            await openMonitoringLinks();
+
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No OpenSearch links found via the Monitoring Links stage',
+            });
+        });
+
+        it('shows "No execution found" when the URL has no execution', async () => {
+            vi.stubGlobal('location', {
+                href: 'https://spinnaker.k8s.shadowbox.cloud/#/applications/web-service/executions',
+            });
+
+            await openMonitoringLinks();
+
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No execution found in URL',
             });
         });
     });

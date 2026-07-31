@@ -12,7 +12,7 @@ import {
 } from './fixture-pages';
 
 /**
- * Drives the Spinnaker page-tab keybindings (e/i/d/G) end-to-end against a
+ * Drives the Spinnaker page-tab keybindings (e/i/d/M/G) end-to-end against a
  * fixture that mimics the execution-details DOM the actions target. This is
  * the iteration loop for the Spinnaker tab: change an action, save real
  * Spinnaker DOM into the fixture, re-run.
@@ -81,6 +81,14 @@ test.describe('spinnaker keybindings (content script)', () => {
 
         await pressAndExpectToast(page, 'd', 'Only works in the hyperbase-deploy application');
         expect(page.url()).toBe(SPINNAKER_URL);
+    });
+
+    test('M opens the OpenSearch links via the Monitoring Links stage', async ({context}) => {
+        const page = await openFixturePage(context, STACKED_DETAILS_URL, SPINNAKER_HTML);
+
+        await pressAndExpectToast(page, 'Shift+M', 'Opened 1 OpenSearch link');
+        const clicks = await page.evaluate(() => window.__clicks ?? []);
+        expect(clicks).toContain('opensearch-link');
     });
 
     test('G scrolls the last stacked pipeline row to the top of the viewport', async ({

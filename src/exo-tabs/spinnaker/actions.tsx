@@ -16,6 +16,8 @@ import {
     findEventStageMarker,
     findViewPipelineExecutionLink,
     findChildPipelineName,
+    findStageLabel,
+    findOpenSearchLinks,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -182,8 +184,8 @@ async function isolateStackedExecution(executionId: string): Promise<void> {
     showNotification(`Isolated pipeline: ${pipelineName} (${application})`);
 }
 
-const EVENT_PANE_POLL_MS = 100;
-const EVENT_PANE_POLL_ATTEMPTS = 30;
+const STAGE_PANE_POLL_MS = 100;
+const STAGE_PANE_POLL_ATTEMPTS = 30;
 
 /**
  * The event payload only renders while its stage's details pane is open:
@@ -195,10 +197,52 @@ async function openEventStageAndFindApplication(executionId: string): Promise<st
     if (!marker) return null;
     marker.click();
 
-    for (let attempt = 0; attempt < EVENT_PANE_POLL_ATTEMPTS; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, EVENT_PANE_POLL_MS));
+    for (let attempt = 0; attempt < STAGE_PANE_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
         const application = findApplicationForExecution(executionId);
         if (application) return application;
+    }
+    return null;
+}
+
+const MONITORING_STAGE_LABEL = 'Monitoring Links';
+
+/**
+ * Open the execution's OpenSearch links: select its "Monitoring Links"
+ * stage (whose pane carries them) and click every OpenSearch link once the
+ * pane renders. Links already on the page open without the stage click.
+ */
+export async function openMonitoringLinks(): Promise<void> {
+    const executionId = getExecutionIdFromUrl();
+    if (!executionId) {
+        showNotification('No execution found in URL');
+        return;
+    }
+
+    const presentLinks = findOpenSearchLinks(executionId);
+    const links = presentLinks.length
+        ? presentLinks
+        : await openMonitoringStageAndFindLinks(executionId);
+    if (!links || links.length === 0) {
+        showNotification(`No OpenSearch links found via the ${MONITORING_STAGE_LABEL} stage`);
+        return;
+    }
+
+    links.forEach((link) => link.click());
+    showNotification(`Opened ${links.length} OpenSearch link${links.length === 1 ? '' : 's'}`);
+}
+
+async function openMonitoringStageAndFindLinks(
+    executionId: string,
+): Promise<HTMLAnchorElement[] | null> {
+    const label = findStageLabel(executionId, MONITORING_STAGE_LABEL);
+    if (!label) return null;
+    label.click();
+
+    for (let attempt = 0; attempt < STAGE_PANE_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
+        const links = findOpenSearchLinks(executionId);
+        if (links.length > 0) return links;
     }
     return null;
 }
