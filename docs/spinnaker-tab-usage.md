@@ -68,6 +68,26 @@ dropped.
 In any other application `d` refuses with a toast — the Deploy pipeline
 lives in `hyperbase-deploy`.
 
+### 4. Jump to the Last Pipeline (kbd: `G`)
+
+On a stacked details view, scrolls the top of the stack's last pipeline row
+to the top of the viewport.
+
+When the selected stage is itself a pipeline — its open pane shows a "View
+Pipeline Execution" link — `G` composes two steps in one keystroke: it
+follows that link to the child execution's own stacked view (toasting
+"Expanding child pipeline: <name>", read from the pane's Pipeline entry),
+waits for the child to render, then scrolls its row to the top and toasts
+"Jumped to the last pipeline" on the new view.
+
+**Example:**
+
+- On URL: `...hyperbase-deploy/executions/details/01KYWEVS...?stage=59&step=0&details=pipelineConfig`
+  with the child-pipeline stage's pane open
+- Press `G`
+- URL becomes `...taskworker-service/executions/details/01KYWEXG...` and the
+  child's pipeline row scrolls to the top once it renders
+
 ## Keyboard Shortcuts
 
 All keyboard shortcuts work globally in the browser tab, except when typing in input fields or textareas.
@@ -77,7 +97,7 @@ All keyboard shortcuts work globally in the browser tab, except when typing in i
 | `e` | Toggle Execution Details                                                          |
 | `i` | Isolate Pipeline (adds `?pipeline=<name>` so the view shows only that pipeline)   |
 | `d` | Isolate hyperbase-deploy's `Deploy <ENV>` pipeline for the current environment    |
-| `G` | Jump to the last pipeline of a stacked details view (its row scrolls to the top)  |
+| `G` | Jump to the last pipeline of a stacked details view; expands a selected child pipeline first |
 
 ## Rich links (Cmd+Shift+C)
 

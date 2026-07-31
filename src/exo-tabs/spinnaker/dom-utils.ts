@@ -117,6 +117,30 @@ export function findLastStackedPipelineRow(): HTMLElement | null {
     return (pipelineRows[pipelineRows.length - 1] as HTMLElement | undefined) ?? null;
 }
 
+// The "View Pipeline Execution" link of an open stage pane — rendered only
+// when the selected stage is itself a pipeline. Its href is the child
+// execution's own stacked details view. Matched by exact text: the pane's
+// tab anchors ("Pipeline Config", "Task Status", ...) share .stage-details.
+export function findViewPipelineExecutionLink(): HTMLAnchorElement | null {
+    const anchors = document.querySelectorAll<HTMLAnchorElement>('.stage-details a');
+    for (const anchor of Array.from(anchors)) {
+        if (anchor.textContent?.trim() === 'View Pipeline Execution') return anchor;
+    }
+    return null;
+}
+
+// A child-pipeline stage's pane lists its target under a "Pipeline" label —
+// the child pipeline's full name.
+export function findChildPipelineName(link: HTMLAnchorElement): string | null {
+    const pane = link.closest('.execution-details');
+    for (const dt of Array.from(pane?.querySelectorAll('dt') ?? [])) {
+        if (dt.textContent?.trim() !== 'Pipeline') continue;
+        const dd = dt.nextElementSibling;
+        if (dd?.tagName === 'DD') return dd.textContent?.trim() || null;
+    }
+    return null;
+}
+
 /**
  * Find the "Execution Details" link in the Spinnaker UI
  */

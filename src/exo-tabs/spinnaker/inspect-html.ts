@@ -26,6 +26,9 @@ import {
     findExecutionDetailsLink,
     findStackedPipelineName,
     findApplicationForExecution,
+    findViewPipelineExecutionLink,
+    findChildPipelineName,
+    getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
     getPipelineFilters,
@@ -107,6 +110,15 @@ for (const el of executions) {
 
 const detailsLink = findExecutionDetailsLink();
 console.log(`\nExecution Details link ('e'): ${detailsLink ? 'found' : 'NOT FOUND'}`);
+
+const childLink = findViewPipelineExecutionLink();
+console.log(`View Pipeline Execution link ('G' expands): ${childLink ? 'found' : 'not present'}`);
+if (childLink) {
+    const href = childLink.getAttribute('href') ?? '';
+    console.log(`  child pipeline:  ${findChildPipelineName(childLink) ?? 'NOT FOUND'}`);
+    console.log(`  child execution: ${getExecutionIdFromUrl(href) ?? 'NO ID IN HREF'}`);
+    console.log(`  href:            ${href}`);
+}
 
 console.log('\nRich link (Cmd+Shift+C) formats:');
 const linkFormats = new SpinnakerHandler().getFormats({url});

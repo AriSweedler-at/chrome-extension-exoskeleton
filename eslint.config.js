@@ -34,6 +34,7 @@ export default [
                 Blob: 'readonly',
                 ClipboardItem: 'readonly',
                 HTMLElement: 'readonly',
+                HTMLAnchorElement: 'readonly',
                 HTMLButtonElement: 'readonly',
                 HTMLInputElement: 'readonly',
                 Element: 'readonly',

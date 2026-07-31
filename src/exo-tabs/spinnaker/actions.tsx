@@ -14,6 +14,8 @@ import {
     findStackedPipelineName,
     findApplicationForExecution,
     findEventStageMarker,
+    findViewPipelineExecutionLink,
+    findChildPipelineName,
     getExecutionIdFromUrl,
     findPipelineNameForExecution,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
@@ -76,15 +78,51 @@ export function isolateDeployPipeline(): void {
 
 /**
  * Jump to the last pipeline of a stacked execution-details view: scroll the
- * top of its row to the top of the viewport.
+ * top of its row to the top of the viewport. When the selected stage is a
+ * child pipeline (its open pane shows a "View Pipeline Execution" link),
+ * open that execution first and scroll once it renders — one keystroke
+ * composes both.
  */
-export function jumpToLastPipeline(): void {
+export async function jumpToLastPipeline(): Promise<void> {
+    const link = findViewPipelineExecutionLink();
+    if (!link) {
+        scrollToLastPipelineRow();
+        return;
+    }
+
+    const childId = getExecutionIdFromUrl(link.getAttribute('href') ?? '');
+    const childName = findChildPipelineName(link);
+    link.click();
+    showNotification(
+        childName ? `Expanding child pipeline: ${childName}` : 'Expanding child pipeline',
+    );
+    if (childId && (await waitForExecutionToRender(childId)) && scrollToLastPipelineRow()) {
+        showNotification('Jumped to the last pipeline');
+    }
+}
+
+function scrollToLastPipelineRow(): boolean {
     const row = findLastStackedPipelineRow();
     if (!row) {
         showNotification('No stacked pipeline rows on this page');
-        return;
+        return false;
     }
     row.scrollIntoView({block: 'start'});
+    return true;
+}
+
+const CHILD_RENDER_POLL_MS = 100;
+const CHILD_RENDER_POLL_ATTEMPTS = 50;
+
+// Deck fetches the child execution before rendering its stack — wait for
+// its element instead of a fixed delay.
+async function waitForExecutionToRender(executionId: string): Promise<boolean> {
+    for (let attempt = 0; attempt < CHILD_RENDER_POLL_ATTEMPTS; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, CHILD_RENDER_POLL_MS));
+        if (document.getElementById(`execution-${executionId}`)) return true;
+    }
+    showNotification('The pipeline execution never rendered');
+    return false;
 }
 
 /**

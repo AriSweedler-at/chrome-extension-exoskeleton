@@ -49,25 +49,86 @@ describe('spinnaker actions', () => {
     });
 
     describe('jumpToLastPipeline', () => {
-        it('scrolls the last stacked pipeline row to the top of the viewport', () => {
+        afterEach(() => {
+            document.body.innerHTML = '';
+        });
+
+        it('scrolls the last stacked pipeline row to the top of the viewport', async () => {
             const scrollIntoView = vi.fn();
             const row = {scrollIntoView} as unknown as HTMLElement;
+            vi.spyOn(domUtils, 'findViewPipelineExecutionLink').mockReturnValue(null);
             vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue(row);
 
-            jumpToLastPipeline();
+            await jumpToLastPipeline();
 
             expect(scrollIntoView).toHaveBeenCalledWith({block: 'start'});
             expect(Notifications.show).not.toHaveBeenCalled();
         });
 
-        it('notifies when the page has no stacked pipeline rows', () => {
+        it('notifies when the page has no stacked pipeline rows', async () => {
+            vi.spyOn(domUtils, 'findViewPipelineExecutionLink').mockReturnValue(null);
             vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue(null);
 
-            jumpToLastPipeline();
+            await jumpToLastPipeline();
 
             expect(Notifications.show).toHaveBeenCalledWith({
                 message: 'No stacked pipeline rows on this page',
             });
+        });
+
+        it('expands a selected child pipeline, then scrolls and toasts once it renders', async () => {
+            const childId = '01KYWEXG59VW8KF897QNBXAWRX';
+            const click = vi.fn(() => {
+                // Like real Deck: the child execution renders after the click.
+                const child = document.createElement('div');
+                child.id = `execution-${childId}`;
+                document.body.appendChild(child);
+            });
+            const link = {
+                click,
+                getAttribute: () =>
+                    `#/applications/taskworker-service/executions/details/${childId}?stage=0&step=0`,
+            } as unknown as HTMLAnchorElement;
+            vi.spyOn(domUtils, 'findViewPipelineExecutionLink').mockReturnValue(link);
+            vi.spyOn(domUtils, 'findChildPipelineName').mockReturnValue(
+                'Deploy taskworker-service-data-tbl PRODUCTION',
+            );
+            const scrollIntoView = vi.fn();
+            const row = {scrollIntoView} as unknown as HTMLElement;
+            vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue(row);
+
+            await jumpToLastPipeline();
+
+            expect(click).toHaveBeenCalled();
+            expect(scrollIntoView).toHaveBeenCalledWith({block: 'start'});
+            expect(Notifications.show).toHaveBeenNthCalledWith(1, {
+                message: 'Expanding child pipeline: Deploy taskworker-service-data-tbl PRODUCTION',
+            });
+            expect(Notifications.show).toHaveBeenNthCalledWith(2, {
+                message: 'Jumped to the last pipeline',
+            });
+        });
+
+        it('does not scroll when the link href names no execution', async () => {
+            const click = vi.fn();
+            const link = {
+                click,
+                getAttribute: () => '#/applications/taskworker-service',
+            } as unknown as HTMLAnchorElement;
+            vi.spyOn(domUtils, 'findViewPipelineExecutionLink').mockReturnValue(link);
+            vi.spyOn(domUtils, 'findChildPipelineName').mockReturnValue(null);
+            const scrollIntoView = vi.fn();
+            vi.spyOn(domUtils, 'findLastStackedPipelineRow').mockReturnValue({
+                scrollIntoView,
+            } as unknown as HTMLElement);
+
+            await jumpToLastPipeline();
+
+            expect(click).toHaveBeenCalled();
+            expect(Notifications.show).toHaveBeenCalledExactlyOnceWith({
+                message: 'Expanding child pipeline',
+            });
+            expect(scrollIntoView).not.toHaveBeenCalled();
         });
     });
 

@@ -11,6 +11,9 @@ import {
     findStackedPipelineName,
     findApplicationForExecution,
     findEventStageMarker,
+    findViewPipelineExecutionLink,
+    findChildPipelineName,
+    getExecutionIdFromUrl,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {setPipelineFilter} from '@exo/exo-tabs/spinnaker/filters';
 
@@ -123,6 +126,18 @@ describe.skipIf(EXAMPLES.length === 0)('spinnaker helpers against real DOM snaps
                     `execution ${executionId}`,
                 ).not.toBeNull();
             }
+        });
+
+        it('parses a child execution from any View Pipeline Execution link', () => {
+            installDom();
+            const link = findViewPipelineExecutionLink();
+            if (!link) return; // no child pipeline stage pane open in this snapshot
+            const childId = getExecutionIdFromUrl(link.getAttribute('href') ?? '');
+            expect(childId).toBeTruthy();
+            expect(findChildPipelineName(link)).toBeTruthy();
+            // The child is not rendered on the parent page — its element
+            // appearing is the composed 'G' action's loaded signal.
+            expect(document.getElementById(`execution-${childId}`)).toBeNull();
         });
 
         it('resolves an application from event payloads when a stage pane is open', () => {

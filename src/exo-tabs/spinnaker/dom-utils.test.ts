@@ -7,6 +7,8 @@ import {
     findApplicationForExecution,
     findEventStageMarker,
     findPipelineNameForExecution,
+    findViewPipelineExecutionLink,
+    findChildPipelineName,
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 
 describe('Spinnaker DOM Utils - URL Parsing', () => {
@@ -59,6 +61,73 @@ describe('Spinnaker DOM Utils - Element Finding', () => {
         it('returns null when link not found', () => {
             document.body.innerHTML = '<div>No execution details</div>';
             expect(findExecutionDetailsLink()).toBeNull();
+        });
+    });
+
+    describe('findViewPipelineExecutionLink', () => {
+        it('finds the link among the stage pane anchors by exact text', () => {
+            document.body.innerHTML = `
+                <div class="stage-details">
+                    <a>Pipeline Config</a>
+                    <a>Task Status</a>
+                    <a href="#/applications/taskworker-service/executions/details/01KYWEXG59VW8KF897QNBXAWRX?stage=0&step=0">
+                        View Pipeline Execution
+                    </a>
+                </div>
+            `;
+            const link = findViewPipelineExecutionLink();
+            expect(link?.getAttribute('href')).toContain('01KYWEXG59VW8KF897QNBXAWRX');
+        });
+
+        it('returns null when the selected stage is not a pipeline', () => {
+            document.body.innerHTML = `
+                <div class="stage-details">
+                    <a>Webhook</a>
+                    <a>Task Status</a>
+                </div>
+            `;
+            expect(findViewPipelineExecutionLink()).toBeNull();
+        });
+
+        it('returns null with no stage pane open', () => {
+            expect(findViewPipelineExecutionLink()).toBeNull();
+        });
+    });
+
+    describe('findChildPipelineName', () => {
+        it('reads the Pipeline entry of the pane the link belongs to', () => {
+            document.body.innerHTML = `
+                <div class="execution-details">
+                    <div class="stage-details">
+                        <dl>
+                            <dt>Application</dt><dd>taskworker-service</dd>
+                            <dt>Pipeline</dt><dd>Deploy taskworker-service-data-tbl PRODUCTION</dd>
+                            <dt>Status</dt><dd>RUNNING</dd>
+                        </dl>
+                        <a id="view-link">View Pipeline Execution</a>
+                    </div>
+                </div>
+            `;
+            const link = document.getElementById('view-link') as HTMLAnchorElement;
+            expect(findChildPipelineName(link)).toBe(
+                'Deploy taskworker-service-data-tbl PRODUCTION',
+            );
+        });
+
+        it('returns null without a Pipeline entry or a pane ancestor', () => {
+            document.body.innerHTML = `
+                <div class="execution-details">
+                    <dl><dt>Status</dt><dd>RUNNING</dd></dl>
+                    <a id="in-pane">View Pipeline Execution</a>
+                </div>
+                <a id="orphan">View Pipeline Execution</a>
+            `;
+            expect(
+                findChildPipelineName(document.getElementById('in-pane') as HTMLAnchorElement),
+            ).toBeNull();
+            expect(
+                findChildPipelineName(document.getElementById('orphan') as HTMLAnchorElement),
+            ).toBeNull();
         });
     });
 

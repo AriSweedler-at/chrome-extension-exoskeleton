@@ -65,6 +65,18 @@ export const STACKED_DETAILS_URL =
     `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
     `?stage=0&step=0&details=webhookConfig`;
 
+// The parent execution with a child-pipeline stage selected: only then does
+// the fixture render the stage pane with the View Pipeline Execution link.
+export const EXPANDING_DETAILS_URL =
+    `https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/details/${STACKED_EXECUTION_ID}` +
+    `?stage=59&step=0&details=pipelineConfig`;
+
+const CHILD_EXECUTION_ID = '01KYWEXG59VW8KF897QNBXAWRX';
+const CHILD_DETAILS_HASH = `/applications/taskworker-service/executions/details/${CHILD_EXECUTION_ID}?stage=0&step=0`;
+
+// Where the View Pipeline Execution link lands — what G expands to.
+export const EXPANDED_CHILD_URL = `https://spinnaker.k8s.shadowbox.cloud/#${CHILD_DETAILS_HASH}`;
+
 // Event payload as Deck renders it: JSON-encoded twice inside the
 // copy-to-clipboard textarea. Names the execution's owning application.
 const STACKED_EVENT_PAYLOAD = JSON.stringify(
@@ -118,6 +130,41 @@ export const SPINNAKER_HTML = `<!doctype html>
       </div>
       <div class="row" id="stage-config-row" style="height: 1600px">Webhook Stage Configuration</div>
     </react-ui-view-adapter>
+    <script>
+      // Like real Deck: a child-pipeline stage's open pane carries a View
+      // Pipeline Execution link, and following it swaps in the child's own
+      // stack (async, after Deck fetches the child execution).
+      if (location.hash.includes('details=pipelineConfig')) {
+        const pane = document.createElement('div');
+        pane.className = 'execution-details';
+        pane.innerHTML = '<div class="stage-details">' +
+          '<a>Pipeline Config</a> <a>Task Status</a> ' +
+          '<dl><dt>Application</dt><dd>taskworker-service</dd>' +
+          '<dt>Pipeline</dt><dd>Deploy taskworker PRODUCTION</dd></dl>' +
+          '<a href="#${CHILD_DETAILS_HASH}">View Pipeline Execution</a></div>';
+        document.getElementById('stage-config-row').appendChild(pane);
+      }
+      window.addEventListener('hashchange', () => {
+        if (!location.hash.includes('${CHILD_EXECUTION_ID}')) return;
+        const pane = document.querySelector('.execution-details');
+        if (pane) pane.remove();
+        setTimeout(() => {
+          const adapter = document.querySelector('react-ui-view-adapter[name="pipelines"]');
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.id = 'child-pipeline-row';
+          row.style.height = '500px';
+          row.innerHTML = '<div class="execution" id="execution-${CHILD_EXECUTION_ID}">' +
+            '<h4 class="execution-name">Deploy taskworker PRODUCTION</h4></div>';
+          adapter.appendChild(row);
+          const config = document.createElement('div');
+          config.className = 'row';
+          config.style.height = '1600px';
+          config.textContent = 'Child Stage Configuration';
+          adapter.appendChild(config);
+        }, 150);
+      });
+    </script>
     <script>
       // Like real Deck: the event payload pane only renders (async) after
       // the Datadog change-event stage marker is clicked.

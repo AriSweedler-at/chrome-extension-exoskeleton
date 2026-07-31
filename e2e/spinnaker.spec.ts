@@ -7,6 +7,8 @@ import {
     PIPELINE_NAME,
     STACKED_DETAILS_URL,
     STACKED_EXECUTION_ID,
+    EXPANDING_DETAILS_URL,
+    EXPANDED_CHILD_URL,
 } from './fixture-pages';
 
 /**
@@ -98,6 +100,32 @@ test.describe('spinnaker keybindings (content script)', () => {
                     Math.abs(
                         document.getElementById('last-pipeline-row')!.getBoundingClientRect().top,
                     ),
+                ),
+            )
+            .toBeLessThan(2);
+    });
+
+    test('G expands a selected child pipeline, then scrolls to its row', async ({context}) => {
+        const page = await openFixturePage(context, EXPANDING_DETAILS_URL, SPINNAKER_HTML);
+
+        await pressAndExpectToast(
+            page,
+            'Shift+G',
+            'Expanding child pipeline: Deploy taskworker PRODUCTION',
+        );
+        await page.waitForURL(EXPANDED_CHILD_URL);
+
+        // The child's row renders async after the navigation; the composed
+        // action scrolls it to the viewport top and toasts on the new view.
+        await expect(page.locator('#notification-container')).toContainText(
+            'Jumped to the last pipeline',
+        );
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    () =>
+                        document.getElementById('child-pipeline-row')?.getBoundingClientRect()
+                            .top ?? Number.NaN,
                 ),
             )
             .toBeLessThan(2);
