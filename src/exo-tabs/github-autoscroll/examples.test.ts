@@ -6,8 +6,8 @@ import {
 } from '@exo/exo-tabs/github-autoscroll/example-dom';
 import {
     getViewedToggles,
-    markDinghyFilesViewed,
-    DINGHY_FILE_PATTERN,
+    markGeneratedFilesViewed,
+    isGeneratedFile,
 } from '@exo/exo-tabs/github-autoscroll';
 
 /**
@@ -51,18 +51,18 @@ describe.skipIf(EXAMPLES.length === 0)('GitHub PR helpers against real DOM snaps
             }
         });
 
-        it('marks every unviewed dinghy file as viewed', () => {
+        it('marks every unviewed generated file as viewed', () => {
             installDom();
-            if (!name.includes('dinghy')) return; // snapshot without dinghy files
+            if (!name.includes('dinghy')) return; // snapshot without generated files
 
-            const dinghy = getViewedToggles().filter((t) => DINGHY_FILE_PATTERN.test(t.path));
-            expect(dinghy.length).toBeGreaterThan(0);
-            const unviewedBefore = dinghy.filter((t) => !t.viewed).length;
+            const generated = getViewedToggles().filter((t) => isGeneratedFile(t.path));
+            expect(generated.length).toBeGreaterThan(0);
+            const unviewedBefore = generated.filter((t) => !t.viewed).length;
 
-            const result = markDinghyFilesViewed();
+            const result = markGeneratedFilesViewed();
 
             expect(result.marked).toBe(unviewedBefore);
-            expect(result.alreadyViewed).toBe(dinghy.length - unviewedBefore);
+            expect(result.alreadyViewed).toBe(generated.length - unviewedBefore);
         });
     });
 });

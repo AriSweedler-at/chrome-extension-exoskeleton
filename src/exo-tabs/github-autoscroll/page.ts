@@ -5,7 +5,7 @@ import {
     isGitHubHost,
     isGitHubPRChangesPage,
     isGitHubPRPage,
-    markDinghyFilesViewed,
+    markGeneratedFilesViewed,
 } from '@exo/exo-tabs/github-autoscroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {Storage} from '@exo/lib/storage';
@@ -45,14 +45,14 @@ async function tryAutoRunAutoscroll() {
  * listener is a singleton shared by every page module, and an attached
  * listener with no matching bindings is harmless.
  */
-function markDinghyFiles(): void {
-    const {marked, alreadyViewed} = markDinghyFilesViewed();
+function markGeneratedFiles(): void {
+    const {marked, alreadyViewed} = markGeneratedFilesViewed();
     if (marked === 0 && alreadyViewed === 0) {
-        Notifications.show({message: 'No dinghy files found on this page'});
+        Notifications.show({message: 'No generated files found on this page'});
         return;
     }
     const alreadyViewedInfo = alreadyViewed > 0 ? ` (${alreadyViewed} already viewed)` : '';
-    Notifications.show({message: `Marked ${marked} dinghy files as viewed${alreadyViewedInfo}`});
+    Notifications.show({message: `Marked ${marked} generated files as viewed${alreadyViewedInfo}`});
 }
 
 function syncPRTabShortcuts() {
@@ -72,8 +72,8 @@ function syncPRTabShortcuts() {
             },
             {
                 key: 'd',
-                description: 'Mark dinghy files as viewed',
-                handler: markDinghyFiles,
+                description: 'Mark generated files (dinghy, k8s yaml) as viewed',
+                handler: markGeneratedFiles,
                 context: 'GitHub PR',
             },
         ]);

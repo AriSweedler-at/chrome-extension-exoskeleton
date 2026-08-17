@@ -6,37 +6,39 @@ import {
     isGitHubPRChangesPage,
     isGitHubPRPage,
     getViewedToggles,
-    markDinghyFilesViewed,
-    DINGHY_FILE_PATTERN,
+    markGeneratedFilesViewed,
+    isGeneratedFile,
 } from '@exo/exo-tabs/github-autoscroll';
 
-describe('DINGHY_FILE_PATTERN', () => {
+describe('isGeneratedFile', () => {
     it('matches dinghy pipeline files for any service and env', () => {
         expect(
-            DINGHY_FILE_PATTERN.test(
-                'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
-            ),
+            isGeneratedFile('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json'),
         ).toBe(true);
         expect(
-            DINGHY_FILE_PATTERN.test(
-                'services/spinnaker/pipelines2/cert-manager/dinghy.production.json',
-            ),
+            isGeneratedFile('services/spinnaker/pipelines2/cert-manager/dinghy.production.json'),
         ).toBe(true);
     });
 
-    it('rejects non-dinghy paths', () => {
+    it('matches anything under services/generated_k8s_yaml/', () => {
         expect(
-            DINGHY_FILE_PATTERN.test('services/spinnaker/pipelines2/blocks-copier/config.json'),
-        ).toBe(false);
-        expect(DINGHY_FILE_PATTERN.test('services/other/pipelines2/svc/dinghy.alpha.json')).toBe(
+            isGeneratedFile(
+                'services/generated_k8s_yaml/production/cip-repository/production-apse2-batch-shard01-001/stable/generated_manifests_sha.yaml',
+            ),
+        ).toBe(true);
+        expect(isGeneratedFile('services/generated_k8s_yaml/alpha/svc/manifest.yaml')).toBe(true);
+    });
+
+    it('rejects non-generated paths', () => {
+        expect(isGeneratedFile('services/spinnaker/pipelines2/blocks-copier/config.json')).toBe(
             false,
         );
-        expect(
-            DINGHY_FILE_PATTERN.test('services/spinnaker/pipelines2/a/b/dinghy.alpha.json'),
-        ).toBe(false);
-        expect(
-            DINGHY_FILE_PATTERN.test('prefix/services/spinnaker/pipelines2/svc/dinghy.alpha.json'),
-        ).toBe(false);
+        expect(isGeneratedFile('services/other/pipelines2/svc/dinghy.alpha.json')).toBe(false);
+        expect(isGeneratedFile('services/spinnaker/pipelines2/a/b/dinghy.alpha.json')).toBe(false);
+        expect(isGeneratedFile('prefix/services/spinnaker/pipelines2/svc/dinghy.alpha.json')).toBe(
+            false,
+        );
+        expect(isGeneratedFile('prefix/services/generated_k8s_yaml/x.yaml')).toBe(false);
     });
 });
 
@@ -79,9 +81,13 @@ describe('viewed toggles (new GitHub files view)', () => {
         expect(toggles.map((t) => t.viewed)).toEqual([false, true]);
     });
 
-    it('markDinghyFilesViewed clicks only unviewed dinghy files', () => {
+    it('markGeneratedFilesViewed clicks only unviewed generated files', () => {
         addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false);
         addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.staging.json', true);
+        addFileHeader(
+            'services/generated_k8s_yaml/production/cip-repository/production-apse2-batch-shard01-001/stable/generated_manifests_sha.yaml',
+            false,
+        );
         addFileHeader('src/index.ts', false);
 
         const clicked: string[] = [];
@@ -89,15 +95,18 @@ describe('viewed toggles (new GitHub files view)', () => {
             toggle.button.addEventListener('click', () => clicked.push(toggle.path));
         }
 
-        const result = markDinghyFilesViewed();
+        const result = markGeneratedFilesViewed();
 
-        expect(result).toEqual({marked: 1, alreadyViewed: 1});
-        expect(clicked).toEqual(['services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json']);
+        expect(result).toEqual({marked: 2, alreadyViewed: 1});
+        expect(clicked).toEqual([
+            'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
+            'services/generated_k8s_yaml/production/cip-repository/production-apse2-batch-shard01-001/stable/generated_manifests_sha.yaml',
+        ]);
     });
 
-    it('markDinghyFilesViewed reports zeros on a page without dinghy files', () => {
+    it('markGeneratedFilesViewed reports zeros on a page without generated files', () => {
         addFileHeader('src/index.ts', false);
-        expect(markDinghyFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
+        expect(markGeneratedFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
     });
 });
 

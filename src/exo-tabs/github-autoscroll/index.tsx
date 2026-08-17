@@ -88,8 +88,19 @@ export function goToChangedFiles(): void {
     navigateToPRTab('changes');
 }
 
-/** Dinghy pipeline definition files: services/spinnaker/pipelines2/<service>/dinghy.<env>.json */
-export const DINGHY_FILE_PATTERN = /^services\/spinnaker\/pipelines2\/[^/]+\/dinghy\.[^/]+\.json$/;
+/**
+ * Machine-generated files reviewers skim past: dinghy pipeline definitions
+ * (services/spinnaker/pipelines2/<service>/dinghy.<env>.json) and everything
+ * under services/generated_k8s_yaml/.
+ */
+export const GENERATED_FILE_PATTERNS = [
+    /^services\/spinnaker\/pipelines2\/[^/]+\/dinghy\.[^/]+\.json$/,
+    /^services\/generated_k8s_yaml\//,
+];
+
+export function isGeneratedFile(path: string): boolean {
+    return GENERATED_FILE_PATTERNS.some((pattern) => pattern.test(path));
+}
 
 interface ViewedToggle {
     path: string;
@@ -122,16 +133,16 @@ export function getViewedToggles(): ViewedToggle[] {
 }
 
 /**
- * Mark every rendered dinghy pipeline file as viewed by clicking its
+ * Mark every rendered generated file as viewed by clicking its
  * "Viewed" toggle. Returns counts for the caller's toast.
  */
-export function markDinghyFilesViewed(): {marked: number; alreadyViewed: number} {
-    const dinghy = getViewedToggles().filter((toggle) => DINGHY_FILE_PATTERN.test(toggle.path));
-    const toMark = dinghy.filter((toggle) => !toggle.viewed);
+export function markGeneratedFilesViewed(): {marked: number; alreadyViewed: number} {
+    const generated = getViewedToggles().filter((toggle) => isGeneratedFile(toggle.path));
+    const toMark = generated.filter((toggle) => !toggle.viewed);
     for (const toggle of toMark) {
         toggle.button.click();
     }
-    return {marked: toMark.length, alreadyViewed: dinghy.length - toMark.length};
+    return {marked: toMark.length, alreadyViewed: generated.length - toMark.length};
 }
 
 /**
