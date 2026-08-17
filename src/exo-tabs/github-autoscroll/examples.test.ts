@@ -6,8 +6,8 @@ import {
 } from '@exo/exo-tabs/github-autoscroll/example-dom';
 import {
     getViewedToggles,
-    markGeneratedFilesViewed,
-    isGeneratedFile,
+    markAutoHiddenFilesViewed,
+    getAutoHiddenDiffAnchors,
 } from '@exo/exo-tabs/github-autoscroll';
 
 /**
@@ -51,18 +51,21 @@ describe.skipIf(EXAMPLES.length === 0)('GitHub PR helpers against real DOM snaps
             }
         });
 
-        it('marks every unviewed generated file as viewed', () => {
+        it('marks every unviewed auto-hidden file as viewed', () => {
             installDom();
-            if (!name.includes('dinghy')) return; // snapshot without generated files
+            if (!name.includes('dinghy')) return; // snapshot without auto-hidden files
 
-            const generated = getViewedToggles().filter((t) => isGeneratedFile(t.path));
-            expect(generated.length).toBeGreaterThan(0);
-            const unviewedBefore = generated.filter((t) => !t.viewed).length;
+            const anchors = getAutoHiddenDiffAnchors();
+            const hidden = getViewedToggles().filter(
+                (t) => t.anchor !== undefined && anchors.has(t.anchor),
+            );
+            expect(hidden.length).toBeGreaterThan(0);
+            const unviewedBefore = hidden.filter((t) => !t.viewed).length;
 
-            const result = markGeneratedFilesViewed();
+            const result = markAutoHiddenFilesViewed();
 
             expect(result.marked).toBe(unviewedBefore);
-            expect(result.alreadyViewed).toBe(generated.length - unviewedBefore);
+            expect(result.alreadyViewed).toBe(hidden.length - unviewedBefore);
         });
     });
 });

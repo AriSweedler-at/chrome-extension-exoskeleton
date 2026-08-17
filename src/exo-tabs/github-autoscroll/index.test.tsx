@@ -6,70 +6,55 @@ import {
     isGitHubPRChangesPage,
     isGitHubPRPage,
     getViewedToggles,
-    markGeneratedFilesViewed,
-    isGeneratedFile,
+    markAutoHiddenFilesViewed,
 } from '@exo/exo-tabs/github-autoscroll';
 
-describe('isGeneratedFile', () => {
-    it('matches dinghy pipeline files for any service and env', () => {
-        expect(
-            isGeneratedFile('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json'),
-        ).toBe(true);
-        expect(
-            isGeneratedFile('services/spinnaker/pipelines2/cert-manager/dinghy.production.json'),
-        ).toBe(true);
-    });
-
-    it('matches anything under services/generated_k8s_yaml/', () => {
-        expect(
-            isGeneratedFile(
-                'services/generated_k8s_yaml/production/cip-repository/production-apse2-batch-shard01-001/stable/generated_manifests_sha.yaml',
-            ),
-        ).toBe(true);
-        expect(isGeneratedFile('services/generated_k8s_yaml/alpha/svc/manifest.yaml')).toBe(true);
-    });
-
-    it('rejects non-generated paths', () => {
-        expect(isGeneratedFile('services/spinnaker/pipelines2/blocks-copier/config.json')).toBe(
-            false,
-        );
-        expect(isGeneratedFile('services/other/pipelines2/svc/dinghy.alpha.json')).toBe(false);
-        expect(isGeneratedFile('services/spinnaker/pipelines2/a/b/dinghy.alpha.json')).toBe(false);
-        expect(isGeneratedFile('prefix/services/spinnaker/pipelines2/svc/dinghy.alpha.json')).toBe(
-            false,
-        );
-        expect(isGeneratedFile('prefix/services/generated_k8s_yaml/x.yaml')).toBe(false);
-    });
-});
-
 describe('viewed toggles (new GitHub files view)', () => {
-    /** A diff header shaped like GitHub's current files view. */
-    function addFileHeader(path: string, viewed: boolean): void {
-        const header = document.createElement('div');
-        header.className = 'DiffFileHeader-module__diff-file-header__UuNN4';
-        header.innerHTML = `
-            <div class="DiffFileHeader-module__file-path-section__Z">
-                <h3 class="DiffFileHeader-module__file-name__V">
-                    <a class="prc-Link-Link-9ZwDx" href="#diff-x">${'\u200e'}${path}${'\u200e'}</a>
-                    <button>Copy file name to clipboard</button>
-                </h3>
+    let anchorCounter = 0;
+
+    /**
+     * A file diff shaped like GitHub's current files view: header plus diff
+     * body, paired by a diff-<n> anchor. `hidden` renders the body as
+     * GitHub's collapsed placeholder instead of a diff.
+     */
+    function addFileHeader(
+        path: string,
+        viewed: boolean,
+        hidden: 'generated' | 'large' | false = false,
+    ): void {
+        const anchor = `diff-${++anchorCounter}`;
+        const placeholderText =
+            hidden === 'generated'
+                ? 'Load Diff Some generated files are not rendered by default.'
+                : 'Load Diff Large diffs are not rendered by default.';
+        const file = document.createElement('div');
+        file.innerHTML = `
+            <div class="DiffFileHeader-module__diff-file-header__UuNN4">
+                <div class="DiffFileHeader-module__file-path-section__Z">
+                    <h3 class="DiffFileHeader-module__file-name__V">
+                        <a class="prc-Link-Link-9ZwDx" href="#${anchor}">${'\u200e'}${path}${'\u200e'}</a>
+                        <button>Copy file name to clipboard</button>
+                    </h3>
+                </div>
+                <button class="prc-Button-ButtonBase MarkAsViewedButton-module__x"
+                        aria-label="${viewed ? 'Viewed' : 'Not Viewed'}"
+                        aria-pressed="${viewed}"><span>Viewed</span></button>
             </div>
-            <button class="prc-Button-ButtonBase MarkAsViewedButton-module__x"
-                    aria-label="${viewed ? 'Viewed' : 'Not Viewed'}"
-                    aria-pressed="${viewed}"><span>Viewed</span></button>
+            <div data-diff-anchor="${anchor}">${hidden ? placeholderText : '+diff content'}</div>
         `;
-        document.body.appendChild(header);
+        document.body.appendChild(file);
     }
 
     beforeEach(() => {
         document.body.innerHTML = '';
+        anchorCounter = 0;
     });
 
     afterEach(() => {
         document.body.innerHTML = '';
     });
 
-    it('getViewedToggles resolves clean paths and viewed state', () => {
+    it('getViewedToggles resolves clean paths, anchors, and viewed state', () => {
         addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false);
         addFileHeader('src/index.ts', true);
 
@@ -78,15 +63,25 @@ describe('viewed toggles (new GitHub files view)', () => {
             'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
             'src/index.ts',
         ]);
+        expect(toggles.map((t) => t.anchor)).toEqual(['diff-1', 'diff-2']);
         expect(toggles.map((t) => t.viewed)).toEqual([false, true]);
     });
 
-    it('markGeneratedFilesViewed clicks only unviewed generated files', () => {
-        addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json', false);
-        addFileHeader('services/spinnaker/pipelines2/blocks-copier/dinghy.staging.json', true);
+    it('markAutoHiddenFilesViewed clicks only unviewed auto-hidden files', () => {
+        addFileHeader(
+            'services/spinnaker/pipelines2/blocks-copier/dinghy.alpha.json',
+            false,
+            'generated',
+        );
+        addFileHeader(
+            'services/spinnaker/pipelines2/blocks-copier/dinghy.staging.json',
+            true,
+            'generated',
+        );
         addFileHeader(
             'services/generated_k8s_yaml/production/cip-repository/production-apse2-batch-shard01-001/stable/generated_manifests_sha.yaml',
             false,
+            'generated',
         );
         addFileHeader('src/index.ts', false);
 
@@ -95,7 +90,7 @@ describe('viewed toggles (new GitHub files view)', () => {
             toggle.button.addEventListener('click', () => clicked.push(toggle.path));
         }
 
-        const result = markGeneratedFilesViewed();
+        const result = markAutoHiddenFilesViewed();
 
         expect(result).toEqual({marked: 2, alreadyViewed: 1});
         expect(clicked).toEqual([
@@ -104,9 +99,24 @@ describe('viewed toggles (new GitHub files view)', () => {
         ]);
     });
 
-    it('markGeneratedFilesViewed reports zeros on a page without generated files', () => {
+    it('markAutoHiddenFilesViewed leaves large diffs alone', () => {
+        addFileHeader('package-lock.json', false, 'generated');
+        addFileHeader('src/huge-refactor.ts', false, 'large');
+
+        const clicked: string[] = [];
+        for (const toggle of getViewedToggles()) {
+            toggle.button.addEventListener('click', () => clicked.push(toggle.path));
+        }
+
+        const result = markAutoHiddenFilesViewed();
+
+        expect(result).toEqual({marked: 1, alreadyViewed: 0});
+        expect(clicked).toEqual(['package-lock.json']);
+    });
+
+    it('markAutoHiddenFilesViewed reports zeros on a page without auto-hidden files', () => {
         addFileHeader('src/index.ts', false);
-        expect(markGeneratedFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
+        expect(markAutoHiddenFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
     });
 });
 

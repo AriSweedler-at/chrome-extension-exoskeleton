@@ -89,21 +89,27 @@ export function goToChangedFiles(): void {
 }
 
 /**
- * Machine-generated files reviewers skim past: dinghy pipeline definitions
- * (services/spinnaker/pipelines2/<service>/dinghy.<env>.json) and everything
- * under services/generated_k8s_yaml/.
+ * Anchors (diff-<sha>) of file diffs GitHub itself auto-collapsed — files
+ * marked linguist-generated in .gitattributes render a "Some generated files
+ * are not rendered by default" placeholder instead of a diff. Large diffs are
+ * also collapsed ("Large diffs are not rendered by default") but deliberately
+ * excluded: those still need human review.
  */
-export const GENERATED_FILE_PATTERNS = [
-    /^services\/spinnaker\/pipelines2\/[^/]+\/dinghy\.[^/]+\.json$/,
-    /^services\/generated_k8s_yaml\//,
-];
-
-export function isGeneratedFile(path: string): boolean {
-    return GENERATED_FILE_PATTERNS.some((pattern) => pattern.test(path));
+export function getAutoHiddenDiffAnchors(): Set<string> {
+    const anchors = new Set<string>();
+    for (const body of Array.from(document.querySelectorAll('[data-diff-anchor]'))) {
+        const text = body.textContent ?? '';
+        if (!text.includes('not rendered by default')) continue;
+        if (text.includes('Large diffs')) continue;
+        const anchor = body.getAttribute('data-diff-anchor');
+        if (anchor) anchors.add(anchor);
+    }
+    return anchors;
 }
 
 interface ViewedToggle {
     path: string;
+    anchor: string | undefined;
     button: HTMLButtonElement;
     viewed: boolean;
 }
@@ -122,27 +128,35 @@ export function getViewedToggles(): ViewedToggle[] {
     const toggles: ViewedToggle[] = [];
     for (const button of buttons) {
         const header = button.closest('[class*="diff-file-header"]');
-        const path = header
-            ?.querySelector('h3 a')
-            ?.textContent?.replace(/\u200e/g, '')
-            .trim();
+        const link = header?.querySelector('h3 a');
+        const path = link?.textContent?.replace(/\u200e/g, '').trim();
         if (!path) continue;
-        toggles.push({path, button, viewed: button.getAttribute('aria-pressed') === 'true'});
+        // The header link's #diff-<sha> anchor pairs it with its diff body
+        const anchor = link?.getAttribute('href')?.replace(/^#/, '');
+        toggles.push({
+            path,
+            anchor,
+            button,
+            viewed: button.getAttribute('aria-pressed') === 'true',
+        });
     }
     return toggles;
 }
 
 /**
- * Mark every rendered generated file as viewed by clicking its
- * "Viewed" toggle. Returns counts for the caller's toast.
+ * Mark every file GitHub auto-collapsed (except large diffs) as viewed by
+ * clicking its "Viewed" toggle. Returns counts for the caller's toast.
  */
-export function markGeneratedFilesViewed(): {marked: number; alreadyViewed: number} {
-    const generated = getViewedToggles().filter((toggle) => isGeneratedFile(toggle.path));
-    const toMark = generated.filter((toggle) => !toggle.viewed);
+export function markAutoHiddenFilesViewed(): {marked: number; alreadyViewed: number} {
+    const hiddenAnchors = getAutoHiddenDiffAnchors();
+    const hidden = getViewedToggles().filter(
+        (toggle) => toggle.anchor !== undefined && hiddenAnchors.has(toggle.anchor),
+    );
+    const toMark = hidden.filter((toggle) => !toggle.viewed);
     for (const toggle of toMark) {
         toggle.button.click();
     }
-    return {marked: toMark.length, alreadyViewed: generated.length - toMark.length};
+    return {marked: toMark.length, alreadyViewed: hidden.length - toMark.length};
 }
 
 /**
