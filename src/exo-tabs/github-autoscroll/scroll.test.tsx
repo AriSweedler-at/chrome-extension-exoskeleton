@@ -1,5 +1,10 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {scrollElementCenter, scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
+import {
+    scrollElementCenter,
+    scrollElementTop,
+    scrollToPageBottom,
+    scrollToPageTop,
+} from '@exo/exo-tabs/github-autoscroll/scroll';
 
 describe('scroll utilities', () => {
     let scrollBySpy: ReturnType<typeof vi.spyOn>;
@@ -39,6 +44,21 @@ describe('scroll utilities', () => {
 
             // Center at 200 + 20 = 220, target 100, delta = 120
             expect(scrollBySpy).toHaveBeenCalledWith({top: 120, behavior: 'smooth'});
+        });
+    });
+
+    describe('scrollToPageTop / scrollToPageBottom', () => {
+        it('scrolls the window to the top', () => {
+            const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+            scrollToPageTop();
+            expect(scrollToSpy).toHaveBeenCalledWith({top: 0, behavior: 'smooth'});
+        });
+
+        it('scrolls the window to the full document height', () => {
+            const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+            vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(4321);
+            scrollToPageBottom();
+            expect(scrollToSpy).toHaveBeenCalledWith({top: 4321, behavior: 'smooth'});
         });
     });
 

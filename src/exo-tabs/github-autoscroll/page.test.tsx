@@ -317,6 +317,55 @@ describe('GitHub Autoscroll Content Script Integration', () => {
             keybindings.unlisten();
         });
 
+        it("scrolls to the bottom on 'G' on any GitHub page", async () => {
+            vi.stubGlobal('location', {href: 'https://github.com/owner/repo'});
+            const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+
+            await import('@exo/index');
+
+            const event = new KeyboardEvent('keydown', {
+                key: 'G',
+                shiftKey: true,
+                cancelable: true,
+                bubbles: true,
+            });
+            document.body.dispatchEvent(event);
+            expect(event.defaultPrevented).toBe(true);
+
+            await vi.waitFor(() => {
+                expect(scrollToSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({top: document.documentElement.scrollHeight}),
+                );
+            });
+
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
+
+        it("scrolls to the top on 'gg' on any GitHub page", async () => {
+            vi.stubGlobal('location', {href: 'https://github.com/owner/repo/issues'});
+            const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+
+            await import('@exo/index');
+
+            for (let i = 0; i < 2; i++) {
+                const event = new KeyboardEvent('keydown', {
+                    key: 'g',
+                    cancelable: true,
+                    bubbles: true,
+                });
+                document.body.dispatchEvent(event);
+                expect(event.defaultPrevented).toBe(true);
+            }
+
+            await vi.waitFor(() => {
+                expect(scrollToSpy).toHaveBeenCalledWith(expect.objectContaining({top: 0}));
+            });
+
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
+
         it('registers the PR tab shortcuts when loaded on a GitHub PR page', async () => {
             vi.stubGlobal('location', {href: 'https://github.com/owner/repo/pull/123'});
 

@@ -12,6 +12,14 @@ export function scrollElementCenter(
     window.scrollBy({top: delta, behavior});
 }
 
+export function scrollToPageTop(behavior: ScrollBehavior = 'smooth'): void {
+    window.scrollTo({top: 0, behavior});
+}
+
+export function scrollToPageBottom(behavior: ScrollBehavior = 'smooth'): void {
+    window.scrollTo({top: document.documentElement.scrollHeight, behavior});
+}
+
 /**
  * Scroll element so its top aligns with the top of the viewport (with small border)
  */

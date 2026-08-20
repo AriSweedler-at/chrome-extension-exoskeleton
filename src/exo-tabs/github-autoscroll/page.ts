@@ -7,6 +7,7 @@ import {
     isGitHubPRPage,
     markAutoHiddenFilesViewed,
 } from '@exo/exo-tabs/github-autoscroll';
+import {scrollToPageBottom, scrollToPageTop} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {Storage} from '@exo/lib/storage';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -55,6 +56,29 @@ function markAutoHiddenFiles(): void {
     Notifications.show({
         message: `Marked ${marked} auto-hidden files as viewed${alreadyViewedInfo}`,
     });
+}
+
+// Scroll shortcuts for every GitHub page. Registering the 'g g' sequence
+// makes the registry swallow GitHub's own g-prefixed nav (g c, g i, ...).
+// That is a deliberate tradeoff — the Ctrl+V pass-through still sends a
+// literal g to the page.
+function registerScrollShortcuts(): void {
+    keybindings.registerAll([
+        {
+            key: 'G',
+            modifiers: {shift: true},
+            description: 'Scroll to the bottom of the page',
+            handler: () => scrollToPageBottom(),
+            context: 'GitHub',
+        },
+        {
+            sequence: ['g', 'g'],
+            description: 'Scroll to the top of the page',
+            handler: () => scrollToPageTop(),
+            context: 'GitHub',
+        },
+    ]);
+    keybindings.listen();
 }
 
 function syncPRTabShortcuts() {
@@ -174,6 +198,8 @@ function initialize(): void {
     if (!isGitHubHost(window.location.href)) return;
 
     setupSPANavigationListener();
+
+    registerScrollShortcuts();
 
     // Register the PR tab-navigation shortcuts if we loaded onto a PR page
     syncPRTabShortcuts();
