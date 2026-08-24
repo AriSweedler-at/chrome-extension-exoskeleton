@@ -104,14 +104,36 @@ test.describe('multi-keystroke sequences (content script)', () => {
         expect(await seenKeys(page)).not.toContain('g');
     });
 
-    test('pages without a g sequence pass g through untouched', async ({context}) => {
-        // GitHub uses 'g' as its own navigation prefix — the extension must
-        // not swallow it where no sequence is registered.
+    test('GitHub swallows g for its gg scroll chord; Ctrl+V passes a literal g', async ({
+        context,
+    }) => {
+        // GitHub uses 'g' as its own navigation prefix, but the extension
+        // deliberately registers a site-wide 'gg' (scroll to top) there —
+        // the Ctrl+V pass-through is the escape hatch for GitHub's g-nav.
         const page = await openFixturePage(context, PR_URL, PR_HTML);
         await waitForKeybindings(page);
         await resetSeenKeys(page);
 
+        // Make the page scrollable and start away from the top.
+        await page.evaluate(() => {
+            document.body.style.height = '5000px';
+            window.scrollTo({top: 3000, behavior: 'instant'});
+        });
+
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText('pending');
+        expect(await seenKeys(page)).not.toContain('g');
+
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText('Scroll to the top of the page');
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+        expect(await seenKeys(page)).not.toContain('g');
+
+        // The escape hatch: Ctrl+V hands the next g straight to the page.
+        await page.keyboard.press('Control+v');
+        await expect(toastContainer(page)).toContainText('pass-through');
         await page.keyboard.press('g');
         await expect.poll(() => seenKeys(page)).toContain('g');
+        await expect(toastContainer(page)).not.toContainText('pending');
     });
 });

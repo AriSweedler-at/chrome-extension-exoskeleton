@@ -65,13 +65,13 @@ test.describe('exo keybindings (content script)', () => {
         await expect.poll(() => seenKeys(page)).toContain('?');
     });
 
-    test('d marks dinghy files as viewed, leaving other files alone', async ({context}) => {
+    test('d marks auto-hidden files as viewed, leaving other files alone', async ({context}) => {
         const page = await openToyPr(context);
 
         await expect(async () => {
             await page.keyboard.press('d');
             await expect(page.locator('#notification-container')).toContainText(
-                'Marked 1 dinghy files as viewed (1 already viewed)',
+                'Marked 1 auto-hidden files as viewed (1 already viewed)',
                 {timeout: 500},
             );
         }).toPass({timeout: 5000});
@@ -81,8 +81,9 @@ test.describe('exo keybindings (content script)', () => {
                 (btn) => btn.getAttribute('aria-pressed'),
             ),
         );
-        // dinghy.alpha flipped to viewed, dinghy.staging already was, src/index.ts untouched
-        expect(pressed).toEqual(['true', 'true', 'false']);
+        // dinghy.alpha (auto-hidden) flipped to viewed, dinghy.staging already
+        // was; the rendered src/index.ts and the large diff stay untouched.
+        expect(pressed).toEqual(['true', 'true', 'false', 'false']);
     });
 
     test('the f shortcut navigates to the Files changed tab', async ({context}) => {
