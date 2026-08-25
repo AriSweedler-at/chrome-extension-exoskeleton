@@ -1,4 +1,4 @@
-import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {TabRegistry, matchPriority} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {GitHubAutoscrollContent} from '@exo/exo-tabs/github-autoscroll/GitHubAutoscrollComponent';
 import {isGitHubPRChangesPage} from '@exo/exo-tabs/github-autoscroll';
 
@@ -6,12 +6,7 @@ TabRegistry.register({
     id: 'github-autoscroll',
     label: 'Autoscroll',
     component: GitHubAutoscrollContent,
-    getPriority: (url: string) => {
-        if (isGitHubPRChangesPage(url)) {
-            return 0;
-        }
-        return Number.MAX_SAFE_INTEGER;
-    },
+    getPriority: matchPriority(isGitHubPRChangesPage),
     enablementToggle: true,
     primaryAction: async (tabId) => {
         const response = await chrome.tabs.sendMessage(tabId, {

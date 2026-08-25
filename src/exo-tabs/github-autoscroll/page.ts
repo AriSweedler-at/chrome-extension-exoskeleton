@@ -6,8 +6,13 @@ import {
     isGitHubPRChangesPage,
     isGitHubPRPage,
     markAutoHiddenFilesViewed,
+    unmarkAutoHiddenFilesViewed,
 } from '@exo/exo-tabs/github-autoscroll';
-import {scrollToPageBottom, scrollToPageTop} from '@exo/exo-tabs/github-autoscroll/scroll';
+import {
+    scrollPageDown,
+    scrollToPageBottom,
+    scrollToPageTop,
+} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {keybindings} from '@exo/lib/keybindings';
 import {Storage} from '@exo/lib/storage';
 import {Notifications} from '@exo/lib/toast-notification';
@@ -16,6 +21,23 @@ declare global {
     interface Window {
         __ghAutoScrollStop?: (() => void) | undefined;
     }
+}
+
+/** Start autoscroll if it isn't running. True when it is running afterward. */
+function startAutoscroll(): boolean {
+    if (typeof window.__ghAutoScrollStop === 'function') return true;
+    const stopFn = initializeAutoScroll();
+    if (!stopFn) return false;
+    window.__ghAutoScrollStop = stopFn;
+    Notifications.show({message: 'GitHub PR Autoscroll enabled'});
+    return true;
+}
+
+/** Stop autoscroll if it is running (idempotent). */
+function stopAutoscroll(): void {
+    if (typeof window.__ghAutoScrollStop !== 'function') return;
+    window.__ghAutoScrollStop();
+    Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
 }
 
 /**
@@ -31,11 +53,7 @@ async function tryAutoRunAutoscroll() {
     const shouldAutoRun = exorun === undefined ? true : exorun;
 
     if (shouldAutoRun) {
-        const stopFn = initializeAutoScroll();
-        if (stopFn) {
-            window.__ghAutoScrollStop = stopFn;
-            Notifications.show({message: 'GitHub PR Autoscroll enabled'});
-        }
+        startAutoscroll();
     }
 }
 
@@ -46,15 +64,33 @@ async function tryAutoRunAutoscroll() {
  * listener is a singleton shared by every page module, and an attached
  * listener with no matching bindings is harmless.
  */
-function markAutoHiddenFiles(): void {
+/**
+ * 'd': mark this stretch's auto-hidden files as viewed, then advance a
+ * viewport — so HOLDING d sweeps a huge PR, forcing GitHub to lazy-render
+ * each next stretch of diffs. Silent under auto-repeat: the scroll is the
+ * feedback, and the toast (replace, not stack) reports only actual marks.
+ */
+function markAutoHiddenFilesAndAdvance(): void {
     const {marked, alreadyViewed} = markAutoHiddenFilesViewed();
-    if (marked === 0 && alreadyViewed === 0) {
-        Notifications.show({message: 'No auto-hidden files found on this page'});
-        return;
+    if (marked > 0 || alreadyViewed > 0) {
+        const alreadyViewedInfo = alreadyViewed > 0 ? ` (${alreadyViewed} already viewed)` : '';
+        Notifications.show({
+            message: `Marked ${marked} auto-hidden files as viewed${alreadyViewedInfo}`,
+            replace: true,
+        });
     }
-    const alreadyViewedInfo = alreadyViewed > 0 ? ` (${alreadyViewed} already viewed)` : '';
+    scrollPageDown();
+}
+
+/** 'D': undo — unmark the auto-hidden files so they show in the list again. */
+function showAutoHiddenFiles(): void {
+    const {unmarked} = unmarkAutoHiddenFilesViewed();
     Notifications.show({
-        message: `Marked ${marked} auto-hidden files as viewed${alreadyViewedInfo}`,
+        message:
+            unmarked > 0
+                ? `Showed ${unmarked} auto-hidden files (unmarked as viewed)`
+                : 'No auto-hidden files to show',
+        replace: true,
     });
 }
 
@@ -98,8 +134,17 @@ function syncPRTabShortcuts() {
             },
             {
                 key: 'd',
-                description: "Mark GitHub's auto-hidden files as viewed (skips large diffs)",
-                handler: markAutoHiddenFiles,
+                description:
+                    'Mark auto-hidden files viewed + scroll down (hold to sweep; skips large diffs)',
+                handler: markAutoHiddenFilesAndAdvance,
+                context: 'GitHub PR',
+                silent: true,
+            },
+            {
+                key: 'D',
+                modifiers: {shift: true},
+                description: 'Show the auto-hidden files again (unmark as viewed)',
+                handler: showAutoHiddenFiles,
                 context: 'GitHub PR',
             },
         ]);
@@ -108,6 +153,7 @@ function syncPRTabShortcuts() {
         keybindings.unregister('c');
         keybindings.unregister('f');
         keybindings.unregister('d');
+        keybindings.unregister('D', {shift: true});
     }
 }
 
@@ -147,7 +193,7 @@ function setupSPANavigationListener() {
 function initializeMessageHandlers() {
     chrome.runtime.onMessage.addListener(
         (
-            message: {type: string},
+            message: {type: string; active?: boolean},
             _sender: chrome.runtime.MessageSender,
             sendResponse: (response: {active: boolean}) => void,
         ) => {
@@ -157,26 +203,40 @@ function initializeMessageHandlers() {
                 return true;
             }
 
-            if (message.type === 'GITHUB_AUTOSCROLL_TOGGLE') {
-                if (typeof window.__ghAutoScrollStop === 'function') {
-                    // Stop autoscroll
-                    window.__ghAutoScrollStop();
-                    Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
-                    sendResponse({active: false});
-                } else {
-                    // Start autoscroll
-                    const stopFn = initializeAutoScroll();
-                    if (stopFn) {
-                        window.__ghAutoScrollStop = stopFn;
-                        Notifications.show({message: 'GitHub PR Autoscroll enabled'});
-                        sendResponse({active: true});
-                    } else {
+            // SET is for surfaces that display a state (the popup button):
+            // the request names the state its label promised, so a stale
+            // label degrades to a visible self-correcting no-op instead of a
+            // silent inverse action. Idempotent; responds with the real state.
+            if (message.type === 'GITHUB_AUTOSCROLL_SET') {
+                if (message.active) {
+                    if (!startAutoscroll()) {
                         Notifications.show({
                             message:
                                 "No files found. Make sure you're on a GitHub PR changes page.",
                         });
-                        sendResponse({active: false});
                     }
+                } else {
+                    stopAutoscroll();
+                }
+                sendResponse({active: typeof window.__ghAutoScrollStop === 'function'});
+                return true;
+            }
+
+            // TOGGLE is for label-less surfaces (Cmd+Shift+X) that genuinely
+            // mean 'flip'.
+            if (message.type === 'GITHUB_AUTOSCROLL_TOGGLE') {
+                if (typeof window.__ghAutoScrollStop === 'function') {
+                    stopAutoscroll();
+                    sendResponse({active: false});
+                } else {
+                    const started = startAutoscroll();
+                    if (!started) {
+                        Notifications.show({
+                            message:
+                                "No files found. Make sure you're on a GitHub PR changes page.",
+                        });
+                    }
+                    sendResponse({active: started});
                 }
                 return true;
             }

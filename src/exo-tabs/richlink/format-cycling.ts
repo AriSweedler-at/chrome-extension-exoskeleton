@@ -1,53 +1,36 @@
-const CACHE_KEY = 'richlink-last-copy';
-export const CACHE_EXPIRY_MS = 3000;
-
 /**
- * Get the next format index for cycling
+ * Format cycling: repeated Cmd+Shift+C presses walk through the available
+ * formats while the copy toast is on screen.
+ *
+ * The toast IS the cycling window — its dismissal (countdown end, click,
+ * replace, Backspace) clears the cycle state via clearCycleState, so what
+ * the user sees (a live toast, pausable by hovering it) and when cycling
+ * ends are one mechanism. There is no wall-clock timer.
  */
+
+/** The copy toast's duration — and therefore the cycling window. */
+export const CYCLE_WINDOW_MS = 3000;
+
+// The format index the live toast is showing; null when no toast is up.
+let cycleFormatIndex: number | null = null;
+
+/** Get the next format index for cycling */
 export function getNextFormatIndex(totalFormats: number): number {
-    try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (!cached) {
-            return 0;
-        }
-
-        const data = JSON.parse(cached);
-        const isExpired = Date.now() - data.timestamp > CACHE_EXPIRY_MS;
-
-        if (isExpired) {
-            localStorage.removeItem(CACHE_KEY);
-            return 0;
-        }
-
-        // Cycle to next format
-        const nextIndex = (data.formatIndex + 1) % totalFormats;
-        return nextIndex;
-    } catch {
-        return 0;
-    }
+    if (cycleFormatIndex === null) return 0;
+    return (cycleFormatIndex + 1) % totalFormats;
 }
 
-/**
- * Cache the format index for cycling
- */
+/** Record the format index the just-shown toast is displaying */
 export function cacheFormatIndex(formatIndex: number): void {
-    const data = {
-        timestamp: Date.now(),
-        formatIndex,
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    cycleFormatIndex = formatIndex;
 }
 
-/**
- * Check if we're currently cycling (within 3s of previous copy)
- */
+/** Are we currently cycling (a copy toast is still alive)? */
 export function isCycling(): boolean {
-    try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (!cached) return false;
-        const data = JSON.parse(cached);
-        return Date.now() - data.timestamp <= CACHE_EXPIRY_MS;
-    } catch {
-        return false;
-    }
+    return cycleFormatIndex !== null;
+}
+
+/** End the cycling window — wired to the copy toast's onDismiss. */
+export function clearCycleState(): void {
+    cycleFormatIndex = null;
 }

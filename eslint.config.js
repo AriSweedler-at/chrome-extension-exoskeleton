@@ -38,6 +38,10 @@ export default [
                 HTMLButtonElement: 'readonly',
                 HTMLInputElement: 'readonly',
                 Element: 'readonly',
+                Document: 'readonly',
+                KeyboardEventInit: 'readonly',
+                MouseEvent: 'readonly',
+                AnimationEvent: 'readonly',
                 Event: 'readonly',
                 EventListener: 'readonly',
                 KeyboardEvent: 'readonly',
@@ -48,6 +52,9 @@ export default [
                 URLSearchParams: 'readonly',
                 ClipboardEvent: 'readonly',
                 localStorage: 'readonly',
+                sessionStorage: 'readonly',
+                btoa: 'readonly',
+                atob: 'readonly',
                 process: 'readonly',
             },
         },
@@ -83,6 +90,46 @@ export default [
             react: {
                 version: 'detect',
             },
+        },
+    },
+    // Standalone-library sandboxes. These files are meant to be open-sourced
+    // as separate packages: no app code, no other @exo library — imports
+    // within the library and external peers only. These overrides replace the
+    // repo-wide relative-import ban for their files.
+    {
+        // Single-file libraries: no imports of any project code at all.
+        files: ['src/lib/dom.ts', 'src/lib/keybindings.tsx'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            group: ['@exo/*', './*', '../*'],
+                            message:
+                                'This file is a standalone single-file library — it must not import app code or sibling libraries.',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        files: ['src/lib/toast-notification/**'],
+        ignores: ['**/*.test.*'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            group: ['@exo/*', '../*'],
+                            message:
+                                'This library is standalone — it must not import app code or sibling libraries. Only relative imports within the library directory are allowed.',
+                        },
+                    ],
+                },
+            ],
         },
     },
     prettier,

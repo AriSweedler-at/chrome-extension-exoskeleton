@@ -1,27 +1,22 @@
-import {describe, it, expect, beforeEach, vi, afterEach} from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 import {
     getNextFormatIndex,
     cacheFormatIndex,
     isCycling,
-    CACHE_EXPIRY_MS,
+    clearCycleState,
 } from '@exo/exo-tabs/richlink/format-cycling';
 
 describe('format-cycling', () => {
     beforeEach(() => {
-        localStorage.clear();
-        vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-        vi.useRealTimers();
+        clearCycleState();
     });
 
     describe('getNextFormatIndex', () => {
-        it('returns 0 when no cache exists', () => {
+        it('returns 0 when no cycle is in progress', () => {
             expect(getNextFormatIndex(3)).toBe(0);
         });
 
-        it('cycles to next format when cache is fresh', () => {
+        it('cycles to the next format while the window is open', () => {
             cacheFormatIndex(0);
             expect(getNextFormatIndex(3)).toBe(1);
         });
@@ -31,45 +26,26 @@ describe('format-cycling', () => {
             expect(getNextFormatIndex(3)).toBe(0);
         });
 
-        it('returns 0 when cache is expired', () => {
+        it('returns 0 after the window closes (toast dismissed)', () => {
             cacheFormatIndex(1);
-            vi.advanceTimersByTime(CACHE_EXPIRY_MS + 1);
+            clearCycleState();
             expect(getNextFormatIndex(3)).toBe(0);
-        });
-
-        it('returns 0 on malformed JSON in localStorage', () => {
-            localStorage.setItem('richlink-last-copy', 'not-json');
-            expect(getNextFormatIndex(3)).toBe(0);
-        });
-    });
-
-    describe('cacheFormatIndex', () => {
-        it('stores format index in localStorage', () => {
-            cacheFormatIndex(2);
-            const stored = JSON.parse(localStorage.getItem('richlink-last-copy')!);
-            expect(stored.formatIndex).toBe(2);
-            expect(stored.timestamp).toBeTypeOf('number');
         });
     });
 
     describe('isCycling', () => {
-        it('returns false when no cache exists', () => {
+        it('returns false when no cycle is in progress', () => {
             expect(isCycling()).toBe(false);
         });
 
-        it('returns true when cache is fresh', () => {
+        it('returns true while the window is open', () => {
             cacheFormatIndex(0);
             expect(isCycling()).toBe(true);
         });
 
-        it('returns false after expiry', () => {
+        it('returns false after the window closes (toast dismissed)', () => {
             cacheFormatIndex(0);
-            vi.advanceTimersByTime(CACHE_EXPIRY_MS + 1);
-            expect(isCycling()).toBe(false);
-        });
-
-        it('returns false on malformed JSON', () => {
-            localStorage.setItem('richlink-last-copy', '{bad');
+            clearCycleState();
             expect(isCycling()).toBe(false);
         });
     });

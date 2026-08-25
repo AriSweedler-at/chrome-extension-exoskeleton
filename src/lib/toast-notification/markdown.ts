@@ -1,4 +1,4 @@
-import {theme} from '@exo/theme/default';
+import {theme} from './theme';
 
 /**
  * Toast content renderer — the "styling" half of the toast, kept separate from

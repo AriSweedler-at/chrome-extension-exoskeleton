@@ -1,5 +1,6 @@
 import {Handler, prefixedTitle, type FormatContext} from '@exo/exo-tabs/richlink/base';
 import {SPACELIFT_HOSTNAME} from '@exo/exo-tabs/spacelift';
+import {queryFirstText} from '@exo/lib/dom';
 
 export class SpaceliftHandler extends Handler {
     readonly label = 'Spacelift Stack';
@@ -17,11 +18,7 @@ export class SpaceliftHandler extends Handler {
     }
 
     private getPageTitle(): string | undefined {
-        for (const selector of ['.run-title', '.stack-name', 'h1']) {
-            const el = document.querySelector(selector);
-            if (el?.textContent) return el.textContent.trim();
-        }
-        return undefined;
+        return queryFirstText(['.run-title', '.stack-name', 'h1']) ?? undefined;
     }
 
     extractLinkText({url}: FormatContext): string {

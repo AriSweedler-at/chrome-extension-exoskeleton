@@ -7,6 +7,7 @@ import {
     isGitHubPRPage,
     getViewedToggles,
     markAutoHiddenFilesViewed,
+    unmarkAutoHiddenFilesViewed,
 } from '@exo/exo-tabs/github-autoscroll';
 
 describe('viewed toggles (new GitHub files view)', () => {
@@ -117,6 +118,31 @@ describe('viewed toggles (new GitHub files view)', () => {
     it('markAutoHiddenFilesViewed reports zeros on a page without auto-hidden files', () => {
         addFileHeader('src/index.ts', false);
         expect(markAutoHiddenFilesViewed()).toEqual({marked: 0, alreadyViewed: 0});
+    });
+
+    it('unmarkAutoHiddenFilesViewed clicks only viewed auto-hidden files', () => {
+        addFileHeader('dinghy.alpha.json', true, 'generated');
+        addFileHeader('dinghy.staging.json', false, 'generated');
+        addFileHeader('src/huge-refactor.ts', true, 'large');
+        addFileHeader('src/index.ts', true);
+
+        const clicked: string[] = [];
+        for (const toggle of getViewedToggles()) {
+            toggle.button.addEventListener('click', () => clicked.push(toggle.path));
+        }
+
+        const result = unmarkAutoHiddenFilesViewed();
+
+        // Only the viewed generated file: not the unviewed one, not the large
+        // diff, not the hand-viewed regular file.
+        expect(result).toEqual({unmarked: 1});
+        expect(clicked).toEqual(['dinghy.alpha.json']);
+    });
+
+    it('unmarkAutoHiddenFilesViewed reports zero when nothing is marked', () => {
+        addFileHeader('dinghy.alpha.json', false, 'generated');
+        addFileHeader('src/index.ts', true);
+        expect(unmarkAutoHiddenFilesViewed()).toEqual({unmarked: 0});
     });
 });
 
@@ -321,6 +347,15 @@ describe('initializeAutoScroll', () => {
         expect(style).toBeNull();
     });
 
+    it('sees no files when diff wrappers exist but are still childless (mid-render)', () => {
+        document.body.innerHTML = `
+            <div class="Diff-module__diffHeaderWrapper--abc123"></div>
+            <div class="file">not a diff header</div>
+        `;
+
+        expect(initializeAutoScroll()).toBeNull();
+    });
+
     it('leaves no listener, styles, or stop function behind when no files are found', () => {
         document.body.innerHTML = '';
         const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
@@ -399,16 +434,20 @@ describe('initializeAutoScroll', () => {
             const file1 = document.getElementById('file1') as HTMLElement;
             const button1 = file1.querySelector('button') as HTMLButtonElement;
 
-            button1.setAttribute('aria-pressed', 'true');
+            // Click, then GitHub's async aria-pressed flip — which the
+            // MutationObserver reacts to.
             button1.click();
-
-            await new Promise((resolve) => setTimeout(resolve, 150));
+            button1.setAttribute('aria-pressed', 'true');
+            await new Promise((resolve) => setTimeout(resolve, 50));
 
             // Check that flash class was added to file2
             expect(file2.classList.contains('gh-autoscroll-flash')).toBe(true);
 
-            // Wait for flash to be removed (1500ms + buffer)
-            await new Promise((resolve) => setTimeout(resolve, 1600));
+            // The flash's own animation end removes the class (jsdom never
+            // fires animation events, so dispatch it).
+            file2.dispatchEvent(
+                Object.assign(new Event('animationend'), {animationName: 'flashBorder'}),
+            );
             expect(file2.classList.contains('gh-autoscroll-flash')).toBe(false);
 
             stopFn!();

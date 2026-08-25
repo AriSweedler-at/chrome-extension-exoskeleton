@@ -1,17 +1,16 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import {SpinnakerContent} from '@exo/exo-tabs/spinnaker/SpinnakerComponent';
-import * as actions from '@exo/exo-tabs/spinnaker/actions';
-
-// Mock the action functions
-vi.mock('./actions', () => ({
-    toggleExecution: vi.fn(),
-    isolatePipeline: vi.fn(),
-}));
+import {SpinnakerRunAction} from '@exo/exo-tabs/spinnaker/action';
+import chrome from 'sinon-chrome';
 
 describe('SpinnakerComponent', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.restoreAllMocks();
+        chrome.reset();
+        chrome.tabs.query.returns(
+            Promise.resolve([{id: 42, url: 'https://spinnaker.k8s.shadowbox.cloud/'}]),
+        );
     });
 
     describe('rendering', () => {
@@ -36,22 +35,45 @@ describe('SpinnakerComponent', () => {
     });
 
     describe('button actions', () => {
-        it('should call toggleExecution when Toggle button clicked', () => {
+        it('sends the toggle action to the page when Toggle button clicked', async () => {
+            const sendToTab = vi
+                .spyOn(SpinnakerRunAction, 'sendToTab')
+                .mockResolvedValue(undefined);
             render(<SpinnakerContent />);
-            const button = screen.getByText('Toggle Execution Details');
 
-            fireEvent.click(button);
+            fireEvent.click(screen.getByText('Toggle Execution Details'));
 
-            expect(actions.toggleExecution).toHaveBeenCalledTimes(1);
+            await waitFor(() => {
+                expect(sendToTab).toHaveBeenCalledWith(42, {action: 'toggleExecution'});
+            });
         });
 
-        it('should call isolatePipeline when Isolate button clicked', () => {
+        it('sends the isolate action to the page when Isolate button clicked', async () => {
+            const sendToTab = vi
+                .spyOn(SpinnakerRunAction, 'sendToTab')
+                .mockResolvedValue(undefined);
             render(<SpinnakerContent />);
-            const button = screen.getByText('Isolate Pipeline');
 
-            fireEvent.click(button);
+            fireEvent.click(screen.getByText('Isolate Pipeline'));
 
-            expect(actions.isolatePipeline).toHaveBeenCalledTimes(1);
+            await waitFor(() => {
+                expect(sendToTab).toHaveBeenCalledWith(42, {action: 'isolatePipeline'});
+            });
+        });
+
+        it('surfaces an error when no content script answers', async () => {
+            vi.spyOn(SpinnakerRunAction, 'sendToTab').mockRejectedValue(
+                new Error('Could not establish connection'),
+            );
+            render(<SpinnakerContent />);
+
+            fireEvent.click(screen.getByText('Isolate Pipeline'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('error-message')).toHaveTextContent(
+                    'Could not establish connection',
+                );
+            });
         });
     });
 });

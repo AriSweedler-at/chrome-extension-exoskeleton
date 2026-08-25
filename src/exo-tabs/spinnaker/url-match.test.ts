@@ -3,10 +3,12 @@ import {
     isSpinnakerPage,
     isSpinnakerSearchPage,
     getEnvironments,
-    getNextEnvironmentUrl,
     getSpinnakerEnvironment,
     environmentToken,
 } from '@exo/exo-tabs/spinnaker/url-match';
+import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+
+const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 
 describe('isSpinnakerPage', () => {
     it('returns true for shadowbox Spinnaker', () => {
@@ -140,7 +142,7 @@ describe('getEnvironments', () => {
     });
 });
 
-describe('getNextEnvironmentUrl', () => {
+describe('environment rotation (nextEnvironment over getEnvironments)', () => {
     it('cycles alpha → staging → production → alpha', () => {
         const path = '/#/applications/app/executions';
         expect(

@@ -2,6 +2,15 @@ import {ComponentType} from 'react';
 import {ShowToastAction} from '@exo/lib/actions/show-toast.action';
 import {NotificationType} from '@exo/lib/toast-notification';
 
+/** The priority meaning "this tab doesn't match the page" — hidden from the popup. */
+const NO_MATCH = Number.MAX_SAFE_INTEGER;
+
+/** A getPriority for tabs that simply match a page or don't. */
+export const matchPriority =
+    (matches: (url: string) => boolean) =>
+    (url: string): number =>
+        matches(url) ? 0 : NO_MATCH;
+
 export interface TabRegistration {
     id: string;
     label: string;
@@ -24,7 +33,7 @@ export class TabRegistry {
     static getVisibleTabs(url: string): Array<TabRegistration & {priority: number}> {
         return this.tabs
             .map((tab) => ({...tab, priority: tab.getPriority(url)}))
-            .filter((tab) => tab.priority !== Number.MAX_SAFE_INTEGER)
+            .filter((tab) => tab.priority !== NO_MATCH)
             .sort((a, b) => a.priority - b.priority);
     }
 

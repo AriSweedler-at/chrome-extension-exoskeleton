@@ -1,9 +1,8 @@
 import {describe, it, expect} from 'vitest';
-import {
-    isSpaceliftStackPage,
-    getNextEnvironmentUrl,
-    getEnvironments,
-} from '@exo/exo-tabs/spacelift';
+import {isSpaceliftStackPage, getEnvironments} from '@exo/exo-tabs/spacelift';
+import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+
+const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 
 describe('isSpaceliftStackPage', () => {
     it('returns true for stack pages', () => {
@@ -25,7 +24,7 @@ describe('isSpaceliftStackPage', () => {
     });
 });
 
-describe('getNextEnvironmentUrl', () => {
+describe('environment rotation (nextEnvironment over getEnvironments)', () => {
     it('rotates staging → production', () => {
         expect(
             getNextEnvironmentUrl('https://spacelift.shadowbox.cloud/stack/sendsafely-staging'),

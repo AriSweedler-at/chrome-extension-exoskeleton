@@ -1,9 +1,28 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {TabRegistry, matchPriority} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {ShowToastAction} from '@exo/lib/actions/show-toast.action';
 import {NotificationType} from '@exo/lib/toast-notification';
 
 const TestComponent = () => <div>Test</div>;
+
+describe('matchPriority', () => {
+    beforeEach(() => {
+        TabRegistry.clearForTesting();
+    });
+
+    it('shows the tab exactly on the pages its predicate matches', () => {
+        TabRegistry.register({
+            id: 'test',
+            label: 'Test',
+            component: TestComponent,
+            primaryAction: async () => false,
+            getPriority: matchPriority((url) => url.includes('example.com')),
+        });
+
+        expect(TabRegistry.getVisibleTabs('https://example.com/page')).toHaveLength(1);
+        expect(TabRegistry.getVisibleTabs('https://other.com/page')).toHaveLength(0);
+    });
+});
 
 describe('TabRegistry', () => {
     beforeEach(() => {

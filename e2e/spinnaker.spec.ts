@@ -160,7 +160,7 @@ test.describe('spinnaker keybindings (content script)', () => {
 
         // The child's row renders async after the navigation; the composed
         // action scrolls it to the viewport top and toasts on the new view.
-        await expect(page.locator('#notification-container')).toContainText(
+        await expect(page.locator('#exo-notification-container')).toContainText(
             'Jumped to the last pipeline',
         );
         await expect

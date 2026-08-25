@@ -8,7 +8,8 @@ import './TabBar.css';
 
 export function TabBar() {
     const [selectedTabId, setSelectedTabId] = useState<string | null>(null);
-    const [currentUrl, setCurrentUrl] = useState<string>('');
+    // null = the active tab's URL hasn't loaded yet — distinct from "no match"
+    const [currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [currentTabId, setCurrentTabId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -37,8 +38,22 @@ export function TabBar() {
         }
     };
 
+    if (currentUrl === null) {
+        return null;
+    }
+
     const visibleTabs = TabRegistry.getVisibleTabs(currentUrl);
     const selectedTab = visibleTabs.find((t) => t.id === selectedTabId);
+
+    if (visibleTabs.length === 0) {
+        return (
+            <div className="tab-empty-state">
+                No exo tools match this page.
+                <br />
+                Keyboard shortcuts still work — press <kbd>?</kbd> on any page.
+            </div>
+        );
+    }
 
     return (
         <>

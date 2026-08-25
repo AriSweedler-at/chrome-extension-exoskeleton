@@ -1,11 +1,8 @@
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {KeybindingRegistry, SEQUENCE_TTL_MS} from '@exo/lib/keybindings';
-import {Notifications} from '@exo/lib/toast-notification';
 
-vi.mock('@exo/lib/toast-notification', () => ({
-    Notifications: {show: vi.fn()},
-    NotificationType: {Success: 'success', Error: 'error', Default: 'default'},
-}));
+// The library is notifier-agnostic; tests inject this fake via setNotifier.
+const Notifications = {show: vi.fn()};
 
 // Fired handlers are deferred past the next paint (so the toast renders first).
 // Flush two animation frames to let a deferred handler run.
@@ -20,6 +17,7 @@ describe('KeybindingRegistry', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         registry = new KeybindingRegistry();
+        registry.setNotifier(Notifications);
         registry.listen();
     });
 
@@ -70,7 +68,7 @@ describe('KeybindingRegistry', () => {
         registry.hideHelp();
     });
 
-    it('displays a shifted letter as its capital, without the Shift prefix', () => {
+    it('displays a shifted letter with both the ⇧ prefix and the capital', () => {
         registry.register({
             key: 'G',
             modifiers: {shift: true},
@@ -81,8 +79,22 @@ describe('KeybindingRegistry', () => {
         registry.showHelp();
 
         const kbds = Array.from(document.querySelectorAll('kbd')).map((el) => el.textContent);
-        expect(kbds).toContain('G');
-        expect(kbds).not.toContain('Shift + G');
+        expect(kbds).toContain('⇧ + G');
+        expect(kbds).not.toContain('G');
+        registry.hideHelp();
+    });
+
+    it('orders modifiers as ⌘ + ⇧ + letter', () => {
+        registry.register({
+            key: 'c',
+            modifiers: {meta: true, shift: true},
+            description: 'Copy',
+            handler: vi.fn(),
+        });
+        registry.showHelp();
+
+        const kbds = Array.from(document.querySelectorAll('kbd')).map((el) => el.textContent);
+        expect(kbds).toContain('⌘ + ⇧ + C');
         registry.hideHelp();
     });
 
@@ -570,5 +582,253 @@ describe('KeybindingRegistry', () => {
 
         // Clean up
         registry.hideHelp();
+    });
+});
+
+describe('when guards, silent bindings, and interactive help', () => {
+    let registry: KeybindingRegistry;
+    const notifier = {show: vi.fn()};
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        registry = new KeybindingRegistry();
+        registry.setNotifier(notifier);
+        registry.listen();
+    });
+
+    afterEach(() => {
+        registry.hideHelp();
+        registry.unlisten();
+    });
+
+    function press(key: string, init: KeyboardEventInit = {}): boolean {
+        const event = new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true, ...init});
+        document.dispatchEvent(event);
+        return event.defaultPrevented;
+    }
+
+    function findHelpRow(description: string): HTMLElement {
+        // A row is the innermost div holding the description and a <kbd> chip.
+        const row = Array.from(document.querySelectorAll('div')).find(
+            (el) =>
+                Array.from(el.children).some((child) => child.tagName === 'KBD') &&
+                el.textContent?.includes(description),
+        );
+        expect(row).toBeDefined();
+        return row as HTMLElement;
+    }
+
+    it('matches meta+shift+letter bindings (Cmd+Shift+C style)', async () => {
+        const handler = vi.fn();
+        registry.register({
+            key: 'c',
+            modifiers: {meta: true, shift: true},
+            description: 'copy',
+            handler,
+        });
+
+        press('C', {metaKey: true, shiftKey: true});
+        await flushFrames();
+
+        expect(handler).toHaveBeenCalledOnce();
+    });
+
+    it('a when-guarded binding lets the key fall through while inactive', async () => {
+        const handler = vi.fn();
+        registry.register({key: 'j', description: 'guarded', handler, when: () => false});
+
+        const prevented = press('j');
+        await flushFrames();
+
+        expect(handler).not.toHaveBeenCalled();
+        expect(prevented).toBe(false);
+    });
+
+    it('a when-guarded binding fires while its guard holds', async () => {
+        const handler = vi.fn();
+        registry.register({key: 'j', description: 'guarded', handler, when: () => true});
+
+        const prevented = press('j');
+        await flushFrames();
+
+        expect(handler).toHaveBeenCalledOnce();
+        expect(prevented).toBe(true);
+    });
+
+    it('a silent binding fires without announcing', async () => {
+        const handler = vi.fn();
+        registry.register({key: 'j', description: 'quiet', handler, silent: true});
+
+        press('j');
+        await flushFrames();
+
+        expect(handler).toHaveBeenCalledOnce();
+        expect(notifier.show).not.toHaveBeenCalled();
+    });
+
+    it('q closes the help overlay, and stays free otherwise', async () => {
+        registry.showHelp();
+        expect(document.body.textContent).toContain('Keyboard Shortcuts');
+
+        press('q');
+        await flushFrames();
+        expect(document.body.textContent).not.toContain('Keyboard Shortcuts');
+
+        // Overlay closed: q is not intercepted any more.
+        expect(press('q')).toBe(false);
+    });
+
+    it('clear() keeps both built-in help bindings', () => {
+        registry.register({key: 'z', description: 'custom', handler: vi.fn()});
+
+        registry.clear();
+
+        const keys = registry.getAll().map((kb) => kb.key);
+        expect(keys).toContain('?');
+        expect(keys).toContain('q');
+        expect(keys).not.toContain('z');
+    });
+
+    it('clear() restores the real builtins even after a page overrode them', () => {
+        registry.register({key: 'q', description: 'usurper', handler: vi.fn()});
+
+        registry.clear();
+
+        const q = registry.getAll().find((kb) => kb.key === 'q');
+        expect(q?.description).toBe('Close the help overlay');
+    });
+
+    it('the pending window rides the banner: no hidden timer expires it', async () => {
+        vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+        const handler = vi.fn();
+        registry.register({sequence: ['g', 'g'], description: 'chord', handler});
+        // The banner is alive (e.g. hovered, countdown paused) and never
+        // auto-dismisses — the sequence window must stay open with it.
+        notifier.show.mockReturnValueOnce({dismiss: vi.fn()});
+
+        press('g');
+        vi.advanceTimersByTime(10 * SEQUENCE_TTL_MS);
+        press('g');
+        vi.useRealTimers();
+        await flushFrames();
+
+        expect(handler).toHaveBeenCalledOnce();
+    });
+
+    it('silent mode still expires the pending window via the fallback timer', async () => {
+        vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+        registry.setNotifier(null);
+        const handler = vi.fn();
+        registry.register({sequence: ['g', 'g'], description: 'chord', handler});
+
+        press('g');
+        vi.advanceTimersByTime(SEQUENCE_TTL_MS + 1);
+        press('g');
+        vi.useRealTimers();
+        await flushFrames();
+
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('silent mode still disarms pass-through via the fallback timer', () => {
+        vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+        registry.setNotifier(null);
+
+        // Arm pass-through (ctrl+v), then let the TTL lapse un-consumed.
+        press('v', {ctrlKey: true});
+        vi.advanceTimersByTime(100_000 + 1);
+
+        // Disarmed: a bound key is intercepted again instead of passed through.
+        const handler = vi.fn();
+        registry.register({key: 'j', description: 'bound', handler});
+        const prevented = press('j');
+        vi.useRealTimers();
+
+        expect(prevented).toBe(true);
+    });
+
+    it('an inactive guarded row shows no hover affordance', () => {
+        const handler = vi.fn();
+        registry.register({key: 'z', description: 'Zap the page', handler, when: () => false});
+        registry.showHelp();
+        const row = findHelpRow('Zap the page');
+
+        row.dispatchEvent(new Event('mouseenter'));
+
+        expect(row.style.cursor).toBe('default');
+        expect(row.style.background).toBe('transparent');
+    });
+
+    it('an active row shows the pointer cursor and highlight on hover', () => {
+        registry.register({key: 'z', description: 'Zap the page', handler: vi.fn()});
+        registry.showHelp();
+        const row = findHelpRow('Zap the page');
+
+        row.dispatchEvent(new Event('mouseenter'));
+
+        expect(row.style.cursor).toBe('pointer');
+        expect(row.style.background).not.toBe('transparent');
+    });
+
+    it('an inactive guarded sequence does not swallow its prefix key', async () => {
+        const handler = vi.fn();
+        registry.register({
+            sequence: ['g', 'g'],
+            description: 'guarded sequence',
+            handler,
+            when: () => false,
+        });
+
+        const prevented = press('g');
+        press('g');
+        await flushFrames();
+
+        expect(prevented).toBe(false);
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('rejects ctrl+v as a sequence step (reserved for pass-through)', () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        registry.register({sequence: ['ctrl+v', 'g'], description: 'bad', handler: vi.fn()});
+
+        expect(error).toHaveBeenCalledOnce();
+        error.mockRestore();
+    });
+
+    it('clicking a help row whose guard is false does nothing', async () => {
+        const handler = vi.fn();
+        registry.register({key: 'z', description: 'Zap the page', handler, when: () => false});
+        registry.showHelp();
+
+        findHelpRow('Zap the page').dispatchEvent(new MouseEvent('click', {bubbles: true}));
+        await flushFrames();
+
+        expect(handler).not.toHaveBeenCalled();
+        expect(document.body.textContent).toContain('Keyboard Shortcuts');
+    });
+
+    it('clicking a help row invokes its binding and closes the overlay', async () => {
+        const handler = vi.fn();
+        registry.register({key: 'z', description: 'Zap the page', handler});
+        registry.showHelp();
+
+        findHelpRow('Zap the page').dispatchEvent(new MouseEvent('click', {bubbles: true}));
+        await flushFrames();
+
+        expect(handler).toHaveBeenCalledOnce();
+        expect(document.body.textContent).not.toContain('Keyboard Shortcuts');
+    });
+
+    it('hovering a help row highlights it', () => {
+        registry.register({key: 'z', description: 'Zap the page', handler: vi.fn()});
+        registry.showHelp();
+        const row = findHelpRow('Zap the page');
+
+        row.dispatchEvent(new Event('mouseenter'));
+        expect(row.style.background).not.toBe('transparent');
+        expect(row.style.background).not.toBe('');
+
+        row.dispatchEvent(new Event('mouseleave'));
+        expect(row.style.background).toBe('transparent');
     });
 });

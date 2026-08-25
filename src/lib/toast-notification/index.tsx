@@ -1,8 +1,7 @@
 import type {ReactNode} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
-import type {ShowToastPayload} from '@exo/lib/actions/show-toast.action';
-import {renderMarkdown} from '@exo/lib/toast-notification/markdown';
-import {theme} from '@exo/theme/default';
+import {renderMarkdown} from './markdown';
+import {theme} from './theme';
 
 const DEFAULT_DURATION_MS = 5000;
 
@@ -98,27 +97,42 @@ function createLayoutPin(notification: HTMLElement, container: HTMLElement) {
 }
 
 /**
- * Attach a right-click pause toggle to a notification.
- * Right-clicking pauses/resumes the timer bar animation and shows a pause indicator.
+ * One owner for a toast's held presentation and its countdown clock.
+ *
+ * Two ways to hold a toast \u2014 hovering it and right-click pinning it \u2014 feed
+ * one `held` predicate, and a single sync() is the sole writer of the timer
+ * bar's play state and the held visuals. The visible state and the countdown
+ * are one mechanism and cannot disagree: unpausing under the cursor stays
+ * held (still hovered), and a paused toast keeps its held look after the
+ * pointer leaves.
  */
-function createPauseToggle(
+function attachInteractionState(
     notification: HTMLElement,
     timerBar: HTMLElement,
-    colors: {base: string; hover: string; opacity: number},
+    opts: {
+        pin: () => void;
+        cleanupPin: () => void;
+        isDismissing: () => boolean;
+        colors: {base: string; hover: string; opacity: number};
+    },
 ) {
+    const {pin, cleanupPin, isDismissing, colors} = opts;
+    let hovered = false;
     let paused = false;
-    let label: HTMLElement | null = null;
+    let pausedLabel: HTMLElement | null = null;
 
-    notification.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        paused = !paused;
-        if (paused) {
-            timerBar.style.animationPlayState = 'paused';
-            notification.style.opacity = '1';
-            notification.style.background = colors.hover;
-            label = document.createElement('span');
-            label.textContent = '\u23F8';
-            label.style.cssText = `
+    const sync = () => {
+        if (isDismissing()) return;
+        const held = hovered || paused;
+        timerBar.style.animationPlayState = held ? 'paused' : 'running';
+        notification.style.opacity = held ? '1' : String(colors.opacity);
+        notification.style.background = held ? colors.hover : colors.base;
+        notification.style.boxShadow = held ? theme.shadow.overlay : theme.shadow.sm;
+
+        if (paused && !pausedLabel) {
+            pausedLabel = document.createElement('span');
+            pausedLabel.textContent = '\u23F8';
+            pausedLabel.style.cssText = `
                 position: absolute;
                 bottom: 4px;
                 right: 8px;
@@ -126,19 +140,29 @@ function createPauseToggle(
                 color: hsla(0, 0%, 100%, 1);
                 pointer-events: none;
             `;
-            notification.appendChild(label);
-        } else {
-            timerBar.style.animationPlayState = 'running';
-            notification.style.opacity = String(colors.opacity);
-            notification.style.background = colors.base;
-            if (label) {
-                label.remove();
-                label = null;
-            }
+            notification.appendChild(pausedLabel);
+        } else if (!paused && pausedLabel) {
+            pausedLabel.remove();
+            pausedLabel = null;
         }
-    });
+    };
 
-    return {isPaused: () => paused};
+    notification.addEventListener('mouseenter', () => {
+        if (isDismissing()) return;
+        hovered = true;
+        pin();
+        sync();
+    });
+    notification.addEventListener('mouseleave', () => {
+        hovered = false;
+        cleanupPin();
+        sync();
+    });
+    notification.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        paused = !paused;
+        sync();
+    });
 }
 
 export class Notifications {
@@ -173,7 +197,7 @@ export class Notifications {
 
         // Use existing container if present (for testing)
         if (!this.container) {
-            this.container = document.getElementById('notification-container');
+            this.container = document.getElementById('exo-notification-container');
         }
         if (!this.container) {
             this.createContainer();
@@ -210,17 +234,10 @@ export class Notifications {
         this.pinCleanups.set(notification, cleanupPin);
 
         const hoverBg = backgroundColor.replace(/[\d.]+\)$/, '1)');
-        const {isPaused} = createPauseToggle(notification, timerBar, {
-            base: backgroundColor,
-            hover: hoverBg,
-            opacity,
-        });
-
-        this.attachClickHandler(notification, cleanupPin, onClick);
-        this.attachHoverHandlers(notification, timerBar, {
+        this.attachClickHandler(notification, onClick);
+        attachInteractionState(notification, timerBar, {
             pin,
             cleanupPin,
-            isPaused,
             isDismissing,
             colors: {base: backgroundColor, hover: hoverBg, opacity},
         });
@@ -235,35 +252,24 @@ export class Notifications {
         return {dismiss: () => this.dismiss(notification)};
     }
 
-    /**
-     * Show a toast for a ShowToast action payload: the message headline,
-     * plus an optional preformatted detail block.
-     */
-    static showPayload(payload: ShowToastPayload): ToastHandle {
-        return this.show({
-            message: payload.message,
-            type: payload.type,
-            children: payload.detail ? (
-                <>
-                    <div style={{fontWeight: 500}}>{payload.message}</div>
-                    <pre
-                        style={{
-                            ...theme.toast.detail,
-                            margin: '8px 0 0 0',
-                            whiteSpace: 'pre',
-                            lineHeight: '1.5',
-                        }}
-                    >
-                        {payload.detail}
-                    </pre>
-                </>
-            ) : undefined,
-        });
+    /** True while any toast is on screen (including one fading out). */
+    static hasVisible(): boolean {
+        return Boolean(this.container?.querySelector('.chrome-ext-notification'));
+    }
+
+    /** Dismiss every visible toast. */
+    static dismissAll(): void {
+        const toasts = this.container?.querySelectorAll('.chrome-ext-notification') ?? [];
+        toasts.forEach((toast) => this.dismiss(toast as HTMLElement));
     }
 
     private static dismiss(notification: HTMLElement, immediate?: boolean): void {
         // Mark as dismissing so hover handlers cannot revive the toast.
         this.dismissing.add(notification);
+        // A dismissed toast leaves the interactive layer the moment it
+        // starts leaving the visual one: no clicks, hovers, or context
+        // menus on a fading ghost.
+        notification.style.pointerEvents = 'none';
 
         // Fire the dismiss callback exactly once (timer, click, or handle).
         const onDismiss = this.dismissCallbacks.get(notification);
@@ -294,74 +300,42 @@ export class Notifications {
             return;
         }
 
-        // Animated dismiss
+        // Animated dismiss — the fade transition IS the removal clock
+        // (both it and the fallback below derive from the one fadeMs token,
+        // so they cannot drift). The timeout only covers environments where
+        // transition events never fire (jsdom, reduced motion).
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(20px)';
-        setTimeout(() => {
+        const remove = () => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
             }
             if (this.currentNotification === notification) {
                 this.currentNotification = null;
             }
-        }, theme.toast.fadeMs);
+        };
+        notification.addEventListener('transitionend', (event) => {
+            if (event.target === notification && event.propertyName === 'opacity') {
+                remove();
+            }
+        });
+        setTimeout(remove, theme.toast.fadeMs);
     }
 
     private static attachClickHandler(
         notification: HTMLElement,
-        cleanupPin: () => void,
         onClick?: (notification: HTMLElement) => void,
     ): void {
         if (onClick) {
-            notification.appendChild(this.createCloseButton(notification, cleanupPin));
+            notification.appendChild(this.createCloseButton(notification));
         }
         notification.addEventListener('click', (e) => {
             if (e.button !== 0) return;
-            cleanupPin();
             if (onClick) {
                 onClick(notification);
             } else {
                 this.dismiss(notification);
             }
-        });
-    }
-
-    private static attachHoverHandlers(
-        notification: HTMLElement,
-        timerBar: HTMLElement,
-        opts: {
-            pin: () => void;
-            cleanupPin: () => void;
-            isPaused: () => boolean;
-            isDismissing: () => boolean;
-            colors: {base: string; hover: string; opacity: number};
-        },
-    ): void {
-        const {pin, cleanupPin, isPaused, isDismissing, colors} = opts;
-
-        notification.addEventListener('mouseenter', () => {
-            if (isDismissing()) return;
-            pin();
-
-            notification.style.opacity = '1';
-            notification.style.background = colors.hover;
-            notification.style.transform = 'translateX(0)';
-            notification.style.boxShadow = theme.shadow.overlay;
-
-            if (isPaused()) return;
-            timerBar.style.animationPlayState = 'paused';
-        });
-
-        notification.addEventListener('mouseleave', () => {
-            cleanupPin();
-
-            notification.style.opacity = String(colors.opacity);
-            notification.style.background = colors.base;
-            notification.style.transform = 'translateX(0)';
-            notification.style.boxShadow = theme.shadow.sm;
-
-            if (isPaused()) return;
-            timerBar.style.animationPlayState = 'running';
         });
     }
 
@@ -386,7 +360,7 @@ export class Notifications {
                 font-size: ${theme.toast.fontSize[size]};
                 box-shadow: ${theme.shadow.sm};
                 line-height: ${theme.toast.lineHeight};
-                transition: opacity 0.3s ease-out, transform 0.3s ease-out, box-shadow 0.3s ease-out;
+                transition: opacity ${theme.toast.fadeMs}ms ease-out, transform ${theme.toast.fadeMs}ms ease-out, box-shadow ${theme.toast.fadeMs}ms ease-out;
                 opacity: ${opacity};
                 transform: translateX(0);
                 overflow: hidden;
@@ -436,12 +410,10 @@ export class Notifications {
         return timerBar;
     }
 
-    private static createCloseButton(
-        notification: HTMLElement,
-        cleanupPin: () => void,
-    ): HTMLElement {
+    private static createCloseButton(notification: HTMLElement): HTMLElement {
         const closeBtn = document.createElement('span');
-        closeBtn.textContent = '\u23F8\uFE0E';
+        // \u00D7 means dismiss \u2014 \u23F8 is reserved for the paused-state indicator.
+        closeBtn.textContent = '\u00D7';
         closeBtn.style.cssText = `
             position: absolute;
             top: 4px;
@@ -459,7 +431,7 @@ export class Notifications {
         });
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            cleanupPin();
+            // dismiss() cleans the layout pin via pinCleanups.
             this.dismiss(notification);
         });
         return closeBtn;
@@ -480,7 +452,7 @@ export class Notifications {
 
     private static createContainer(): void {
         this.container = document.createElement('div');
-        this.container.id = 'notification-container';
+        this.container.id = 'exo-notification-container';
         this.container.style.cssText = `
             position: fixed;
             top: ${theme.toast.containerTop};

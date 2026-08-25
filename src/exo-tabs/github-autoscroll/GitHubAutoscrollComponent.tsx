@@ -3,11 +3,13 @@ import {theme} from '@exo/theme/default';
 
 const MESSAGE_TYPES = {
     GET_STATUS: 'GITHUB_AUTOSCROLL_GET_STATUS',
-    TOGGLE: 'GITHUB_AUTOSCROLL_TOGGLE',
+    SET: 'GITHUB_AUTOSCROLL_SET',
 } as const;
 
 export function GitHubAutoscrollContent() {
-    const [active, setActive] = useState<boolean>(false);
+    // null = the page never answered: no state exists, so the button must
+    // not claim one.
+    const [active, setActive] = useState<boolean | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [tabId, setTabId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -32,9 +34,7 @@ export function GitHubAutoscrollContent() {
                         setActive(response.active);
                     }
                 } catch {
-                    if (mounted) {
-                        setActive(false);
-                    }
+                    // No content script answered — leave active null.
                 }
             }
             if (mounted) {
@@ -50,12 +50,16 @@ export function GitHubAutoscrollContent() {
     }, []);
 
     const handleToggle = async () => {
-        if (!tabId) return;
+        if (!tabId || active === null) return;
 
         setError(null);
         try {
+            // SET, not TOGGLE: the request names the state the label
+            // promised (the negation of what the button shows), so a stale
+            // label self-corrects instead of silently inverting the action.
             const response = await chrome.tabs.sendMessage(tabId, {
-                type: MESSAGE_TYPES.TOGGLE,
+                type: MESSAGE_TYPES.SET,
+                active: !active,
             });
             setActive(response.active);
         } catch (error) {
@@ -67,6 +71,8 @@ export function GitHubAutoscrollContent() {
     if (loading) {
         return <div style={{padding: '16px'}}>Loading...</div>;
     }
+
+    const unavailable = active === null;
 
     return (
         <div style={{padding: '16px'}}>
@@ -87,6 +93,7 @@ export function GitHubAutoscrollContent() {
             >
                 <button
                     onClick={handleToggle}
+                    disabled={unavailable}
                     style={{
                         width: '100%',
                         padding: '16px 24px',
@@ -94,16 +101,22 @@ export function GitHubAutoscrollContent() {
                         fontWeight: 'bold',
                         border: '2px solid',
                         borderRadius: '8px',
-                        cursor: 'pointer',
-                        backgroundColor: active ? theme.status.successDark : theme.status.errorDark,
+                        cursor: unavailable ? 'default' : 'pointer',
+                        backgroundColor: unavailable
+                            ? theme.bg.cardSubtle
+                            : active
+                              ? theme.status.successDark
+                              : theme.status.errorDark,
                         color: 'white',
-                        borderColor: active
-                            ? theme.status.successDarkBorder
-                            : theme.status.errorDarkBorder,
+                        borderColor: unavailable
+                            ? theme.border.light
+                            : active
+                              ? theme.status.successDarkBorder
+                              : theme.status.errorDarkBorder,
                         transition: 'all 0.2s',
                     }}
                 >
-                    {active ? '✓ Active' : '○ Inactive'}
+                    {unavailable ? 'Unavailable on this page' : active ? '✓ Active' : '○ Inactive'}
                 </button>
             </div>
         </div>

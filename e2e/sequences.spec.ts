@@ -78,6 +78,26 @@ test.describe('multi-keystroke sequences (content script)', () => {
         await expect(toastContainer(page)).not.toContainText('Playground sequence: gg');
     });
 
+    test('hovering the pending banner holds the chord window open past the TTL', async ({
+        context,
+    }) => {
+        const page = await openToyDoc(context);
+
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText('pending');
+
+        // The banner IS the TTL: hovering pauses its countdown, which must
+        // genuinely hold the sequence window open — no hidden timer.
+        await page
+            .locator('#exo-notification-container .chrome-ext-notification', {hasText: 'pending'})
+            .hover();
+        await page.waitForTimeout(SEQUENCE_TTL_WAIT_MS);
+        await expect(toastContainer(page)).toContainText('pending');
+
+        await page.keyboard.press('g');
+        await expect(toastContainer(page)).toContainText('Playground sequence: gg');
+    });
+
     test('single bindings fire on the first press, with no pending state', async ({context}) => {
         const page = await openToyDoc(context);
 

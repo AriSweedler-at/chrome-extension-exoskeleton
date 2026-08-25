@@ -30,22 +30,6 @@
             ]
         }
     ],
-    "commands": {
-        "copy-rich-link": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+C",
-                "mac": "Command+Shift+C"
-            },
-            "description": "Copy rich link to clipboard"
-        },
-        "primary-action": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+X",
-                "mac": "Command+Shift+X"
-            },
-            "description": "Primary action for current page"
-        }
-    },
     "permissions": [
         "activeTab",
         "storage",

@@ -5,6 +5,8 @@
  * Inspired by Arc browser's "tidy URL" feature.
  */
 
+import {safeUrl} from '@exo/lib/url';
+
 /** Exact parameter names to strip. */
 const BLOCKED_PARAMS: ReadonlySet<string> = new Set([
     // Analytics / click-tracking
@@ -55,12 +57,8 @@ function isBlockedParam(key: string): boolean {
  * Returns the original string unchanged if parsing fails or nothing was stripped.
  */
 export function cleanUrl(raw: string): string {
-    let url: URL;
-    try {
-        url = new URL(raw);
-    } catch {
-        return raw;
-    }
+    const url = safeUrl(raw);
+    if (!url) return raw;
 
     const before = url.searchParams.size;
     for (const key of [...url.searchParams.keys()]) {

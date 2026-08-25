@@ -123,22 +123,21 @@ export function findLastStackedPipelineRow(): HTMLElement | null {
 // tab anchors ("Pipeline Config", "Task Status", ...) share .stage-details.
 export function findViewPipelineExecutionLink(): HTMLAnchorElement | null {
     const anchors = document.querySelectorAll<HTMLAnchorElement>('.stage-details a');
-    for (const anchor of Array.from(anchors)) {
-        if (anchor.textContent?.trim() === 'View Pipeline Execution') return anchor;
-    }
-    return null;
+    return (
+        Array.from(anchors).find(
+            (anchor) => anchor.textContent?.trim() === 'View Pipeline Execution',
+        ) ?? null
+    );
 }
 
 // A child-pipeline stage's pane lists its target under a "Pipeline" label —
 // the child pipeline's full name.
 export function findChildPipelineName(link: HTMLAnchorElement): string | null {
     const pane = link.closest('.execution-details');
-    for (const dt of Array.from(pane?.querySelectorAll('dt') ?? [])) {
-        if (dt.textContent?.trim() !== 'Pipeline') continue;
-        const dd = dt.nextElementSibling;
-        if (dd?.tagName === 'DD') return dd.textContent?.trim() || null;
-    }
-    return null;
+    const dt = Array.from(pane?.querySelectorAll('dt') ?? []).find(
+        (dt) => dt.textContent?.trim() === 'Pipeline' && dt.nextElementSibling?.tagName === 'DD',
+    );
+    return dt?.nextElementSibling?.textContent?.trim() || null;
 }
 
 // An execution spawned by a pipeline renders its ancestry as breadcrumb
@@ -201,11 +200,8 @@ export function findOpenSearchLinks(executionId: string): HTMLAnchorElement[] {
  * Find the "Execution Details" link in the Spinnaker UI
  */
 export function findExecutionDetailsLink(): HTMLElement | null {
-    const links = document.querySelectorAll('a.clickable');
-    for (const link of Array.from(links)) {
-        if (link.textContent?.includes('Execution Details')) {
-            return link as HTMLElement;
-        }
-    }
-    return null;
+    const links = document.querySelectorAll<HTMLElement>('a.clickable');
+    return (
+        Array.from(links).find((link) => link.textContent?.includes('Execution Details')) ?? null
+    );
 }

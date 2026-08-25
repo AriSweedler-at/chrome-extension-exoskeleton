@@ -2,6 +2,7 @@ import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {
     toggleExecution,
     isolatePipeline,
+    unisolatePipeline,
     isolateDeployPipeline,
     openMonitoringLinks,
     jumpToLastPipeline,
@@ -486,6 +487,56 @@ describe('spinnaker actions', () => {
                 expect(Notifications.show).toHaveBeenCalledWith({
                     message: 'Could not determine the pipeline for this execution',
                 });
+            });
+        });
+    });
+
+    describe('unisolatePipeline', () => {
+        const ISOLATED_URL =
+            'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2&pipeline=Deploy%20PRODUCTION';
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('navigates to the filter-free URL and notifies', () => {
+            vi.stubGlobal('location', {href: ISOLATED_URL});
+
+            unisolatePipeline();
+
+            expect(window.location.href).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?stage=2',
+            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Cleared pipeline filter: Deploy PRODUCTION',
+            });
+        });
+
+        it('names every cleared pipeline when several are checked', () => {
+            vi.stubGlobal('location', {
+                href: 'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions?pipeline=One&pipeline=Two',
+            });
+
+            unisolatePipeline();
+
+            expect(window.location.href).toBe(
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions',
+            );
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'Cleared pipeline filter: One, Two',
+            });
+        });
+
+        it('does nothing when no pipeline filter is set', () => {
+            const url =
+                'https://spinnaker.k8s.shadowbox.cloud/#/applications/app/executions?stage=2';
+            vi.stubGlobal('location', {href: url});
+
+            unisolatePipeline();
+
+            expect(window.location.href).toBe(url);
+            expect(Notifications.show).toHaveBeenCalledWith({
+                message: 'No pipeline filter is set',
             });
         });
     });

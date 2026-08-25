@@ -6,6 +6,7 @@ import {
     isExecutionsView,
     isStackedDetailsView,
     setPipelineFilter,
+    clearPipelineFilters,
     transformPipelineFilters,
     buildIsolatedExecutionUrl,
     buildIsolatedPipelineListUrl,
@@ -186,6 +187,35 @@ describe('spinnaker filters', () => {
             expect(result).not.toContain('pipeline=One');
             expect(result).not.toContain('pipeline=Two');
         });
+
+        it('moves an existing filter to the end of the query, as Deck writes it', () => {
+            expect(setPipelineFilter(`${BASE}?pipeline=Old&stage=2`, 'New')).toBe(
+                `${BASE}?stage=2&pipeline=New`,
+            );
+        });
+    });
+
+    describe('clearPipelineFilters', () => {
+        it('removes the pipeline param, preserving other params', () => {
+            expect(
+                clearPipelineFilters(`${BASE}?stage=2&step=0&pipeline=Deploy%20PRODUCTION`),
+            ).toBe(`${BASE}?stage=2&step=0`);
+        });
+
+        it('removes every checked pipeline', () => {
+            expect(clearPipelineFilters(`${BASE}?pipeline=One&pipeline=Two&q=One`)).toBe(
+                `${BASE}?q=One`,
+            );
+        });
+
+        it('drops the hash query entirely when nothing else is set', () => {
+            expect(clearPipelineFilters(`${BASE}?pipeline=Deploy%20PRODUCTION`)).toBe(BASE);
+        });
+
+        it('leaves URLs without a filter untouched', () => {
+            expect(clearPipelineFilters(`${BASE}?stage=2`)).toBe(`${BASE}?stage=2`);
+            expect(clearPipelineFilters(BASE)).toBe(BASE);
+        });
     });
 
     describe('transformPipelineFilters', () => {
@@ -205,6 +235,10 @@ describe('spinnaker filters', () => {
         it('leaves URLs without a filter untouched', () => {
             expect(transformPipelineFilters(`${BASE}?stage=2`, upper)).toBe(`${BASE}?stage=2`);
             expect(transformPipelineFilters(BASE, upper)).toBe(BASE);
+        });
+
+        it('returns unparseable URLs untouched', () => {
+            expect(transformPipelineFilters('not-a-url', upper)).toBe('not-a-url');
         });
     });
 });

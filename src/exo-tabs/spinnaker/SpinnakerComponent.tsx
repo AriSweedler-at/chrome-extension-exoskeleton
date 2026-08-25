@@ -1,5 +1,9 @@
-import type {CSSProperties} from 'react';
-import {toggleExecution, isolatePipeline} from '@exo/exo-tabs/spinnaker/actions';
+import {useState, type CSSProperties} from 'react';
+import {
+    SPINNAKER_POPUP_ACTIONS,
+    SpinnakerRunAction,
+    type SpinnakerActionId,
+} from '@exo/exo-tabs/spinnaker/action';
 import {theme} from '@exo/theme/default';
 
 const buttonStyle: CSSProperties = {
@@ -23,25 +27,44 @@ const kbdStyle: CSSProperties = {
     borderRadius: '3px',
 };
 
-const ACTIONS = [
-    {label: 'Toggle Execution Details', key: 'e', handler: toggleExecution},
-    {label: 'Isolate Pipeline', key: 'i', handler: isolatePipeline},
-] as const;
-
 /**
  * Spinnaker tab component
  *
- * Provides UI buttons for Spinnaker operations.
- * Keyboard shortcuts are registered in page.ts (content script).
+ * Each button sends its action to the page's content script, which runs the
+ * identical handler the matching keybinding runs — the kbd chip and the
+ * click are one mechanism. Keyboard shortcuts are registered in page.ts.
  */
 export function SpinnakerContent() {
+    const [error, setError] = useState<string | null>(null);
+
+    const runAction = async (action: SpinnakerActionId) => {
+        setError(null);
+        try {
+            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+            if (!tab?.id) throw new Error('No active tab');
+            await SpinnakerRunAction.sendToTab(tab.id, {action});
+        } catch (err) {
+            // No content script answered (not a Spinnaker page, or the tab
+            // is disabled) — surface it instead of silently doing nothing.
+            const msg = err instanceof Error ? err.message : String(err);
+            setError(msg);
+            console.error('Spinnaker popup action failed:', err);
+        }
+    };
+
     return (
         <div style={{padding: '16px'}}>
             <h2 style={{marginTop: 0, marginBottom: '16px'}}>Execution Controls</h2>
 
+            {error && (
+                <div style={{color: 'red', marginBottom: '12px'}} data-testid="error-message">
+                    {error}
+                </div>
+            )}
+
             <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                {ACTIONS.map(({label, key, handler}) => (
-                    <button key={key} onClick={handler} style={buttonStyle}>
+                {SPINNAKER_POPUP_ACTIONS.map(({id, label, key}) => (
+                    <button key={id} onClick={() => runAction(id)} style={buttonStyle}>
                         <span>{label}</span>
                         <kbd style={kbdStyle}>{key}</kbd>
                     </button>

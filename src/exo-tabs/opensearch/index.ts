@@ -1,4 +1,6 @@
 import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+import {safeUrl} from '@exo/lib/url';
+import {queryFirst} from '@exo/lib/dom';
 
 export interface CommandParts {
     flat: string;
@@ -32,20 +34,12 @@ const FLYOUT_SELECTORS = [
 ] as const;
 
 export function isOpenSearchPage(url: string): boolean {
-    try {
-        const hostname = new URL(url).hostname;
-        return OPENSEARCH_DOMAINS.some((domain) => hostname === domain);
-    } catch {
-        return false;
-    }
+    const hostname = safeUrl(url)?.hostname;
+    return OPENSEARCH_DOMAINS.some((domain) => hostname === domain);
 }
 
 export function findOpenFlyout(): Element | null {
-    for (const selector of FLYOUT_SELECTORS) {
-        const el = document.querySelector(selector);
-        if (el) return el;
-    }
-    return null;
+    return queryFirst(FLYOUT_SELECTORS);
 }
 
 export function getFieldValue(fieldName: string): string | null {
@@ -55,27 +49,15 @@ export function getFieldValue(fieldName: string): string | null {
 
 /** Returns all environments with their URLs and which is current, or undefined if not an OpenSearch page. */
 export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
-    try {
-        const u = new URL(url);
-        const currentEnv = HOSTNAME_TO_ENV[u.hostname];
-        if (!currentEnv) return undefined;
+    const hostname = safeUrl(url)?.hostname;
+    const currentEnv = hostname ? HOSTNAME_TO_ENV[hostname] : undefined;
+    if (!currentEnv) return undefined;
 
-        return OPENSEARCH_ENVIRONMENTS.map((env) => {
-            const envUrl = new URL(url);
-            envUrl.hostname = ENV_TO_HOSTNAME[env];
-            return {env, url: envUrl.toString(), current: env === currentEnv};
-        });
-    } catch {
-        return undefined;
-    }
-}
-
-/** Returns the URL for the next environment in rotation, or undefined. */
-export function getNextEnvironmentUrl(url: string): string | undefined {
-    const envs = getEnvironments(url);
-    if (!envs) return undefined;
-    const currentIdx = envs.findIndex((e) => e.current);
-    return envs[(currentIdx + 1) % envs.length].url;
+    return OPENSEARCH_ENVIRONMENTS.map((env) => {
+        const envUrl = new URL(url);
+        envUrl.hostname = ENV_TO_HOSTNAME[env];
+        return {env, url: envUrl.toString(), current: env === currentEnv};
+    });
 }
 
 /** Wraps a value in single quotes, escaping embedded single quotes with the POSIX `'\''` idiom. */

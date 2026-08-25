@@ -73,24 +73,27 @@ describe('GitHubAutoscrollContent', () => {
         });
     });
 
-    it('handles empty tabs array gracefully', async () => {
+    it('shows the unavailable state for an empty tabs array', async () => {
         (chrome.tabs.query as Mock).mockResolvedValue([]);
 
         render(<GitHubAutoscrollContent />);
 
+        // No page answered: the button must not claim a state.
         await waitFor(() => {
-            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
+            expect(screen.getByText(/Unavailable on this page/)).toBeInTheDocument();
         });
+        expect(screen.getByRole('button')).toBeDisabled();
     });
 
-    it('handles tab without ID', async () => {
+    it('shows the unavailable state for a tab without ID', async () => {
         (chrome.tabs.query as Mock).mockResolvedValue([{} as chrome.tabs.Tab]);
 
         render(<GitHubAutoscrollContent />);
 
         await waitFor(() => {
-            expect(screen.getByText(/○ Inactive/)).toBeInTheDocument();
+            expect(screen.getByText(/Unavailable on this page/)).toBeInTheDocument();
         });
+        expect(screen.getByRole('button')).toBeDisabled();
     });
 
     it('shows error message when toggle fails', async () => {

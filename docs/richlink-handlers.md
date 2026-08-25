@@ -9,7 +9,7 @@ When the user copies a rich link, the system:
 1. Finds all handlers whose `canHandle(url)` returns `true`
 2. Collects their `getFormats()` results
 3. Sorts by `priority` (lower = first)
-4. Presents the format picker in the popup
+4. Copies the top format and shows a toast; pressing Cmd+Shift+C again within the cycling window walks through the remaining formats
 
 Specialized handlers are tried first, then fallback handlers (Page Title, Raw URL) are always appended.
 
@@ -53,8 +53,8 @@ Add a colocated `*.handler.test.ts` with tests.
 
 - **Priority:** Lower numbers appear first. Use 10-40 for specialized handlers, 100+ for fallbacks.
 - **DOM access:** Handlers run in the content script context and have direct `document` access.
-- **URL context:** Always use `ctx.url`, never `window.location` (handlers also run from the popup).
-- **Fallback handlers:** Set `readonly isFallback = true` to mark a handler as a fallback (styled differently in UI).
+- **URL context:** Always use `ctx.url`, never `window.location` (the URL is provided by the caller; tests and format cycling pass explicit URLs).
+- **Fallback handlers:** Set `readonly isFallback = true` to mark a handler as a fallback (shown at reduced toast opacity).
 
 ## Airtable sub-handlers
 

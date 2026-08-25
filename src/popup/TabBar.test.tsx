@@ -1,9 +1,30 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import {TabBar} from '@exo/popup/TabBar';
-import {TabRegistry} from '@exo/lib/popup-exo-tabs/tab-registry';
+import {TabRegistry, matchPriority} from '@exo/lib/popup-exo-tabs/tab-registry';
 import {Storage} from '@exo/lib/storage';
 import chrome from 'sinon-chrome';
+
+const AlphaContent = () => <div>Alpha Content</div>;
+const BetaContent = () => <div>Beta Content</div>;
+
+/** Two always-visible fixture tabs: Alpha (priority 0) before Beta (priority 1). */
+function registerFixtureTabs() {
+    TabRegistry.register({
+        id: 'alpha',
+        label: 'Alpha',
+        component: AlphaContent,
+        primaryAction: async () => false,
+        getPriority: () => 0,
+    });
+    TabRegistry.register({
+        id: 'beta',
+        label: 'Beta',
+        component: BetaContent,
+        primaryAction: async () => false,
+        getPriority: () => 1,
+    });
+}
 
 describe('TabBar', () => {
     beforeEach(() => {
@@ -14,61 +35,43 @@ describe('TabBar', () => {
                 url: 'http://example.com',
             },
         ]);
-        // CopyCounter uses chrome.storage.local
         chrome.storage.local.get.returns(Promise.resolve({}));
         chrome.storage.local.set.returns(Promise.resolve());
+        TabRegistry.clearForTesting();
     });
 
     it('should render visible tabs', async () => {
-        // This test will use the registered tabs
-        await import('@exo/exo-tabs/richlink/tab');
+        registerFixtureTabs();
 
         render(<TabBar />);
 
         // Wait for async query
-        const element = await screen.findByText('Rich Link');
+        const element = await screen.findByText('Alpha');
 
         expect(element).toBeTruthy();
     });
 
     it('should render tabs in priority order', async () => {
-        await import('@exo/exo-tabs/richlink/tab');
-        await import('@exo/exo-tabs/so-sprint/tab');
-
-        // Query with Airtable URL
-        chrome.tabs.query.yields([
-            {
-                id: 123,
-                url: 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6',
-            },
-        ]);
+        registerFixtureTabs();
 
         render(<TabBar />);
 
-        await screen.findByText('Rich Link');
+        await screen.findByText('Alpha');
 
         const buttons = screen.getAllByRole('button');
-        expect(buttons[0].textContent).toContain('Rich Link'); // Default tab (priority 0)
-        expect(buttons[1].textContent).toContain('SO SPRINT'); // Priority 0
+        expect(buttons[0].textContent).toContain('Alpha');
+        expect(buttons[1].textContent).toContain('Beta');
     });
 
     it('should update active tab when clicked', async () => {
-        await import('@exo/exo-tabs/richlink/tab');
-        await import('@exo/exo-tabs/so-sprint/tab');
-
-        chrome.tabs.query.yields([
-            {
-                id: 123,
-                url: 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6',
-            },
-        ]);
+        registerFixtureTabs();
 
         // Mock Storage.get to resolve immediately (no stored selection)
         vi.spyOn(Storage, 'get').mockResolvedValue(null);
 
         render(<TabBar />);
 
-        // Wait for both tabs to render and for Rich Link to be active
+        // Wait for both tabs to render and for Alpha to be active
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
             expect(buttons[0].className).toContain('active');
@@ -76,11 +79,11 @@ describe('TabBar', () => {
 
         const buttons = screen.getAllByRole('button');
 
-        // Rich Link starts active (default tab, priority 0)
+        // Alpha starts active (first visible tab)
         expect(buttons[0].className).toContain('active');
         expect(buttons[1].className).toBe('');
 
-        // Click SO SPRINT
+        // Click Beta
         fireEvent.click(buttons[1]);
 
         await waitFor(() => {
@@ -91,7 +94,7 @@ describe('TabBar', () => {
     });
 
     it('should save tab selection to storage', async () => {
-        await import('@exo/exo-tabs/richlink/tab');
+        registerFixtureTabs();
 
         chrome.tabs.query.yields([
             {
@@ -104,53 +107,36 @@ describe('TabBar', () => {
 
         render(<TabBar />);
 
-        await screen.findByText('Rich Link');
+        await screen.findByText('Alpha');
 
         // Initially should not have called set (just restored)
         expect(storageSpy).not.toHaveBeenCalled();
 
-        const button = screen.getByRole('button', {name: 'Rich Link'});
+        const button = screen.getByRole('button', {name: 'Alpha'});
         fireEvent.click(button);
 
         await waitFor(() => {
-            expect(storageSpy).toHaveBeenCalledWith('selectedTab:456', 'richlink');
+            expect(storageSpy).toHaveBeenCalledWith('selectedTab:456', 'alpha');
         });
     });
 
     it('should restore stored selection on mount', async () => {
-        await import('@exo/exo-tabs/richlink/tab');
-        await import('@exo/exo-tabs/so-sprint/tab');
+        registerFixtureTabs();
 
-        chrome.tabs.query.yields([
-            {
-                id: 789,
-                url: 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6',
-            },
-        ]);
-
-        // Mock storage to return so-sprint (not the default first tab)
-        vi.spyOn(Storage, 'get').mockResolvedValue('so-sprint');
+        // Mock storage to return beta (not the default first tab)
+        vi.spyOn(Storage, 'get').mockResolvedValue('beta');
 
         render(<TabBar />);
 
         // Wait for async storage load
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
-            // SO SPRINT should be active (even though Rich Link is default)
             expect(buttons[1].className).toContain('active');
         });
     });
 
     it('should fall back to first visible tab when stored tab not found', async () => {
-        await import('@exo/exo-tabs/richlink/tab');
-        await import('@exo/exo-tabs/so-sprint/tab');
-
-        chrome.tabs.query.yields([
-            {
-                id: 123,
-                url: 'https://airtable.com/apptivTqaoebkrmV1/pagrDMUXa6uRzU6f6',
-            },
-        ]);
+        registerFixtureTabs();
 
         // Mock Storage to return invalid tab ID
         vi.spyOn(Storage, 'get').mockResolvedValue('non-existent-tab');
@@ -159,13 +145,26 @@ describe('TabBar', () => {
 
         await waitFor(() => {
             const buttons = screen.getAllByRole('button');
-            expect(buttons[0].className).toContain('active'); // Rich Link (first/default) should be active
+            expect(buttons[0].className).toContain('active');
         });
     });
 
-    it('renders TabEnablementSection for tabs with enablementToggle', async () => {
-        TabRegistry.clearForTesting();
+    it('shows the empty state when no tab matches the page', async () => {
+        TabRegistry.register({
+            id: 'never-matches',
+            label: 'Never',
+            component: AlphaContent,
+            primaryAction: async () => false,
+            getPriority: matchPriority(() => false),
+        });
 
+        render(<TabBar />);
+
+        expect(await screen.findByText(/No exo tools match this page/)).toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('renders TabEnablementSection for tabs with enablementToggle', async () => {
         const TestComponent = () => <div>Test Content</div>;
 
         TabRegistry.register({
@@ -191,8 +190,6 @@ describe('TabBar', () => {
     });
 
     it('does not render TabEnablementSection for tabs without enablementToggle', async () => {
-        TabRegistry.clearForTesting();
-
         const TestComponent = () => <div>Test Content</div>;
 
         TabRegistry.register({

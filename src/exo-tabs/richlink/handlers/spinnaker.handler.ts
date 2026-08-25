@@ -9,6 +9,7 @@ import {
     getIsolatedPipeline,
     getApplicationName,
 } from '@exo/exo-tabs/spinnaker/filters';
+import {queryFirstText} from '@exo/lib/dom';
 
 const DEPLOY_GROUP_PATTERN =
     /^Deploy Pipeline Group\s+(.+?)\s+(ALPHA|STAGING|PRODUCTION)(?:\s+\d+)?$/;
@@ -66,19 +67,12 @@ export class SpinnakerHandler extends Handler {
     }
 
     private extractRawTitle(): string | null {
-        const selectors = [
+        return queryFirstText([
             '.execution-group-title',
             '.execution-name',
             '.pipeline-config-name',
             '.application-header',
-        ];
-        for (const sel of selectors) {
-            const el = document.querySelector(sel);
-            if (el?.textContent) {
-                return el.textContent.trim();
-            }
-        }
-        return null;
+        ]);
     }
 
     extractLinkText(): string {

@@ -10,6 +10,7 @@ vi.mock('@exo/lib/keybindings', () => ({
 vi.mock('@exo/exo-tabs/spinnaker/actions', () => ({
     toggleExecution: vi.fn(),
     isolatePipeline: vi.fn(),
+    unisolatePipeline: vi.fn(),
     isolateDeployPipeline: vi.fn(),
     openMonitoringLinks: vi.fn(),
     jumpToLastPipeline: vi.fn(),
@@ -27,6 +28,8 @@ function stubStorage(values: Record<string, unknown>) {
                 }),
             },
         },
+        // The page module registers SpinnakerRunAction's message handler.
+        runtime: {onMessage: {addListener: vi.fn()}},
     });
 }
 
@@ -58,7 +61,7 @@ describe('spinnaker page module', () => {
         const bindings = vi.mocked(keybindings.registerAll).mock.calls[0][0];
         expect(
             bindings.map((b: {key?: string; sequence?: string[]}) => b.key ?? b.sequence?.join('')),
-        ).toEqual(['e', 'i', 'd', 'M', 'G', 'gg']);
+        ).toEqual(['e', 'i', 'I', 'd', 'M', 'G', 'gg']);
         expect(keybindings.listen).toHaveBeenCalled();
     });
 

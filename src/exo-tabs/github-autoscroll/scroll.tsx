@@ -21,6 +21,15 @@ export function scrollToPageBottom(behavior: ScrollBehavior = 'smooth'): void {
 }
 
 /**
+ * Scroll down by most of a viewport (a little overlap for continuity).
+ * Instant, not smooth: under key auto-repeat each press must land before
+ * the next one fires.
+ */
+export function scrollPageDown(): void {
+    window.scrollBy({top: Math.round(window.innerHeight * 0.9), behavior: 'auto'});
+}
+
+/**
  * Scroll element so its top aligns with the top of the viewport (with small border)
  */
 export function scrollElementTop(

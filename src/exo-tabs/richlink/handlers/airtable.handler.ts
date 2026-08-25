@@ -9,6 +9,7 @@ import {
     registeredHandlers,
     customDomains,
 } from '@exo/exo-tabs/richlink/handlers/airtable/airtable-handlers/handler-factory';
+import {queryFirstText} from '@exo/lib/dom';
 
 export class AirtableHandler extends Handler {
     readonly label = 'Airtable Record';
@@ -23,25 +24,13 @@ export class AirtableHandler extends Handler {
     }
 
     extractLinkText(): string {
-        // Base name
-        const baseName = document.querySelector('.basename');
-        if (baseName?.textContent) {
-            return baseName.textContent.trim();
-        }
-
-        // Table name
-        const tableName = document.querySelector('[data-tutorial-selector-id="tableHeaderName"]');
-        if (tableName?.textContent) {
-            return tableName.textContent.trim();
-        }
-
-        // View name
-        const viewName = document.querySelector('.viewMenuButton');
-        if (viewName?.textContent) {
-            return viewName.textContent.trim();
-        }
-
-        return 'Airtable Record';
+        return (
+            queryFirstText([
+                '.basename', // base name
+                '[data-tutorial-selector-id="tableHeaderName"]', // table name
+                '.viewMenuButton', // view name
+            ]) ?? 'Airtable Record'
+        );
     }
 
     /** Override: collects formats from sub-handlers + generic fallback. */

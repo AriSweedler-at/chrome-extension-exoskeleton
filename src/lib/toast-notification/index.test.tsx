@@ -14,7 +14,7 @@ describe('Notifications', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (Notifications as any).container = null;
         container = document.createElement('div');
-        container.id = 'notification-container';
+        container.id = 'exo-notification-container';
         document.body.appendChild(container);
     });
 
@@ -124,12 +124,12 @@ describe('Notifications', () => {
         it('should create container automatically if not present', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Notifications as any).container = null;
-            const existingContainer = document.getElementById('notification-container');
+            const existingContainer = document.getElementById('exo-notification-container');
             if (existingContainer) existingContainer.remove();
 
             Notifications.show({message: 'Test message'});
 
-            const createdContainer = document.getElementById('notification-container');
+            const createdContainer = document.getElementById('exo-notification-container');
             expect(createdContainer).toBeTruthy();
             expect(createdContainer?.children.length).toBe(1);
 
@@ -202,7 +202,8 @@ describe('Notifications', () => {
 
             const closeBtn = notification.querySelector('span');
             expect(closeBtn).toBeTruthy();
-            expect(closeBtn?.textContent).toBe('\u23F8\uFE0E');
+            // \u00D7 means dismiss \u2014 \u23F8 is reserved for the paused indicator.
+            expect(closeBtn?.textContent).toBe('\u00D7');
 
             notification.click();
             expect(onClick).toHaveBeenCalledWith(notification);
@@ -227,28 +228,38 @@ describe('Notifications', () => {
         });
     });
 
-    describe('showPayload', () => {
-        it('renders the message without detail', async () => {
-            Notifications.showPayload({message: 'Copied!'});
+    describe('hasVisible / dismissAll', () => {
+        it('hasVisible reflects whether any toast is on screen', () => {
+            expect(Notifications.hasVisible()).toBe(false);
 
-            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
-            expect(notification.textContent).toContain('Copied!');
+            Notifications.show({message: 'One'});
+            expect(Notifications.hasVisible()).toBe(true);
         });
 
-        it('renders the message headline alongside the detail block', async () => {
-            Notifications.showPayload({
-                message: 'No primary action available',
-                detail: 'Tried: OpenSearch, Rich Link',
-            });
+        it('dismissAll dismisses every visible toast', () => {
+            vi.useFakeTimers();
 
-            const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
-            await vi.waitFor(() => {
-                expect(notification.textContent).toContain('No primary action available');
-                expect(notification.textContent).toContain('Tried: OpenSearch, Rich Link');
-            });
-            expect(notification.querySelector('pre')?.textContent).toBe(
-                'Tried: OpenSearch, Rich Link',
-            );
+            Notifications.show({message: 'One'});
+            Notifications.show({message: 'Two'});
+            expect(container.querySelectorAll('.chrome-ext-notification')).toHaveLength(2);
+
+            Notifications.dismissAll();
+            vi.advanceTimersByTime(300);
+
+            expect(container.querySelectorAll('.chrome-ext-notification')).toHaveLength(0);
+            expect(Notifications.hasVisible()).toBe(false);
+
+            vi.useRealTimers();
+        });
+
+        it('dismissAll fires each toast’s onDismiss exactly once', () => {
+            const onDismiss = vi.fn();
+            Notifications.show({message: 'One', onDismiss});
+
+            Notifications.dismissAll();
+            Notifications.dismissAll();
+
+            expect(onDismiss).toHaveBeenCalledTimes(1);
         });
     });
 

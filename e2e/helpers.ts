@@ -60,7 +60,7 @@ export async function openFixturePage(
 }
 
 /** The toast container rendered by the content script's Notifications lib. */
-export const toastContainer = (page: Page) => page.locator('#notification-container');
+export const toastContainer = (page: Page) => page.locator('#exo-notification-container');
 
 /** Assert a toast containing `text` is (or becomes) visible. */
 export async function expectToast(page: Page, text: string | RegExp): Promise<void> {

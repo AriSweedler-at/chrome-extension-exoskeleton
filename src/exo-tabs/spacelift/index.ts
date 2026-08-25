@@ -2,14 +2,12 @@ export const SPACELIFT_HOSTNAME = 'spacelift.shadowbox.cloud';
 export const ENVIRONMENTS = ['alpha', 'staging', 'production'] as const;
 export type Environment = (typeof ENVIRONMENTS)[number];
 
+import {safeUrl} from '@exo/lib/url';
+
 function parseStackName(url: string): string | undefined {
-    try {
-        const u = new URL(url);
-        if (u.hostname !== SPACELIFT_HOSTNAME) return undefined;
-        return u.pathname.match(/^\/stack\/([^/]+)/)?.[1];
-    } catch {
-        return undefined;
-    }
+    const u = safeUrl(url);
+    if (u?.hostname !== SPACELIFT_HOSTNAME) return undefined;
+    return u.pathname.match(/^\/stack\/([^/]+)/)?.[1];
 }
 
 export function isSpaceliftStackPage(url: string): boolean {
@@ -34,12 +32,4 @@ export function getEnvironments(url: string): EnvironmentInfo[] | undefined {
         u.pathname = `/stack/${baseName}-${env}`;
         return {env, url: u.toString(), current: i === currentIdx};
     });
-}
-
-/** Returns the URL for the next environment in rotation, or undefined. */
-export function getNextEnvironmentUrl(url: string): string | undefined {
-    const envs = getEnvironments(url);
-    if (!envs) return undefined;
-    const currentIdx = envs.findIndex((e) => e.current);
-    return envs[(currentIdx + 1) % envs.length].url;
 }

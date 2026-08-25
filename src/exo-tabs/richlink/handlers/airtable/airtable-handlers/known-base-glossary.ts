@@ -87,12 +87,11 @@ function extractExpansion(name: string, sentence: string): string | null {
 // --- DOM helpers ---
 
 function findDefinitionCell(): Element | null {
-    const pairs = document.querySelectorAll('.labelCellPair');
-    for (const pair of pairs) {
-        const label = pair.querySelector('.fieldLabel');
-        if (label?.textContent?.trim() === 'Definition') {
-            return pair.querySelector('[data-testid="cell-editor"][data-columntype="richText"]');
-        }
+    const pair = Array.from(document.querySelectorAll('.labelCellPair')).find(
+        (pair) => pair.querySelector('.fieldLabel')?.textContent?.trim() === 'Definition',
+    );
+    if (pair) {
+        return pair.querySelector('[data-testid="cell-editor"][data-columntype="richText"]');
     }
 
     const spans = document.querySelectorAll('span');

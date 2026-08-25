@@ -14,7 +14,6 @@ const buttonStyle = {
     fontSize: '14px',
     border: `1px solid ${theme.border.light}`,
     borderRadius: '4px',
-    cursor: 'pointer',
     backgroundColor: 'white',
     color: 'black',
     textAlign: 'left' as const,
@@ -68,6 +67,9 @@ export function OpenSearchComponent() {
                     disabled={status === 'loading'}
                     style={{
                         ...buttonStyle,
+                        // Cursor and disabled derive from the same status
+                        // read, so the affordance cannot outlive the click.
+                        cursor: status === 'loading' ? 'wait' : 'pointer',
                         backgroundColor:
                             status === 'success'
                                 ? theme.status.success
@@ -89,6 +91,7 @@ export function OpenSearchComponent() {
                 onClick={() => window.open(GDOC_HOW_TO_ACCESS_DEBUG_LOGS, '_blank')}
                 style={{
                     ...buttonStyle,
+                    cursor: 'pointer',
                     marginTop: '12px',
                     textAlign: 'center',
                     fontSize: '12px',

@@ -7,17 +7,30 @@
  * reading and writing that state.
  */
 
+import {safeUrl} from '@exo/lib/url';
+
 function getHashQuery(url: URL): URLSearchParams {
     return new URLSearchParams(url.hash.split('?')[1] ?? '');
 }
 
+/**
+ * Rewrite the hash query through `edit`. Deck reads spaces as %20, not
+ * URLSearchParams' `+`, hence the re-encode; an emptied query drops its `?`.
+ */
+function withHashQuery(url: string, edit: (params: URLSearchParams) => void): string {
+    const urlObj = new URL(url);
+    const [hashPath, hashQuery = ''] = urlObj.hash.split('?');
+    const params = new URLSearchParams(hashQuery);
+    edit(params);
+    const query = params.toString().replace(/\+/g, '%20');
+    urlObj.hash = query ? `${hashPath}?${query}` : hashPath;
+    return urlObj.toString();
+}
+
 /** Names of all pipelines the view is currently filtered to. */
 export function getPipelineFilters(url: string): string[] {
-    try {
-        return getHashQuery(new URL(url)).getAll('pipeline');
-    } catch {
-        return [];
-    }
+    const urlObj = safeUrl(url);
+    return urlObj ? getHashQuery(urlObj).getAll('pipeline') : [];
 }
 
 /**
@@ -31,31 +44,20 @@ export function getIsolatedPipeline(url: string): string | null {
 
 /** Application name from an application-scoped URL (#/applications/<app>/...). */
 export function getApplicationName(url: string): string | null {
-    try {
-        const segments = new URL(url).hash.split('?')[0].split('/');
-        const i = segments.indexOf('applications');
-        return i !== -1 && segments[i + 1] ? decodeURIComponent(segments[i + 1]) : null;
-    } catch {
-        return null;
-    }
+    const segments = safeUrl(url)?.hash.split('?')[0].split('/');
+    if (!segments) return null;
+    const i = segments.indexOf('applications');
+    return i !== -1 && segments[i + 1] ? decodeURIComponent(segments[i + 1]) : null;
 }
 
 /** Is this an executions view (the pages where pipeline filters apply)? */
 export function isExecutionsView(url: string): boolean {
-    try {
-        return new URL(url).hash.split('?')[0].includes('/executions');
-    } catch {
-        return false;
-    }
+    return safeUrl(url)?.hash.split('?')[0].includes('/executions') ?? false;
 }
 
 /** Is this a stacked execution-details view (.../executions/details/<id>)? */
 export function isStackedDetailsView(url: string): boolean {
-    try {
-        return new URL(url).hash.split('?')[0].includes('/executions/details/');
-    } catch {
-        return false;
-    }
+    return safeUrl(url)?.hash.split('?')[0].includes('/executions/details/') ?? false;
 }
 
 /**
@@ -83,10 +85,11 @@ export function buildIsolatedPipelineListUrl(
     target: {application: string; pipelineName: string},
 ): string {
     const urlObj = new URL(url);
-    const query = new URLSearchParams({q: target.pipelineName});
-    const hashQuery = query.toString().replace(/\+/g, '%20');
-    urlObj.hash = `/applications/${target.application}/executions?${hashQuery}`;
-    return setPipelineFilter(urlObj.toString(), target.pipelineName);
+    urlObj.hash = `/applications/${target.application}/executions`;
+    return withHashQuery(urlObj.toString(), (params) => {
+        params.set('q', target.pipelineName);
+        params.set('pipeline', target.pipelineName);
+    });
 }
 
 /**
@@ -95,13 +98,20 @@ export function buildIsolatedPipelineListUrl(
  * preserved; spaces encode as %20.
  */
 export function setPipelineFilter(url: string, pipelineName: string): string {
-    const urlObj = new URL(url);
-    const [hashPath, hashQuery = ''] = urlObj.hash.split('?');
-    const params = new URLSearchParams(hashQuery);
-    params.delete('pipeline');
-    params.set('pipeline', pipelineName);
-    urlObj.hash = `${hashPath}?${params.toString().replace(/\+/g, '%20')}`;
-    return urlObj.toString();
+    return withHashQuery(url, (params) => {
+        // Delete first: a bare set would update an existing filter in place,
+        // while Deck always writes the filter at the end of the query.
+        params.delete('pipeline');
+        params.set('pipeline', pipelineName);
+    });
+}
+
+/**
+ * Build the URL with every pipeline filter unchecked. Other hash query
+ * params are preserved; the `?` is dropped when nothing remains.
+ */
+export function clearPipelineFilters(url: string): string {
+    return withHashQuery(url, (params) => params.delete('pipeline'));
 }
 
 /**
@@ -110,16 +120,10 @@ export function setPipelineFilter(url: string, pipelineName: string): string {
  * through untouched.
  */
 export function transformPipelineFilters(url: string, transform: (name: string) => string): string {
-    const urlObj = new URL(url);
-    const [hashPath, hashQuery = ''] = urlObj.hash.split('?');
-    const params = new URLSearchParams(hashQuery);
-    const pipelines = params.getAll('pipeline');
-    if (pipelines.length === 0) return url;
-
-    params.delete('pipeline');
-    for (const name of pipelines) {
-        params.append('pipeline', transform(name));
-    }
-    urlObj.hash = `${hashPath}?${params.toString().replace(/\+/g, '%20')}`;
-    return urlObj.toString();
+    if (getPipelineFilters(url).length === 0) return url;
+    return withHashQuery(url, (params) => {
+        const pipelines = params.getAll('pipeline');
+        params.delete('pipeline');
+        pipelines.forEach((name) => params.append('pipeline', transform(name)));
+    });
 }

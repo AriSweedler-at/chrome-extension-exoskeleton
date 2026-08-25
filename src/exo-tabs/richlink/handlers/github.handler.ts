@@ -1,4 +1,5 @@
 import {Handler, type FormatContext} from '@exo/exo-tabs/richlink/base';
+import {queryFirstText} from '@exo/lib/dom';
 
 export class GitHubHandler extends Handler {
     readonly label: string = 'GitHub PR';
@@ -35,16 +36,11 @@ export class GitHubHandler extends Handler {
 
     extractLinkText({url}: FormatContext): string {
         // Extract PR title from page - try multiple selectors for different GitHub layouts
-        const titleElement =
-            document.querySelector('.markdown-title') ||
-            document.querySelector('.gh-header-title') ||
-            document.querySelector('.js-issue-title');
-
-        if (!titleElement?.textContent) {
+        const title = queryFirstText(['.markdown-title', '.gh-header-title', '.js-issue-title']);
+        if (!title) {
             return 'GitHub PR';
         }
 
-        const title = titleElement.textContent.trim();
         const prNumber = this.parsePrNumber(url);
         return prNumber ? `${title} (#${prNumber})` : title;
     }

@@ -4,7 +4,7 @@
  * Implements the core actions for interacting with Spinnaker UI:
  * - Toggle execution details
  * - Jump to the last pipeline of a stacked details view
- * - Isolate the open execution's pipeline
+ * - Isolate the open execution's pipeline / clear the pipeline filter
  * - Jump to hyperbase-deploy's isolated Deploy pipeline
  * - Climb to the parent execution via its breadcrumbs
  * - Open the OpenSearch links of the Monitoring Links stage
@@ -28,6 +28,8 @@ import {
 } from '@exo/exo-tabs/spinnaker/dom-utils';
 import {
     setPipelineFilter,
+    clearPipelineFilters,
+    getPipelineFilters,
     isStackedDetailsView,
     buildIsolatedExecutionUrl,
     buildIsolatedPipelineListUrl,
@@ -35,6 +37,7 @@ import {
 } from '@exo/exo-tabs/spinnaker/filters';
 import {getSpinnakerEnvironment, environmentToken} from '@exo/exo-tabs/spinnaker/url-match';
 import {Notifications} from '@exo/lib/toast-notification';
+import {waitFor} from '@exo/lib/wait-for';
 
 /**
  * Show a toast notification
@@ -118,18 +121,12 @@ function scrollToLastPipelineRow(): boolean {
     return true;
 }
 
-const CHILD_RENDER_POLL_MS = 100;
-const CHILD_RENDER_POLL_ATTEMPTS = 50;
-
 // Deck fetches the child execution before rendering its stack — wait for
 // its element instead of a fixed delay.
 async function waitForExecutionToRender(executionId: string): Promise<boolean> {
-    for (let attempt = 0; attempt < CHILD_RENDER_POLL_ATTEMPTS; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, CHILD_RENDER_POLL_MS));
-        if (document.getElementById(`execution-${executionId}`)) return true;
-    }
-    showNotification('The pipeline execution never rendered');
-    return false;
+    const rendered = await waitFor(() => document.getElementById(`execution-${executionId}`));
+    if (!rendered) showNotification('The pipeline execution never rendered');
+    return rendered !== null;
 }
 
 /**
@@ -166,6 +163,22 @@ export async function isolatePipeline(): Promise<void> {
     showNotification(`Isolated pipeline: ${pipelineName}`);
 }
 
+/**
+ * Undo 'i': uncheck every pipeline filter checkbox, so the view shows all
+ * pipelines again. Everything else about the view is left alone.
+ */
+export function unisolatePipeline(): void {
+    const url = window.location.href;
+    const filters = getPipelineFilters(url);
+    if (filters.length === 0) {
+        showNotification('No pipeline filter is set');
+        return;
+    }
+
+    window.location.href = clearPipelineFilters(url);
+    showNotification(`Cleared pipeline filter: ${filters.join(', ')}`);
+}
+
 async function isolateStackedExecution(executionId: string): Promise<void> {
     const pipelineName = findStackedPipelineName(executionId);
     if (!pipelineName) {
@@ -189,7 +202,6 @@ async function isolateStackedExecution(executionId: string): Promise<void> {
     showNotification(`Isolated pipeline: ${pipelineName} (${application})`);
 }
 
-const STAGE_PANE_POLL_MS = 100;
 const STAGE_PANE_POLL_ATTEMPTS = 30;
 
 /**
@@ -201,13 +213,9 @@ async function openEventStageAndFindApplication(executionId: string): Promise<st
     const marker = findEventStageMarker(executionId);
     if (!marker) return null;
     marker.click();
-
-    for (let attempt = 0; attempt < STAGE_PANE_POLL_ATTEMPTS; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
-        const application = findApplicationForExecution(executionId);
-        if (application) return application;
-    }
-    return null;
+    return waitFor(() => findApplicationForExecution(executionId), {
+        attempts: STAGE_PANE_POLL_ATTEMPTS,
+    });
 }
 
 /**
@@ -229,7 +237,9 @@ export async function climbToParentExecution(): Promise<void> {
     showNotification(`Jumping to parent pipeline: ${crumb.textContent?.trim()}`);
     if (!parentId || !childPipelineName) return;
 
-    const label = await waitForStageLabel(parentId, childPipelineName);
+    // Deck fetches the parent execution before rendering its stage graph —
+    // wait for the child's stage label instead of a fixed delay.
+    const label = await waitFor(() => findStageLabelForPipeline(parentId, childPipelineName));
     if (!label) {
         showNotification(`Could not find the stage that ran ${childPipelineName}`);
         return;
@@ -237,22 +247,6 @@ export async function climbToParentExecution(): Promise<void> {
     label.click();
     findExecutionRow(parentId)?.scrollIntoView({block: 'start'});
     showNotification(`Opened stage: ${label.textContent?.trim()}`);
-}
-
-const CLIMB_POLL_ATTEMPTS = 50;
-
-// Deck fetches the parent execution before rendering its stage graph — wait
-// for the child's stage label instead of a fixed delay.
-async function waitForStageLabel(
-    executionId: string,
-    pipelineName: string,
-): Promise<HTMLElement | null> {
-    for (let attempt = 0; attempt < CLIMB_POLL_ATTEMPTS; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
-        const label = findStageLabelForPipeline(executionId, pipelineName);
-        if (label) return label;
-    }
-    return null;
 }
 
 const MONITORING_STAGE_LABEL = 'Monitoring Links';
@@ -288,11 +282,11 @@ async function openMonitoringStageAndFindLinks(
     const label = findStageLabel(executionId, MONITORING_STAGE_LABEL);
     if (!label) return null;
     label.click();
-
-    for (let attempt = 0; attempt < STAGE_PANE_POLL_ATTEMPTS; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, STAGE_PANE_POLL_MS));
-        const links = findOpenSearchLinks(executionId);
-        if (links.length > 0) return links;
-    }
-    return null;
+    return waitFor(
+        () => {
+            const links = findOpenSearchLinks(executionId);
+            return links.length > 0 ? links : null;
+        },
+        {attempts: STAGE_PANE_POLL_ATTEMPTS},
+    );
 }

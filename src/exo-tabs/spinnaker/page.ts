@@ -3,12 +3,14 @@ import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 import {
     toggleExecution,
     isolatePipeline,
+    unisolatePipeline,
     isolateDeployPipeline,
     openMonitoringLinks,
     jumpToLastPipeline,
     climbToParentExecution,
 } from '@exo/exo-tabs/spinnaker/actions';
 import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
+import {SpinnakerRunAction, type SpinnakerActionId} from '@exo/exo-tabs/spinnaker/action';
 
 async function initialize() {
     if (!isSpinnakerPage(window.location.href)) return;
@@ -25,6 +27,13 @@ async function initialize() {
             key: 'i',
             description: 'Isolate pipeline',
             handler: isolatePipeline,
+            context: 'Spinnaker',
+        },
+        {
+            key: 'I',
+            modifiers: {shift: true},
+            description: 'Un-isolate (clear the pipeline filter)',
+            handler: unisolatePipeline,
             context: 'Spinnaker',
         },
         {
@@ -55,6 +64,13 @@ async function initialize() {
         },
     ]);
     keybindings.listen();
+
+    // The popup's buttons run the same handlers as the keybindings, in the
+    // same (page) context — button-click and keypress are one mechanism.
+    SpinnakerRunAction.handle(async ({action}: {action: SpinnakerActionId}) => {
+        const handlers = {toggleExecution, isolatePipeline} as const;
+        await handlers[action]();
+    });
 }
 
 initialize();

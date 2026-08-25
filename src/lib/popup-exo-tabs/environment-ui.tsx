@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, type ComponentType, type FC} from 'react';
 import {NotificationType} from '@exo/lib/toast-notification';
 import type {ShowToastPayload} from '@exo/lib/actions/show-toast.action';
 import {navigateAndToast} from '@exo/lib/service-worker/navigate-with-toast';
@@ -8,6 +8,45 @@ export interface EnvironmentInfo {
     env: string;
     url: string;
     current: boolean;
+}
+
+/** The environment after the current one in rotation, or undefined. */
+export function nextEnvironment(envs: EnvironmentInfo[] | undefined): EnvironmentInfo | undefined {
+    if (!envs?.length) return undefined;
+    const currentIdx = envs.findIndex((e) => e.current);
+    return envs[(currentIdx + 1) % envs.length];
+}
+
+/**
+ * A primaryAction that cycles the page to the next environment in rotation,
+ * toasting `label(next)` (the environment name by default).
+ */
+export function makeEnvCycleAction(
+    getEnvs: (url: string) => EnvironmentInfo[] | undefined,
+    label: (next: EnvironmentInfo) => string = (next) => next.env,
+): (tabId: number, url: string) => Promise<boolean> {
+    return async (tabId, url) => {
+        const next = nextEnvironment(getEnvs(url));
+        if (!next) return false;
+        await navigateAndToast(tabId, next.url, makeEnvToast(label(next)));
+        return true;
+    };
+}
+
+/** A popup tab body: the environment-switch button row above `Inner`, if any. */
+export function withEnvRow(
+    getEnvs: (url: string) => EnvironmentInfo[] | undefined,
+    Inner?: ComponentType,
+): FC {
+    return function EnvRowTab() {
+        const envs = useEnvironments(getEnvs);
+        return (
+            <>
+                {envs && <EnvButtonRow envs={envs} />}
+                {Inner && <Inner />}
+            </>
+        );
+    };
 }
 
 export function makeEnvToast(envName: string): ShowToastPayload {
@@ -26,14 +65,14 @@ export async function navigateToEnv(url: string, envName: string): Promise<void>
 
 const STYLE = {
     current: {
-        bg: theme.richlink.fallbackBg,
-        hoverBg: theme.richlink.fallbackBg,
+        bg: theme.envButton.fallbackBg,
+        hoverBg: theme.envButton.fallbackBg,
         cursor: 'default' as const,
         opacity: 0.5,
     },
     other: {
-        bg: theme.richlink.specializedBg,
-        hoverBg: theme.richlink.specializedHoverBg,
+        bg: theme.envButton.specializedBg,
+        hoverBg: theme.envButton.specializedHoverBg,
         cursor: 'pointer' as const,
         opacity: 1,
     },
@@ -57,7 +96,7 @@ export function EnvButton({info}: {info: EnvironmentInfo}) {
                 padding: '10px 8px',
                 fontSize: '14px',
                 fontWeight: 'bold',
-                border: `1px solid ${theme.richlink.border}`,
+                border: `1px solid ${theme.envButton.border}`,
                 borderRadius: '4px',
                 backgroundColor: s.bg,
                 color: theme.text.white,

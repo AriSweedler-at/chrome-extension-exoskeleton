@@ -37,7 +37,7 @@ Each tab lives in `src/exo-tabs/{name}/` with its own component, domain logic, c
 
 | File | Purpose |
 |------|---------|
-| `manifest.json` | Chrome extension manifest (permissions, entry points, keyboard shortcuts) |
+| `manifest.json` | Chrome extension manifest (permissions, entry points) — keyboard shortcuts live in the JS keybinding engine |
 | `package.json` | npm dependencies and scripts (dev, build, test, lint, format) |
 | `package-lock.json` | Locked dependency versions |
 | `tsconfig.json` | TypeScript config for IDE/LSP (includes test files for autocomplete) |

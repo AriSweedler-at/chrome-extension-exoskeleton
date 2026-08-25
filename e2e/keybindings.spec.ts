@@ -65,12 +65,18 @@ test.describe('exo keybindings (content script)', () => {
         await expect.poll(() => seenKeys(page)).toContain('?');
     });
 
-    test('d marks auto-hidden files as viewed, leaving other files alone', async ({context}) => {
+    test('d marks auto-hidden files as viewed, leaving other files alone, and scrolls down', async ({
+        context,
+    }) => {
         const page = await openToyPr(context);
+        // Make the fixture scrollable so the advance is observable.
+        await page.evaluate(() => {
+            document.body.style.minHeight = '5000px';
+        });
 
         await expect(async () => {
             await page.keyboard.press('d');
-            await expect(page.locator('#notification-container')).toContainText(
+            await expect(page.locator('#exo-notification-container')).toContainText(
                 'Marked 1 auto-hidden files as viewed (1 already viewed)',
                 {timeout: 500},
             );
@@ -84,6 +90,35 @@ test.describe('exo keybindings (content script)', () => {
         // dinghy.alpha (auto-hidden) flipped to viewed, dinghy.staging already
         // was; the rendered src/index.ts and the large diff stay untouched.
         expect(pressed).toEqual(['true', 'true', 'false', 'false']);
+
+        // Each press also advances a viewport, so holding d sweeps the PR.
+        expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    });
+
+    test('D shows the auto-hidden files again (undoes d)', async ({context}) => {
+        const page = await openToyPr(context);
+
+        await expect(async () => {
+            await page.keyboard.press('d');
+            await expect(page.locator('#exo-notification-container')).toContainText(
+                'Marked 1 auto-hidden files as viewed',
+                {timeout: 500},
+            );
+        }).toPass({timeout: 5000});
+
+        await page.keyboard.press('Shift+D');
+        await expect(page.locator('#exo-notification-container')).toContainText(
+            'Showed 2 auto-hidden files (unmarked as viewed)',
+        );
+
+        const pressed = await page.evaluate(() =>
+            Array.from(document.querySelectorAll('button[class*="MarkAsViewedButton"]')).map(
+                (btn) => btn.getAttribute('aria-pressed'),
+            ),
+        );
+        // Both auto-hidden files are unmarked — including dinghy.staging,
+        // which was viewed before d ran. Non-hidden files stay untouched.
+        expect(pressed).toEqual(['false', 'false', 'false', 'false']);
     });
 
     test('the f shortcut navigates to the Files changed tab', async ({context}) => {

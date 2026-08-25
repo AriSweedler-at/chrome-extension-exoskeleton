@@ -1,5 +1,6 @@
 import {Handler, type LinkFormat} from '@exo/exo-tabs/richlink/base';
 import {cleanUrl} from '@exo/exo-tabs/richlink/clean-url';
+import {safeUrl} from '@exo/lib/url';
 
 export class HandlerRegistry {
     private static baseHandlers: Handler[] = [];
@@ -14,21 +15,13 @@ export class HandlerRegistry {
     }
 
     static hasSpecializedHandler(url: string): boolean {
-        try {
-            const parsed = new URL(url);
-            return this.specializedHandlers.some((h) => h.canHandle(parsed));
-        } catch {
-            return false;
-        }
+        const parsed = safeUrl(url);
+        return parsed !== null && this.specializedHandlers.some((h) => h.canHandle(parsed));
     }
 
     static getAllFormats(url: string): LinkFormat[] {
-        let parsed: URL;
-        try {
-            parsed = new URL(url);
-        } catch {
-            return [];
-        }
+        const parsed = safeUrl(url);
+        if (!parsed) return [];
         const cleaned = cleanUrl(url);
         const specialized = this.specializedHandlers.filter((h) => h.canHandle(parsed));
         const combined = [...specialized, ...this.baseHandlers];

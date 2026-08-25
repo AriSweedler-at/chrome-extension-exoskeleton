@@ -1,5 +1,8 @@
 import {describe, it, expect, beforeEach} from 'vitest';
-import {buildCommand, getEnvironments, getNextEnvironmentUrl} from '@exo/exo-tabs/opensearch';
+import {buildCommand, getEnvironments} from '@exo/exo-tabs/opensearch';
+import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+
+const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 
 describe('getEnvironments', () => {
     it('returns all 3 envs with production marked current', () => {
@@ -51,7 +54,7 @@ describe('getEnvironments', () => {
     });
 });
 
-describe('getNextEnvironmentUrl', () => {
+describe('environment rotation (nextEnvironment over getEnvironments)', () => {
     it('cycles alpha → staging', () => {
         const next = getNextEnvironmentUrl(
             'https://opensearch-applogs.alpha-shadowbox.cloud/app/discover',

@@ -1,5 +1,7 @@
 import {scrollElementTop} from '@exo/exo-tabs/github-autoscroll/scroll';
 import {theme} from '@exo/theme/default';
+import {safeUrl} from '@exo/lib/url';
+import {queryFirstText} from '@exo/lib/dom';
 
 interface GitHubPR {
     owner: string;
@@ -12,13 +14,8 @@ interface GitHubPR {
  * Check if URL is on the GitHub host (support both github.com and www.github.com)
  */
 export function isGitHubHost(url: string): boolean {
-    try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        return hostname === 'github.com' || hostname === 'www.github.com';
-    } catch {
-        // Invalid URL
-        return false;
-    }
+    const hostname = safeUrl(url)?.hostname.toLowerCase();
+    return hostname === 'github.com' || hostname === 'www.github.com';
 }
 
 /**
@@ -26,24 +23,19 @@ export function isGitHubHost(url: string): boolean {
  * Returns null if the URL is not a GitHub pull request page.
  */
 function parseGitHubPRUrl(url: string): GitHubPR | null {
-    if (!isGitHubHost(url)) {
+    const urlObj = safeUrl(url);
+    if (!urlObj || !isGitHubHost(url)) {
         return null;
     }
-    try {
-        const urlObj = new URL(url);
 
-        // Parse pathname (ignoring query params and fragments)
-        // Expected format: owner/repo/pull/{number}[/tab]
-        const pathParts = urlObj.pathname.split('/').filter((part) => part !== '');
-        if (pathParts.length < 4 || pathParts[2] !== 'pull' || !/^\d+$/.test(pathParts[3])) {
-            return null;
-        }
-
-        return {owner: pathParts[0], repo: pathParts[1], prNumber: pathParts[3], tab: pathParts[4]};
-    } catch {
-        // Invalid URL
+    // Parse pathname (ignoring query params and fragments)
+    // Expected format: owner/repo/pull/{number}[/tab]
+    const pathParts = urlObj.pathname.split('/').filter((part) => part !== '');
+    if (pathParts.length < 4 || pathParts[2] !== 'pull' || !/^\d+$/.test(pathParts[3])) {
         return null;
     }
+
+    return {owner: pathParts[0], repo: pathParts[1], prNumber: pathParts[3], tab: pathParts[4]};
 }
 
 /**
@@ -160,6 +152,39 @@ export function markAutoHiddenFilesViewed(): {marked: number; alreadyViewed: num
 }
 
 /**
+ * The inverse of markAutoHiddenFilesViewed: unmark every auto-collapsed file
+ * currently marked as viewed, so they show in the list again.
+ */
+export function unmarkAutoHiddenFilesViewed(): {unmarked: number} {
+    const hiddenAnchors = getAutoHiddenDiffAnchors();
+    const toUnmark = getViewedToggles().filter(
+        (toggle) =>
+            toggle.anchor !== undefined && hiddenAnchors.has(toggle.anchor) && toggle.viewed,
+    );
+    for (const toggle of toUnmark) {
+        toggle.button.click();
+    }
+    return {unmarked: toUnmark.length};
+}
+
+/**
+ * GitHub's CSS-module diff header wrappers ('Diff-module__diffHeaderWrapper--'
+ * with a dynamic suffix) under `root`, unwrapped to the actual file header
+ * (each wrapper's first child). Null when `root` has no wrappers at all —
+ * distinct from [] (wrappers present but childless, e.g. mid-render), which
+ * callers must not paper over with looser selectors.
+ */
+function headersFromWrappers(root: Document | Element): HTMLElement[] | null {
+    const wrappers = Array.from(
+        root.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]'),
+    );
+    if (wrappers.length === 0) return null;
+    return wrappers
+        .map((wrapper) => wrapper.firstElementChild as HTMLElement)
+        .filter((el) => el !== null);
+}
+
+/**
  * Get all file elements in the PR changes view
  */
 function getFiles(): HTMLElement[] {
@@ -171,31 +196,17 @@ function getFiles(): HTMLElement[] {
         return diffFileHeaders as HTMLElement[];
     }
 
-    // Look for GitHub's CSS module classes with dynamic suffixes
-    // Target: class starting with 'Diff-module__diffHeaderWrapper--'
+    // Older CSS-module UI: prefer wrappers scoped to the files container,
+    // falling back to a global search
     const container = document.querySelector('[data-hpc="true"] .d-flex.flex-column.gap-3');
-
-    if (container) {
-        const diffHeaderWrappers = Array.from(
-            container.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]'),
-        );
-        if (diffHeaderWrappers.length > 0) {
-            // Extract the actual file header (first child) from each wrapper
-            return diffHeaderWrappers
-                .map((wrapper) => wrapper.firstElementChild as HTMLElement)
-                .filter((el) => el !== null);
-        }
+    const scoped = container ? headersFromWrappers(container) : null;
+    if (scoped) {
+        return scoped;
     }
 
-    // Fallback: search globally for the diff header wrapper pattern
-    const globalDiffHeaderWrappers = Array.from(
-        document.querySelectorAll('[class*="Diff-module__diffHeaderWrapper--"]'),
-    );
-    if (globalDiffHeaderWrappers.length > 0) {
-        // Extract the actual file header (first child) from each wrapper
-        return globalDiffHeaderWrappers
-            .map((wrapper) => wrapper.firstElementChild as HTMLElement)
-            .filter((el) => el !== null);
+    const global = headersFromWrappers(document);
+    if (global) {
+        return global;
     }
 
     // Final fallback selectors
@@ -234,28 +245,32 @@ function getFiles(): HTMLElement[] {
 }
 
 /**
+ * GitHub renders the viewed control near the file header: inside it, inside
+ * its closest div, or inside its parent.
+ */
+function queryNearby(el: HTMLElement, selector: string): Element | null {
+    return (
+        el.querySelector(selector) ??
+        el.closest('div')?.querySelector(selector) ??
+        el.parentElement?.querySelector(selector) ??
+        null
+    );
+}
+
+/**
  * Check if a file is marked as viewed
  */
 function isViewed(fileElement: HTMLElement): boolean {
     // Look for GitHub's new button-based "viewed" system
-    const viewedButton =
-        fileElement.querySelector('button[aria-pressed="true"]') ||
-        fileElement.closest('div')?.querySelector('button[aria-pressed="true"]') ||
-        fileElement.parentElement?.querySelector('button[aria-pressed="true"]');
-
-    if (viewedButton && viewedButton.textContent?.includes('Viewed')) {
+    const viewedButton = queryNearby(fileElement, 'button[aria-pressed="true"]');
+    if (viewedButton?.textContent?.includes('Viewed')) {
         return true;
     }
 
     // Check for the CSS class pattern that indicates viewed state
-    const viewedByClass =
-        fileElement.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
-        fileElement
-            .closest('div')
-            ?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]') ||
-        fileElement.parentElement?.querySelector('[class*="MarkAsViewedButton-module__viewed--"]');
-
-    if (viewedByClass) return true;
+    if (queryNearby(fileElement, '[class*="MarkAsViewedButton-module__viewed--"]')) {
+        return true;
+    }
 
     // Fallback to old checkbox system (if still exists)
     const checkboxSelectors = [
@@ -263,15 +278,9 @@ function isViewed(fileElement: HTMLElement): boolean {
         'input.js-reviewed-checkbox',
         'input[type="checkbox"]',
     ];
-
-    for (const selector of checkboxSelectors) {
-        const cb =
-            fileElement.querySelector(selector) ||
-            fileElement.closest('div')?.querySelector(selector) ||
-            fileElement.parentElement?.querySelector(selector);
-        if (cb && (cb as HTMLInputElement).checked) return true;
-    }
-    return false;
+    return checkboxSelectors.some(
+        (selector) => (queryNearby(fileElement, selector) as HTMLInputElement | null)?.checked,
+    );
 }
 
 /**
@@ -279,42 +288,28 @@ function isViewed(fileElement: HTMLElement): boolean {
  */
 function findNextUnviewedAfter(currentFile: HTMLElement | null): HTMLElement | null {
     const files = getFiles();
-
-    if (files.length === 0) {
-        return null;
-    }
-
-    // If no current file, return first unviewed
-    if (!currentFile) {
-        return files.find((file) => !isViewed(file)) || null;
-    }
-
-    // Find index of current file
-    const currentIndex = files.indexOf(currentFile);
-    if (currentIndex === -1) {
-        return files.find((file) => !isViewed(file)) || null;
-    }
-
-    // Find next unviewed file after current
-    for (let i = currentIndex + 1; i < files.length; i++) {
-        if (!isViewed(files[i])) {
-            return files[i];
-        }
-    }
-
-    return null;
+    // A missing or unknown current file searches from the start: indexOf's
+    // -1 plus 1 is 0
+    const start = currentFile ? files.indexOf(currentFile) + 1 : 0;
+    return files.slice(start).find((file) => !isViewed(file)) ?? null;
 }
 
 /**
- * Add flash animation to file element
+ * Add flash animation to file element. The animation's own end (or its
+ * cancellation, e.g. teardown removing the injected styles) removes the
+ * class — the flash's clock is the only clock.
  */
-function flashFile(fileElement: HTMLElement, timers: number[]): void {
+function flashFile(fileElement: HTMLElement): void {
     const cl = fileElement.classList;
     cl.add('gh-autoscroll-flash');
-    const timerId = window.setTimeout(() => {
+    const onEnd = (event: AnimationEvent) => {
+        if (event.animationName !== 'flashBorder') return;
         cl.remove('gh-autoscroll-flash');
-    }, 1500);
-    timers.push(timerId);
+        fileElement.removeEventListener('animationend', onEnd);
+        fileElement.removeEventListener('animationcancel', onEnd);
+    };
+    fileElement.addEventListener('animationend', onEnd);
+    fileElement.addEventListener('animationcancel', onEnd);
 }
 
 /**
@@ -337,19 +332,16 @@ function getFileName(fileElement: HTMLElement): string {
     }
 
     // Method 3: Look for filename in text content of specific selectors
-    const filenameSelectors = [
-        'a[href*="/blob/"]',
-        '.file-info a',
-        '[data-testid="file-header"] a',
-        '.js-file-line-container a',
-    ];
-
-    for (const selector of filenameSelectors) {
-        const el = fileElement.querySelector(selector);
-        if (el && el.textContent && el.textContent.trim()) {
-            return el.textContent.trim();
-        }
-    }
+    const filenameText = queryFirstText(
+        [
+            'a[href*="/blob/"]',
+            '.file-info a',
+            '[data-testid="file-header"] a',
+            '.js-file-line-container a',
+        ],
+        fileElement,
+    );
+    if (filenameText) return filenameText;
 
     // Method 4: Look for any link that looks like a file path
     const links = fileElement.querySelectorAll('a');
@@ -366,7 +358,12 @@ function getFileName(fileElement: HTMLElement): string {
 /**
  * Handle "Viewed" button click
  */
-function onButtonClick(event: Event, timers: number[], debug: boolean): void {
+function onButtonClick(
+    event: Event,
+    timers: number[],
+    observers: Set<MutationObserver>,
+    debug: boolean,
+): void {
     const button = (event.target as Element).closest('button');
     if (!button || !button.textContent?.includes('Viewed')) {
         return;
@@ -397,13 +394,23 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         return;
     }
 
-    // Check if file is now marked as viewed after the click.
-    // We need to wait for GitHub's handler to update the aria-pressed attribute.
-    // The 100ms delay is necessary because:
-    // 1. Our handler fires before GitHub's handler (event bubbling)
-    // 2. GitHub's handler updates aria-pressed asynchronously
-    // 3. We need to check the updated state to decide whether to scroll
-    const timerId = window.setTimeout(() => {
+    // Our capture-phase handler fires before GitHub's, so this snapshot is
+    // the pre-flip state. The decision below fires when GitHub's own visual
+    // state (aria-pressed / viewed class) actually flips — observed, not
+    // sampled after a guessed delay.
+    const wasViewed = isViewed(fileElement);
+
+    const settle = (flipped: boolean) => {
+        observer.disconnect();
+        observers.delete(observer);
+        window.clearTimeout(giveUpTimer);
+
+        if (!flipped) {
+            if (debug) {
+                console.log('[GitHub AutoScroll] Viewed state never changed');
+            }
+            return;
+        }
         if (!isViewed(fileElement)) {
             // File was unmarked as viewed
             if (debug) {
@@ -423,7 +430,7 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
         const nextFile = findNextUnviewedAfter(fileElement);
         if (nextFile) {
             scrollElementTop(nextFile, {offsetTop: 0});
-            flashFile(nextFile, timers);
+            flashFile(nextFile);
             if (debug) {
                 console.log('[GitHub AutoScroll] Scrolled to:', getFileName(nextFile));
             }
@@ -432,8 +439,21 @@ function onButtonClick(event: Event, timers: number[], debug: boolean): void {
                 console.log('[GitHub AutoScroll] No more unviewed files');
             }
         }
-    }, 100);
-    timers.push(timerId);
+    };
+
+    const observer = new MutationObserver(() => {
+        if (isViewed(fileElement) !== wasViewed) settle(true);
+    });
+    observers.add(observer);
+    observer.observe(fileElement.parentElement ?? fileElement, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['aria-pressed', 'class'],
+    });
+    // Give-up fallback for UIs where no observed attribute mutates (the
+    // legacy checkbox flips a property, not an attribute).
+    const giveUpTimer = window.setTimeout(() => settle(isViewed(fileElement) !== wasViewed), 2000);
+    timers.push(giveUpTimer);
 }
 
 /**
@@ -456,8 +476,9 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
         return null;
     }
 
-    // Track all setTimeout IDs for cleanup
+    // Track pending timers and observers for cleanup
     const timers: number[] = [];
+    const observers = new Set<MutationObserver>();
 
     // Inject CSS for flash animation (check for existing style first)
     let style = document.getElementById('gh-autoscroll-styles');
@@ -475,7 +496,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
                 inset: 0;
                 border: 8px solid ${theme.flashBorder};
                 pointer-events: none;
-                animation: flashBorder 0.75s ease alternate 2;
+                animation: flashBorder 0.75s ease alternate 2 both;
             }
             @keyframes flashBorder {
                 0% { opacity: 0; }
@@ -486,7 +507,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
     }
 
     // Add click listener at document level with capture phase
-    const clickHandler = (e: Event) => onButtonClick(e, timers, debug);
+    const clickHandler = (e: Event) => onButtonClick(e, timers, observers, debug);
     document.addEventListener('click', clickHandler, true);
 
     if (debug) {
@@ -501,7 +522,7 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
             console.log('[GitHub AutoScroll] Scrolling to first unviewed file:', fileName);
         }
         scrollElementTop(firstUnviewed, {offsetTop: 0});
-        flashFile(firstUnviewed, timers);
+        flashFile(firstUnviewed);
     }
 
     // Return cleanup function
@@ -510,11 +531,13 @@ export function initializeAutoScroll(debug = false): (() => void) | null {
             console.log('[GitHub AutoScroll] Stopping...');
         }
 
-        // Clear all pending timers
+        // Clear all pending timers and observers
         timers.forEach((timerId) => {
             clearTimeout(timerId);
         });
         timers.length = 0;
+        observers.forEach((observer) => observer.disconnect());
+        observers.clear();
 
         // Remove document-level listeners
         document.removeEventListener('click', clickHandler, true);

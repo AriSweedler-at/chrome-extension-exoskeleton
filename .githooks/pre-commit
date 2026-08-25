@@ -5,8 +5,10 @@ function check_exo_tab_folders() {
   for dir in src/exo-tabs/*/; do
     local name="$(basename "$dir")"
     [[ "$name" == "node_modules" ]] && continue
-    if [[ ! -f "${dir}tab.tsx" ]]; then
-      log::err "exo-tab folder '$name' is missing tab.tsx"
+    # A tab folder needs a popup side (tab.tsx), a page side (page.ts/tsx),
+    # or both — page-only modules (richlink, airtable-shelf) are valid.
+    if [[ ! -f "${dir}tab.tsx" && ! -f "${dir}page.ts" && ! -f "${dir}page.tsx" ]]; then
+      log::err "exo-tab folder '$name' has neither tab.tsx nor page.ts(x)"
       failed=1
     fi
   done

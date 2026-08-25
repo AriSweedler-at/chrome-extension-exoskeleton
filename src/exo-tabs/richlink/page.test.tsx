@@ -3,16 +3,16 @@ import {render} from '@testing-library/react';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications} from '@exo/lib/toast-notification';
 import {HandlerRegistry} from '@exo/exo-tabs/richlink/handlers';
-import {handleCopyRichLink} from '@exo/exo-tabs/richlink/page';
+import {copyRichLink} from '@exo/exo-tabs/richlink/page';
 
 /**
- * The popup fetches formats via GetFormatsAction → HandlerRegistry.getAllFormats(url).
- * The copy handler (handleCopyRichLink) internally calls the same getAllFormats,
- * picks formats[i], and writes format.text / format.html to the clipboard.
+ * The Cmd+Shift+C keybinding calls copyRichLink, which resolves formats via
+ * HandlerRegistry.getAllFormats(url), picks formats[i], and writes
+ * format.text / format.html to the clipboard.
  *
- * These tests exercise both codepaths and zip their outputs together:
- * for each format the popup would display, call handleCopyRichLink with that
- * formatIndex, then assert the clipboard received the matching text and html.
+ * These tests zip both codepaths together: for each format the registry
+ * offers, call copyRichLink with that formatIndex, then assert the clipboard
+ * received the matching text and html.
  */
 
 vi.mock('@exo/lib/clipboard', () => ({
@@ -22,17 +22,13 @@ vi.mock('@exo/lib/toast-notification', () => ({
     Notifications: {show: vi.fn()},
     NotificationType: {Success: 'success', Error: 'error'},
 }));
-vi.mock('@exo/exo-tabs/richlink/copy-counter', () => ({
-    CopyCounter: {increment: vi.fn(), getCount: vi.fn().mockResolvedValue(0)},
-}));
 vi.mock('@exo/exo-tabs/richlink/format-cycling', () => ({
-    CACHE_EXPIRY_MS: 3000,
+    CYCLE_WINDOW_MS: 3000,
     getNextFormatIndex: vi.fn().mockReturnValue(0),
     cacheFormatIndex: vi.fn(),
     isCycling: vi.fn().mockReturnValue(false),
+    clearCycleState: vi.fn(),
 }));
-
-const dummySender = {} as chrome.runtime.MessageSender;
 
 describe('popup/page format parity', () => {
     beforeEach(() => {
@@ -51,11 +47,7 @@ describe('popup/page format parity', () => {
 
         for (let i = 0; i < popupFormats.length; i++) {
             vi.mocked(Clipboard.write).mockClear();
-            const result = await handleCopyRichLink(
-                {url, formatIndex: i},
-                dummySender,
-                undefined as void,
-            );
+            const result = await copyRichLink({url, formatIndex: i});
 
             expect(result.formatIndex).toBe(i);
             expect(result.totalFormats).toBe(popupFormats.length);
@@ -81,11 +73,7 @@ describe('popup/page format parity', () => {
 
         for (let i = 0; i < popupFormats.length; i++) {
             vi.mocked(Clipboard.write).mockClear();
-            const result = await handleCopyRichLink(
-                {url, formatIndex: i},
-                dummySender,
-                undefined as void,
-            );
+            const result = await copyRichLink({url, formatIndex: i});
 
             expect(result.formatIndex).toBe(i);
             expect(result.totalFormats).toBe(popupFormats.length);
@@ -103,11 +91,7 @@ describe('popup/page format parity', () => {
         const popupFormats = HandlerRegistry.getAllFormats(url);
         expect(popupFormats.map((f) => f.label)).not.toContain('Spinnaker Pipeline');
 
-        const result = await handleCopyRichLink(
-            {url, formatIndex: 0},
-            dummySender,
-            undefined as void,
-        );
+        const result = await copyRichLink({url, formatIndex: 0});
 
         expect(result.success).toBe(true);
         expect(Clipboard.write).toHaveBeenCalledWith(
@@ -120,11 +104,7 @@ describe('popup/page format parity', () => {
         const url =
             'https://spinnaker.k8s.shadowbox.cloud/#/applications/hyperbase-deploy/executions/01HPN5GWDEJ5088Y9QZ4JPG2C0?pipeline=Blue%20Green%20Provisioning%20PRODUCTION';
 
-        const result = await handleCopyRichLink(
-            {url, formatIndex: 0},
-            dummySender,
-            undefined as void,
-        );
+        const result = await copyRichLink({url, formatIndex: 0});
 
         expect(result.success).toBe(true);
         expect(Clipboard.write).toHaveBeenCalledWith(
@@ -137,7 +117,7 @@ describe('popup/page format parity', () => {
         document.title = 'Example Page';
         const url = 'https://example.com/some-page';
 
-        await handleCopyRichLink({url, formatIndex: 0}, dummySender, undefined as void);
+        await copyRichLink({url, formatIndex: 0});
 
         const calls = vi.mocked(Notifications.show).mock.calls;
         const toast = calls[calls.length - 1]?.[0];
@@ -165,11 +145,7 @@ describe('popup/page format parity', () => {
 
         for (let i = 0; i < popupFormats.length; i++) {
             vi.mocked(Clipboard.write).mockClear();
-            const result = await handleCopyRichLink(
-                {url, formatIndex: i},
-                dummySender,
-                undefined as void,
-            );
+            const result = await copyRichLink({url, formatIndex: i});
 
             expect(result.formatIndex).toBe(i);
             expect(result.totalFormats).toBe(popupFormats.length);
