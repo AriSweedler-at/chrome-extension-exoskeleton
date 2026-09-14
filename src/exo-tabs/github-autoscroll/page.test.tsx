@@ -97,51 +97,66 @@ describe('GitHub Autoscroll Content Script Integration', () => {
         expect(sendResponse).toHaveBeenCalledWith({active: true});
     });
 
-    it('starts autoscroll on GITHUB_AUTOSCROLL_TOGGLE when inactive', async () => {
-        await import('@exo/index');
+    describe("'a' toggles autoscroll on PR pages", () => {
+        const pressA = () => {
+            const event = new KeyboardEvent('keydown', {key: 'a', cancelable: true, bubbles: true});
+            document.body.dispatchEvent(event);
+            return event;
+        };
 
-        const githubListener = findGitHubListener(messageListeners);
+        // A PR page with files, but not the changes tab — so the 500ms
+        // auto-run never fires and only the keystroke drives state.
+        const PR_URL = 'https://github.com/owner/repo/pull/123';
 
-        // Mock GitHub PR page structure with files
-        const container = document.createElement('div');
-        container.setAttribute('data-hpc', 'true');
-        const filesContainer = document.createElement('div');
-        filesContainer.className = 'd-flex flex-column gap-3';
+        it('starts autoscroll when inactive, then stops it', async () => {
+            vi.stubGlobal('location', {href: PR_URL});
+            document.body.innerHTML = `
+                <div data-hpc="true">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="Diff-module__diffHeaderWrapper--abc123">
+                            <button aria-pressed="false">Viewed</button>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-        // Add a file element so initializeAutoScroll doesn't return null
-        const fileElement = document.createElement('div');
-        fileElement.className = 'Diff-module__diffHeaderWrapper--abc123';
-        const button = document.createElement('button');
-        button.setAttribute('aria-pressed', 'false');
-        button.textContent = 'Viewed';
-        fileElement.appendChild(button);
-        filesContainer.appendChild(fileElement);
+            await import('@exo/index');
 
-        container.appendChild(filesContainer);
-        document.body.appendChild(container);
+            expect(pressA().defaultPrevented).toBe(true);
+            await vi.waitFor(() => expect(window.__ghAutoScrollStop).toBeTypeOf('function'));
 
-        const sendResponse = vi.fn();
-        const result = githubListener({type: 'GITHUB_AUTOSCROLL_TOGGLE'}, {}, sendResponse);
+            const stopFn = vi.fn();
+            window.__ghAutoScrollStop = stopFn;
+            pressA();
+            await vi.waitFor(() => expect(stopFn).toHaveBeenCalled());
 
-        expect(result).toBe(true); // Async handler
-        expect(sendResponse).toHaveBeenCalledWith({active: true});
-        expect(window.__ghAutoScrollStop).toBeTypeOf('function');
-    });
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
 
-    it('stops autoscroll on GITHUB_AUTOSCROLL_TOGGLE when active', async () => {
-        await import('@exo/index');
+        it('toasts instead of starting when the page has no files', async () => {
+            vi.stubGlobal('location', {href: PR_URL});
 
-        const githubListener = findGitHubListener(messageListeners);
+            await import('@exo/index');
 
-        // Simulate autoscroll being active
-        const stopFn = vi.fn();
-        window.__ghAutoScrollStop = stopFn;
+            pressA();
+            await vi.waitFor(() => expect(document.body.textContent).toContain('No files found'));
+            expect(window.__ghAutoScrollStop).toBeUndefined();
 
-        const sendResponse = vi.fn();
-        githubListener({type: 'GITHUB_AUTOSCROLL_TOGGLE'}, {}, sendResponse);
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
 
-        expect(stopFn).toHaveBeenCalled();
-        expect(sendResponse).toHaveBeenCalledWith({active: false});
+        it('leaves a alone on non-PR GitHub pages', async () => {
+            vi.stubGlobal('location', {href: 'https://github.com/owner/repo'});
+
+            await import('@exo/index');
+
+            expect(pressA().defaultPrevented).toBe(false);
+
+            const {keybindings} = await import('@exo/lib/keybindings');
+            keybindings.unlisten();
+        });
     });
 
     it('returns false for unknown message types', async () => {

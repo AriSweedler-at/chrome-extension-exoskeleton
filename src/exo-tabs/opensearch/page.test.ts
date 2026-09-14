@@ -1,4 +1,4 @@
-import {describe, it, expect, vi, beforeEach} from 'vitest';
+import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {handleExtractLogCommand} from '@exo/exo-tabs/opensearch/page';
 
 // Mock Clipboard
@@ -6,6 +6,10 @@ vi.mock('@exo/lib/clipboard', () => ({
     Clipboard: {
         write: vi.fn().mockResolvedValue(undefined),
     },
+}));
+
+vi.mock('@exo/lib/keybindings', () => ({
+    keybindings: {register: vi.fn(), registerAll: vi.fn(), listen: vi.fn()},
 }));
 
 // Mock Notifications
@@ -138,5 +142,46 @@ describe('handleExtractLogCommand', () => {
 
         expect(result.success).toBe(true);
         expect(result.command).toContain('--hostname=ip-preferred');
+    });
+});
+
+describe('environment cycling keybinding', () => {
+    beforeEach(() => {
+        vi.resetModules();
+        vi.clearAllMocks();
+        // The page module registers ExtractLogCommandAction's message handler.
+        vi.stubGlobal('chrome', {runtime: {onMessage: {addListener: vi.fn()}}});
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    async function importPageModule() {
+        await import('@exo/exo-tabs/opensearch/page');
+        const {keybindings} = await import('@exo/lib/keybindings');
+        return keybindings;
+    }
+
+    it('registers Shift+E on OpenSearch pages', async () => {
+        vi.stubGlobal('location', {
+            href: 'https://opensearch-applogs.shadowbox.cloud/app/data-explorer/discover',
+        });
+
+        const keybindings = await importPageModule();
+
+        expect(keybindings.register).toHaveBeenCalledWith(
+            expect.objectContaining({key: 'E', modifiers: {shift: true}, context: 'OpenSearch'}),
+        );
+        expect(keybindings.listen).toHaveBeenCalled();
+    });
+
+    it('registers nothing on non-OpenSearch pages', async () => {
+        vi.stubGlobal('location', {href: 'https://example.com/page'});
+
+        const keybindings = await importPageModule();
+
+        expect(keybindings.register).not.toHaveBeenCalled();
+        expect(keybindings.listen).not.toHaveBeenCalled();
     });
 });

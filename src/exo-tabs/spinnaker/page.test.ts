@@ -61,7 +61,7 @@ describe('spinnaker page module', () => {
         const bindings = vi.mocked(keybindings.registerAll).mock.calls[0][0];
         expect(
             bindings.map((b: {key?: string; sequence?: string[]}) => b.key ?? b.sequence?.join('')),
-        ).toEqual(['e', 'i', 'I', 'd', 'M', 'G', 'gg']);
+        ).toEqual(['e', 'i', 'I', 'd', 'M', 'G', 'gg', 'E']);
         expect(keybindings.listen).toHaveBeenCalled();
     });
 

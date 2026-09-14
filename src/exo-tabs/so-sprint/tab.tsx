@@ -18,6 +18,5 @@ TabRegistry.register({
     id: 'so-sprint',
     label: 'SO SPRINT',
     component: SoSprintComponent,
-    primaryAction: async () => false, // No action yet
     getPriority: matchPriority(isSoSprintPage),
 });

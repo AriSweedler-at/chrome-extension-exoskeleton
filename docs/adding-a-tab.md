@@ -1,6 +1,6 @@
 # Adding a New Tab
 
-Tabs are the top-level unit of functionality in the extension. Each tab targets specific websites, renders its own UI in the popup, and can respond to the universal keyboard shortcut (Cmd+Shift+X).
+Tabs are the top-level unit of functionality in the extension. Each tab targets specific websites, renders its own UI in the popup, and registers its own page-side keyboard shortcuts.
 
 ## Structure
 
@@ -72,10 +72,6 @@ TabRegistry.register({
         return Number.MAX_SAFE_INTEGER;
     },
 
-    primaryAction: async (tabId: number, url: string) => {
-        return false;
-    },
-
     // enablementToggle: true,  // optional: show enable/disable toggle
 });
 ```
@@ -115,6 +111,24 @@ MyAction.handle(handleMyAction);
 ```
 
 The glob in `src/index.tsx` auto-discovers `page.ts` files — no manual wiring needed.
+
+Keyboard shortcuts are registered the same way, in `page.ts`, gated on the page URL. The content script runs on every site, so touch the shared registry only on your own pages:
+
+```ts
+import {keybindings} from '@exo/lib/keybindings';
+
+if (isMyFeaturePage(window.location.href)) {
+    keybindings.register({
+        key: 'x',
+        description: 'Do the thing',
+        context: 'My Feature', // grouping in the '?' help overlay
+        handler: doTheThing,
+    });
+    keybindings.listen();
+}
+```
+
+A shortcut that only sometimes applies (an SPA whose URL changes without a reload) takes a `when` guard; while it returns false the key falls through to the page. Sites with alpha/staging/production variants compose `makeEnvCycleBinding` from `@exo/lib/environments` to get the shared Shift+E environment switch — see `exo-tabs/spacelift/page.ts`.
 
 Keep `page.ts` thin — domain logic belongs in `index.ts` or dedicated modules.
 
@@ -168,7 +182,6 @@ interface TabRegistration {
     label: string;
     component: ComponentType;
     getPriority: (url: string) => number;
-    primaryAction: (tabId: number, url: string) => Promise<boolean>;
     enablementToggle?: boolean;
 }
 ```
@@ -181,17 +194,13 @@ interface TabRegistration {
 | `1`, `2`, ... | Visible, lower priority |
 | `Number.MAX_SAFE_INTEGER` | Hidden for this URL |
 
-### `primaryAction(tabId, url)`
-
-Called on **Cmd+Shift+X**. Return `true` if handled, `false` to pass to the next tab.
-
 ### Communicating with Content Scripts
 
 Each tab has two entry points:
 
 ```
-src/exo-tabs/my-feature/tab.tsx     # popup side — UI, priority, primary action
-src/exo-tabs/my-feature/page.ts     # page side — action handlers, page behaviors
+src/exo-tabs/my-feature/tab.tsx     # popup side — UI, priority
+src/exo-tabs/my-feature/page.ts     # page side — keybindings, action handlers, page behaviors
 ```
 
 Both are auto-discovered via `import.meta.glob`. Domain logic lives in `index.ts` or dedicated modules.

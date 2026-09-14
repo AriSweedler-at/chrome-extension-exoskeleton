@@ -31,13 +31,13 @@ describe('showToastPayload', () => {
 
     it('renders the message headline alongside the detail block', async () => {
         showToastPayload({
-            message: 'No primary action available',
+            message: 'Nothing to copy here',
             detail: 'Tried: OpenSearch, Spinnaker',
         });
 
         const notification = container.querySelector('.chrome-ext-notification') as HTMLElement;
         await vi.waitFor(() => {
-            expect(notification.textContent).toContain('No primary action available');
+            expect(notification.textContent).toContain('Nothing to copy here');
             expect(notification.textContent).toContain('Tried: OpenSearch, Spinnaker');
         });
         expect(notification.querySelector('pre')?.textContent).toBe('Tried: OpenSearch, Spinnaker');

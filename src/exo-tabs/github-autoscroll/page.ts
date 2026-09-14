@@ -40,6 +40,17 @@ function stopAutoscroll(): void {
     Notifications.show({message: 'GitHub PR Autoscroll disabled', opacity: 0.5});
 }
 
+/** 'a': flip autoscroll — the one label-less surface that genuinely means "toggle". */
+function toggleAutoscroll(): void {
+    if (typeof window.__ghAutoScrollStop === 'function') {
+        stopAutoscroll();
+    } else if (!startAutoscroll()) {
+        Notifications.show({
+            message: "No files found. Make sure you're on a GitHub PR changes page.",
+        });
+    }
+}
+
 /**
  * Try to auto-run autoscroll on GitHub PR changes pages
  */
@@ -147,6 +158,12 @@ function syncPRTabShortcuts() {
                 handler: showAutoHiddenFiles,
                 context: 'GitHub PR',
             },
+            {
+                key: 'a',
+                description: 'Toggle PR autoscroll',
+                handler: toggleAutoscroll,
+                context: 'GitHub PR',
+            },
         ]);
         keybindings.listen();
     } else {
@@ -154,6 +171,7 @@ function syncPRTabShortcuts() {
         keybindings.unregister('f');
         keybindings.unregister('d');
         keybindings.unregister('D', {shift: true});
+        keybindings.unregister('a');
     }
 }
 
@@ -207,6 +225,7 @@ function initializeMessageHandlers() {
             // the request names the state its label promised, so a stale
             // label degrades to a visible self-correcting no-op instead of a
             // silent inverse action. Idempotent; responds with the real state.
+            // (A label-less flip is the 'a' keybinding, handled page-side.)
             if (message.type === 'GITHUB_AUTOSCROLL_SET') {
                 if (message.active) {
                     if (!startAutoscroll()) {
@@ -219,25 +238,6 @@ function initializeMessageHandlers() {
                     stopAutoscroll();
                 }
                 sendResponse({active: typeof window.__ghAutoScrollStop === 'function'});
-                return true;
-            }
-
-            // TOGGLE is for label-less surfaces (Cmd+Shift+X) that genuinely
-            // mean 'flip'.
-            if (message.type === 'GITHUB_AUTOSCROLL_TOGGLE') {
-                if (typeof window.__ghAutoScrollStop === 'function') {
-                    stopAutoscroll();
-                    sendResponse({active: false});
-                } else {
-                    const started = startAutoscroll();
-                    if (!started) {
-                        Notifications.show({
-                            message:
-                                "No files found. Make sure you're on a GitHub PR changes page.",
-                        });
-                    }
-                    sendResponse({active: started});
-                }
                 return true;
             }
 

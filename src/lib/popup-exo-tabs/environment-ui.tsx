@@ -3,35 +3,7 @@ import {NotificationType} from '@exo/lib/toast-notification';
 import type {ShowToastPayload} from '@exo/lib/actions/show-toast.action';
 import {navigateAndToast} from '@exo/lib/service-worker/navigate-with-toast';
 import {theme} from '@exo/theme/default';
-
-export interface EnvironmentInfo {
-    env: string;
-    url: string;
-    current: boolean;
-}
-
-/** The environment after the current one in rotation, or undefined. */
-export function nextEnvironment(envs: EnvironmentInfo[] | undefined): EnvironmentInfo | undefined {
-    if (!envs?.length) return undefined;
-    const currentIdx = envs.findIndex((e) => e.current);
-    return envs[(currentIdx + 1) % envs.length];
-}
-
-/**
- * A primaryAction that cycles the page to the next environment in rotation,
- * toasting `label(next)` (the environment name by default).
- */
-export function makeEnvCycleAction(
-    getEnvs: (url: string) => EnvironmentInfo[] | undefined,
-    label: (next: EnvironmentInfo) => string = (next) => next.env,
-): (tabId: number, url: string) => Promise<boolean> {
-    return async (tabId, url) => {
-        const next = nextEnvironment(getEnvs(url));
-        if (!next) return false;
-        await navigateAndToast(tabId, next.url, makeEnvToast(label(next)));
-        return true;
-    };
-}
+import type {EnvironmentInfo} from '@exo/lib/environments';
 
 /** A popup tab body: the environment-switch button row above `Inner`, if any. */
 export function withEnvRow(

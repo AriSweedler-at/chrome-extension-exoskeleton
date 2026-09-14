@@ -8,10 +8,4 @@ TabRegistry.register({
     component: GitHubAutoscrollContent,
     getPriority: matchPriority(isGitHubPRChangesPage),
     enablementToggle: true,
-    primaryAction: async (tabId) => {
-        const response = await chrome.tabs.sendMessage(tabId, {
-            type: 'GITHUB_AUTOSCROLL_TOGGLE',
-        });
-        return !!response;
-    },
 });

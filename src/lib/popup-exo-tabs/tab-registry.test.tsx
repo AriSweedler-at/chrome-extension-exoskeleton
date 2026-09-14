@@ -1,7 +1,5 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 import {TabRegistry, matchPriority} from '@exo/lib/popup-exo-tabs/tab-registry';
-import {ShowToastAction} from '@exo/lib/actions/show-toast.action';
-import {NotificationType} from '@exo/lib/toast-notification';
 
 const TestComponent = () => <div>Test</div>;
 
@@ -15,7 +13,6 @@ describe('matchPriority', () => {
             id: 'test',
             label: 'Test',
             component: TestComponent,
-            primaryAction: async () => false,
             getPriority: matchPriority((url) => url.includes('example.com')),
         });
 
@@ -36,7 +33,6 @@ describe('TabRegistry', () => {
                     id: 'test',
                     label: 'Test',
                     component: TestComponent,
-                    primaryAction: async () => false,
                     getPriority: () => 100,
                 });
             }).not.toThrow();
@@ -47,7 +43,6 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -56,7 +51,6 @@ describe('TabRegistry', () => {
                     id: 'test',
                     label: 'Test 2',
                     component: TestComponent,
-                    primaryAction: async () => false,
                     getPriority: () => 100,
                 });
             }).toThrow("Tab ID 'test' already registered");
@@ -69,7 +63,6 @@ describe('TabRegistry', () => {
                 id: 'tab1',
                 label: 'Tab 1',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -77,7 +70,6 @@ describe('TabRegistry', () => {
                 id: 'tab2',
                 label: 'Tab 2',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 0,
             });
 
@@ -85,7 +77,6 @@ describe('TabRegistry', () => {
                 id: 'tab3',
                 label: 'Tab 3',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 50,
             });
 
@@ -102,7 +93,6 @@ describe('TabRegistry', () => {
                 id: 'visible',
                 label: 'Visible',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 100,
             });
 
@@ -110,7 +100,6 @@ describe('TabRegistry', () => {
                 id: 'hidden',
                 label: 'Hidden',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => Number.MAX_SAFE_INTEGER,
             });
 
@@ -128,7 +117,6 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: (url: string) => {
                     receivedUrl = url;
                     return 100;
@@ -145,104 +133,12 @@ describe('TabRegistry', () => {
                 id: 'test',
                 label: 'Test',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 42,
             });
 
             const visible = TabRegistry.getVisibleTabs('http://example.com');
 
             expect(visible[0].priority).toBe(42);
-        });
-    });
-
-    describe('dispatchPrimaryAction', () => {
-        const registerTab = (
-            label: string,
-            priority: number,
-            primaryAction: (tabId: number, url: string) => Promise<boolean>,
-        ) => {
-            TabRegistry.register({
-                id: label.toLowerCase(),
-                label,
-                component: TestComponent,
-                primaryAction,
-                getPriority: () => priority,
-            });
-        };
-
-        const mockShowToast = () =>
-            vi.spyOn(ShowToastAction, 'sendToTab').mockResolvedValue(undefined);
-
-        it('stops at the first tab (by priority) whose primaryAction handles it', async () => {
-            const showToast = mockShowToast();
-            const lowPriority = vi.fn().mockResolvedValue(true);
-            const highPriority = vi.fn().mockResolvedValue(true);
-            registerTab('LowPriority', 100, lowPriority);
-            registerTab('HighPriority', 0, highPriority);
-
-            await TabRegistry.dispatchPrimaryAction(7, 'http://example.com');
-
-            expect(highPriority).toHaveBeenCalledWith(7, 'http://example.com');
-            expect(lowPriority).not.toHaveBeenCalled();
-            expect(showToast).not.toHaveBeenCalled();
-        });
-
-        it('falls through to the next tab when primaryAction returns false', async () => {
-            const showToast = mockShowToast();
-            const first = vi.fn().mockResolvedValue(false);
-            const second = vi.fn().mockResolvedValue(true);
-            registerTab('First', 0, first);
-            registerTab('Second', 50, second);
-
-            await TabRegistry.dispatchPrimaryAction(7, 'http://example.com');
-
-            expect(first).toHaveBeenCalledWith(7, 'http://example.com');
-            expect(second).toHaveBeenCalledWith(7, 'http://example.com');
-            expect(showToast).not.toHaveBeenCalled();
-        });
-
-        it('continues past a throwing primaryAction and logs the error', async () => {
-            const showToast = mockShowToast();
-            const first = vi.fn().mockRejectedValue(new Error('boom'));
-            const second = vi.fn().mockResolvedValue(true);
-            registerTab('First', 0, first);
-            registerTab('Second', 50, second);
-
-            await TabRegistry.dispatchPrimaryAction(7, 'http://example.com');
-
-            expect(second).toHaveBeenCalledWith(7, 'http://example.com');
-            expect(console.error).toHaveBeenCalledWith(
-                'Primary action failed for tab "First":',
-                expect.any(Error),
-            );
-            expect(showToast).not.toHaveBeenCalled();
-        });
-
-        it('shows an error toast listing tried tabs in priority order when none handle it', async () => {
-            const showToast = mockShowToast();
-            registerTab('Second', 50, vi.fn().mockResolvedValue(false));
-            registerTab('First', 0, vi.fn().mockResolvedValue(false));
-
-            await TabRegistry.dispatchPrimaryAction(7, 'http://example.com');
-
-            expect(showToast).toHaveBeenCalledWith(7, {
-                message: 'No primary action available',
-                type: NotificationType.Error,
-                detail: 'Tried: First, Second',
-            });
-        });
-
-        it('shows a no-tabs-matched toast when no tabs are visible', async () => {
-            const showToast = mockShowToast();
-            registerTab('Hidden', Number.MAX_SAFE_INTEGER, vi.fn().mockResolvedValue(true));
-
-            await TabRegistry.dispatchPrimaryAction(7, 'http://example.com');
-
-            expect(showToast).toHaveBeenCalledWith(7, {
-                message: 'No primary action available',
-                type: NotificationType.Error,
-                detail: 'No tabs matched this page',
-            });
         });
     });
 
@@ -254,7 +150,6 @@ describe('TabRegistry', () => {
                 id: 'test-with-enablement',
                 label: 'Test',
                 component: TestComponent,
-                primaryAction: async () => false,
                 getPriority: () => 0,
                 enablementToggle: true,
             });

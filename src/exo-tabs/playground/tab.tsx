@@ -6,6 +6,5 @@ TabRegistry.register({
     label: 'Playground',
     component: PlaygroundComponent,
     enablementToggle: true,
-    primaryAction: async () => false,
     getPriority: matchPriority((url) => url.includes('docs.google.com/document')),
 });

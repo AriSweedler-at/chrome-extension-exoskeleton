@@ -1,6 +1,6 @@
 import {describe, it, expect, beforeEach} from 'vitest';
 import {buildCommand, getEnvironments} from '@exo/exo-tabs/opensearch';
-import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+import {nextEnvironment} from '@exo/lib/environments';
 
 const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 

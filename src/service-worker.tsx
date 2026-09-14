@@ -2,13 +2,10 @@ import {
     ensureInjectContentScript,
     CONTENT_SCRIPT_PATH,
 } from '@exo/lib/service-worker/content-script-injector';
-import {initializePrimaryActionHandler} from '@exo/lib/service-worker/primary-action-handler';
 
 /**
  * Background service worker entry point
  */
-
-initializePrimaryActionHandler();
 
 chrome.runtime.onInstalled.addListener(async (details) => {
     console.log('Extension installed/updated:', details.reason);

@@ -14,14 +14,12 @@ function registerFixtureTabs() {
         id: 'alpha',
         label: 'Alpha',
         component: AlphaContent,
-        primaryAction: async () => false,
         getPriority: () => 0,
     });
     TabRegistry.register({
         id: 'beta',
         label: 'Beta',
         component: BetaContent,
-        primaryAction: async () => false,
         getPriority: () => 1,
     });
 }
@@ -154,7 +152,6 @@ describe('TabBar', () => {
             id: 'never-matches',
             label: 'Never',
             component: AlphaContent,
-            primaryAction: async () => false,
             getPriority: matchPriority(() => false),
         });
 
@@ -171,7 +168,6 @@ describe('TabBar', () => {
             id: 'test-enablement',
             label: 'Test',
             component: TestComponent,
-            primaryAction: async () => false,
             getPriority: () => 0,
             enablementToggle: true,
         });
@@ -196,7 +192,6 @@ describe('TabBar', () => {
             id: 'test-no-enablement',
             label: 'Test',
             component: TestComponent,
-            primaryAction: async () => false,
             getPriority: () => 0,
         });
 

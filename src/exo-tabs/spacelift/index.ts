@@ -14,8 +14,12 @@ export function isSpaceliftStackPage(url: string): boolean {
     return parseStackName(url) !== undefined;
 }
 
-import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
-export type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+export function isSpaceliftPage(url: string): boolean {
+    return safeUrl(url)?.hostname === SPACELIFT_HOSTNAME;
+}
+
+import type {EnvironmentInfo} from '@exo/lib/environments';
+export type {EnvironmentInfo} from '@exo/lib/environments';
 
 /** Returns all environments with their URLs and which is current, or undefined if not a recognized stack. */
 export function getEnvironments(url: string): EnvironmentInfo[] | undefined {

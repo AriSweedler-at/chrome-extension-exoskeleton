@@ -1,4 +1,5 @@
 import {keybindings} from '@exo/lib/keybindings';
+import {makeEnvCycleBinding} from '@exo/lib/environments';
 import {isTabEnabled} from '@exo/lib/popup-exo-tabs/use-tab-enablement';
 import {
     toggleExecution,
@@ -9,7 +10,7 @@ import {
     jumpToLastPipeline,
     climbToParentExecution,
 } from '@exo/exo-tabs/spinnaker/actions';
-import {isSpinnakerPage} from '@exo/exo-tabs/spinnaker/url-match';
+import {isSpinnakerPage, getEnvironments} from '@exo/exo-tabs/spinnaker/url-match';
 import {SpinnakerRunAction, type SpinnakerActionId} from '@exo/exo-tabs/spinnaker/action';
 
 async function initialize() {
@@ -62,6 +63,7 @@ async function initialize() {
             handler: climbToParentExecution,
             context: 'Spinnaker',
         },
+        makeEnvCycleBinding({getEnvs: getEnvironments, context: 'Spinnaker'}),
     ]);
     keybindings.listen();
 

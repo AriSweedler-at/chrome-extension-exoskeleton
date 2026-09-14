@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {isSpaceliftStackPage, getEnvironments} from '@exo/exo-tabs/spacelift';
-import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+import {nextEnvironment} from '@exo/lib/environments';
 
 const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 

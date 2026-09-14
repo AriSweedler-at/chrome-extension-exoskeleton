@@ -6,7 +6,7 @@ import {
     getSpinnakerEnvironment,
     environmentToken,
 } from '@exo/exo-tabs/spinnaker/url-match';
-import {nextEnvironment} from '@exo/lib/popup-exo-tabs/environment-ui';
+import {nextEnvironment} from '@exo/lib/environments';
 
 const getNextEnvironmentUrl = (url: string) => nextEnvironment(getEnvironments(url))?.url;
 

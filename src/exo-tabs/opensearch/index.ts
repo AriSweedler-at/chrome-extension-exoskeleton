@@ -1,4 +1,4 @@
-import type {EnvironmentInfo} from '@exo/lib/popup-exo-tabs/environment-ui';
+import type {EnvironmentInfo} from '@exo/lib/environments';
 import {safeUrl} from '@exo/lib/url';
 import {queryFirst} from '@exo/lib/dom';
 

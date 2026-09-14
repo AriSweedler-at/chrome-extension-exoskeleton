@@ -4,7 +4,14 @@ import {
 } from '@exo/exo-tabs/opensearch/action';
 import {Clipboard} from '@exo/lib/clipboard';
 import {Notifications, NotificationType} from '@exo/lib/toast-notification';
-import {findOpenFlyout, buildCommand} from '@exo/exo-tabs/opensearch';
+import {
+    findOpenFlyout,
+    buildCommand,
+    getEnvironments,
+    isOpenSearchPage,
+} from '@exo/exo-tabs/opensearch';
+import {keybindings} from '@exo/lib/keybindings';
+import {makeEnvCycleBinding} from '@exo/lib/environments';
 import {theme} from '@exo/theme/default';
 
 export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult> {
@@ -43,3 +50,8 @@ export async function handleExtractLogCommand(): Promise<ExtractLogCommandResult
 
 // Self-register: importing this module wires the handler
 ExtractLogCommandAction.handle(handleExtractLogCommand);
+
+if (isOpenSearchPage(window.location.href)) {
+    keybindings.register(makeEnvCycleBinding({getEnvs: getEnvironments, context: 'OpenSearch'}));
+    keybindings.listen();
+}

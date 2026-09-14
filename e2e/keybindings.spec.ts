@@ -1,6 +1,12 @@
 import {test, expect} from './fixtures';
 import type {BrowserContext, Page} from '@playwright/test';
-import {openFixturePage, seenKeys, resetSeenKeys} from './helpers';
+import {
+    openFixturePage,
+    seenKeys,
+    resetSeenKeys,
+    pressAndExpectToast,
+    expectToast,
+} from './helpers';
 import {PR_URL, PR_HTML} from './fixture-pages';
 
 /**
@@ -119,6 +125,14 @@ test.describe('exo keybindings (content script)', () => {
         // Both auto-hidden files are unmarked — including dinghy.staging,
         // which was viewed before d ran. Non-hidden files stay untouched.
         expect(pressed).toEqual(['false', 'false', 'false', 'false']);
+    });
+
+    test('a toggles PR autoscroll', async ({context}) => {
+        const page = await openToyPr(context);
+
+        await pressAndExpectToast(page, 'a', 'GitHub PR Autoscroll enabled');
+        await page.keyboard.press('a');
+        await expectToast(page, 'GitHub PR Autoscroll disabled');
     });
 
     test('the f shortcut navigates to the Files changed tab', async ({context}) => {

@@ -140,10 +140,10 @@ isolation mode (after `i`), sourced from the URL filter itself. Without
 isolation it offers a **Spinnaker Application** link instead, so copying
 always works.
 
-## Environment switching (Cmd+Shift+X)
+## Environment switching (Shift+E)
 
-The primary action cycles alpha → staging → production by rewriting the
-hostname; the popup also shows one button per environment. Pipeline filters
+`E` cycles alpha → staging → production by rewriting the hostname; the popup
+also shows one button per environment. Pipeline filters
 are carried across and retargeted: the environment token inside the pipeline
 name is swapped (`?pipeline=Continuous Migration PRODUCTION` becomes
 `?pipeline=Continuous Migration ALPHA` on the alpha URL).
